@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use ArgoNavis\PhpAnchorSdk\SEP\Toml\TomlData;
-use ArgoNavis\PhpAnchorSdk\SEP\Toml\TomlProvider;
+use ArgoNavis\PhpAnchorSdk\Sep01\TomlData;
+use ArgoNavis\PhpAnchorSdk\Sep01\TomlProvider;
 use Psr\Http\Message\ResponseInterface;
 use Soneso\StellarSDK\Network;
 use Soneso\StellarSDK\SEP\Toml\Documentation;
