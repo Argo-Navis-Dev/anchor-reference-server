@@ -17,6 +17,7 @@ Route::get('/', function () {
     return view('home');
 });
 
+// SEP-01
 Route::prefix('.well-known')->group(function () {
     Route::get('/stellar.toml', [\App\Http\Controllers\StellarTomlController::class, 'toml']);
 });

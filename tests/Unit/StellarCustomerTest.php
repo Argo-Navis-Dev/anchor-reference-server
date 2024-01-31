@@ -11,12 +11,16 @@ use Soneso\StellarSDK\Network;
 use Soneso\StellarSDK\SEP\KYCService\GetCustomerInfoRequest;
 use Soneso\StellarSDK\SEP\KYCService\KYCService;
 use Soneso\StellarSDK\SEP\KYCService\PutCustomerInfoRequest;
+use Soneso\StellarSDK\SEP\KYCService\PutCustomerVerificationRequest;
 use Soneso\StellarSDK\SEP\StandardKYCFields\NaturalPersonKYCFields;
 use Soneso\StellarSDK\SEP\StandardKYCFields\StandardKYCFields;
 use Soneso\StellarSDK\SEP\Toml\StellarToml;
 use Soneso\StellarSDK\SEP\WebAuth\WebAuth;
+use Throwable;
 use function PHPUnit\Framework\assertEquals;
 use function PHPUnit\Framework\assertNotNull;
+use function PHPUnit\Framework\assertTrue;
+
 class StellarCustomerTest extends TestCase
 {
     // See: https://dev.to/robertobutti/laravel-artisan-serve-and-https-cb0
@@ -49,6 +53,7 @@ class StellarCustomerTest extends TestCase
         $jwtToken = $this->getJwtToken($userKeyPair);
         $kycService = $this->getKycService();
 
+        // add new customer
         $request = new PutCustomerInfoRequest();
         $request->account = $userAccountId;
         $request->jwt = $jwtToken;
@@ -80,9 +85,11 @@ class StellarCustomerTest extends TestCase
         $emailField = $providedFields['email_address'];
         assertEquals(ProvidedCustomerFieldStatus::VERIFICATION_REQUIRED, $emailField->getStatus());
 
+
+        // update customer
         $naturalPersonFields = new NaturalPersonKYCFields();
         $naturalPersonFields->lastName = "Doe2";
-        $naturalPersonFields->idNumber = "12345";
+        $naturalPersonFields->idNumber = "91283763";
         $naturalPersonFields->idType = "Passport";
         $kyc->naturalPersonKYCFields = $naturalPersonFields;
         $request->id = $id;
@@ -99,6 +106,33 @@ class StellarCustomerTest extends TestCase
         assertNotNull($response->getProvidedFields());
         assertEquals(CustomerStatus::PROCESSING, $response->getStatus());
 
+        // verify email address
+        $verificationRequest = new PutCustomerVerificationRequest();
+        $verificationRequest->id = $id;
+        $verificationRequest->jwt = $jwtToken;
+        $fields = array();
+        $fields['email_address_verification'] = '123456';
+        $verificationRequest->verificationFields = $fields;
+
+        // random code will not match
+        $thrown = false;
+        try {
+            $kycService->putCustomerVerification($verificationRequest);
+        } catch (Throwable) {
+            // invalid code
+            $thrown = true;
+        }
+        assertTrue($thrown);
+
+
+        /*
+        // to test this, you need to set a fixed code in Sep12Helper::sendVerificationCode()
+        $response = $kycService->putCustomerVerification($verificationRequest);
+        $providedFields = $response->getProvidedFields();
+        assertNotNull($providedFields);
+        $emailField = $providedFields['email_address'];
+        assertEquals(ProvidedCustomerFieldStatus::ACCEPTED, $emailField->getStatus());
+        */
         $kycService->deleteCustomer($userAccountId, $jwtToken);
 
         $request = new GetCustomerInfoRequest();

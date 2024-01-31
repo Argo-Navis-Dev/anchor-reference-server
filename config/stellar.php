@@ -61,7 +61,7 @@ return [
         | finish the authentication process. (ie: sign and respond the challenge transaction).
         |
         */
-        'auth_timeout' => 300,
+        'auth_timeout' => 900,
 
         /*
         |--------------------------------------------------------------------------

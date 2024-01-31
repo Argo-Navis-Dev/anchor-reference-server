@@ -169,10 +169,10 @@ class Sep12Helper
         // check if the customer provided any fields
         if ($request->kycFields !== null || $request->kycUploadedFiles !== null) {
             $kycData = array();
-            if ($request->kycFields) {
+            if ($request->kycFields !== null) {
                 $kycData = array_merge($kycData, $request->kycFields);
             }
-            if ($request->kycFields) {
+            if ($request->kycUploadedFiles !== null) {
                 $kycData = array_merge($kycData, $request->kycUploadedFiles);
             }
 
@@ -235,10 +235,10 @@ class Sep12Helper
 
         // create the provided fields from the new data
         $kycData = array();
-        if ($request->kycFields) {
+        if ($request->kycFields !== null) {
             $kycData = array_merge($kycData, $request->kycFields);
         }
-        if ($request->kycFields) {
+        if ($request->kycUploadedFiles !== null) {
             $kycData = array_merge($kycData, $request->kycUploadedFiles);
         }
         $newProvidedFields = self::createSep12ProvidedFieldsFromKycFields($customer->id, $kycData, allSep12Fields: $allSep12Fields);
@@ -306,6 +306,57 @@ class Sep12Helper
     }
 
     /**
+     * Checks the verification code provided and updates the field if it matches.
+     * Currently only supports email verification.
+     * @throws AnchorFailure if the provided code dose not natch.
+     */
+    public static function handleVerification(Sep12Customer $customer, array $verificationFields) : void {
+
+        // for now, we only have to handle email verification.
+        if (!isset($verificationFields['email_address_verification'])) {
+            return;
+        }
+        $verificationCode = $verificationFields['email_address_verification'];
+
+        // load all fields that the customer provided earlier
+        $sep12ProvidedFields = Sep12ProvidedField::where('sep12_customer_id', $customer->id)->get();
+
+
+        // check if the user provided an email address and if so update the verification
+        if ($sep12ProvidedFields === null || count($sep12ProvidedFields) === 0) {
+            return;
+        }
+
+        $sep12EmailField = Sep12Field::where('key', 'email_address')->first();
+        if($sep12EmailField === null) {
+            // there is no email field
+            return;
+        }
+
+        foreach ($sep12ProvidedFields as $field) {
+            if ($field->sep12_field_id == $sep12EmailField->id) {
+
+                // check if it is already verified
+                if ($field->verified
+                    && $field->status !== ProvidedCustomerFieldStatus::VERIFICATION_REQUIRED) {
+                    return;
+                }
+
+                // check if the verification code matches
+                if ($field->verification_code === $verificationCode) {
+                    // ok, update
+                    $field->verified = true;
+                    $field->status = ProvidedCustomerFieldStatus::ACCEPTED;
+                    $field->save();
+                } else {
+                    throw new AnchorFailure('invalid email verification code');
+                }
+                break;
+            }
+        }
+
+    }
+    /**
      * Loads a customer from the db for the given data.
      * @param string $accountId account id of the customer.
      * @param string|null $memo memo that identifies the customer, if any.
@@ -343,9 +394,6 @@ class Sep12Helper
          * @var array<int> $providedFieldsIds
          */
         $providedSep12FieldsIds = array();
-
-        // check if any of the provided fields need verification
-        $verificationRequired = false;
         foreach($sep12ProvidedFields as $providedField) {
             $providedSep12FieldsIds[] = $providedField->sep12_field_id;
         }
@@ -392,11 +440,11 @@ class Sep12Helper
                 foreach($fieldsThatRequireVerification as $field) {
                     if($field->sep12_field_id === $sep12EmailFieldId) {
                         $emailAddress = $field->string_value;
-                        $verificationCode = rand(100000, 999999);
+                        $verificationCode = rand(100000, 999999); // set: 123456 - for test
                         $field->refresh();
                         $field->verification_code = strval($verificationCode);
                         $field->save();
-                        //Mail::to($emailAddress)->send(new Sep12EmailVerification($field->verification_code));
+                        Mail::to($emailAddress)->send(new Sep12EmailVerification($field->verification_code));
                         break;
                     }
                 }
@@ -489,10 +537,8 @@ class Sep12Helper
         $result = array();
         if (count($kycFields) > 0) {
             foreach ($kycFields as $kycFieldKey => $kycFieldValue) {
-                Log::debug($kycFieldKey);
                 foreach($mFields as $mField) {
                     if ($mField->key === $kycFieldKey) { // only allow known fields
-                        Log::debug("KNOWN");
                         $providedField = new Sep12ProvidedField;
                         $providedField->status = ProvidedCustomerFieldStatus::PROCESSING;
                         if ($mField->requires_verification) {
@@ -503,7 +549,6 @@ class Sep12Helper
 
                         // check if the field contains an uploaded file.
                         if ($kycFieldValue instanceof UploadedFileInterface) {
-                            Log::debug("UPLOAD");
                             if ($mField->type !== 'binary') {
                                 throw new AnchorFailure($kycFieldKey . ' must be ' . $mField->type);
                             }

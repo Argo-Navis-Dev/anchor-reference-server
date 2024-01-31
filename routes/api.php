@@ -16,18 +16,23 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+// SEP-10
 Route::get('auth', [StellarAuthController::class, 'auth']);
 Route::post('auth', [StellarAuthController::class, 'auth']);
-
-Route::get('customer', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
-Route::put('customer', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
-Route::put('customer/verification', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
-Route::delete('customer/{account_id}', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
 
 Route::get('/test_stellar_auth', function (Request $request) {
     return $request->input('stellar_auth');
 })->middleware(StellarAuthMiddleware::class);
 
+
+// SEP-12
+Route::get('customer', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
+Route::put('customer', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
+Route::put('customer/verification', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
+Route::delete('customer/{account_id}', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
+
+// other
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });

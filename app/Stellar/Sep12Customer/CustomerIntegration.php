@@ -22,8 +22,6 @@ use Illuminate\Support\Facades\Log;
 
 class CustomerIntegration implements ICustomerIntegration
 {
-    private string $id = 'd1ce2f48-3ff1-495d-9240-7a50d806cfed';
-
     /**
      * @inheritDoc
      */
@@ -83,9 +81,14 @@ class CustomerIntegration implements ICustomerIntegration
      */
     public function putCustomerVerification(PutCustomerVerificationRequest $request): GetCustomerResponse
     {
-        // TODO implement this.
+        $customer = Sep12Customer::where('id', $request->id)->first();
+        if ($customer === null) {
+            throw new CustomerNotFoundForId($request->id);
+        }
 
-        return $this->getCustomer(new GetCustomerRequest($this->id));
+        Sep12Helper::handleVerification($customer, $request->verificationFields);
+
+        return $this->getCustomer(new GetCustomerRequest($request->id));
     }
 
     /**
