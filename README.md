@@ -32,16 +32,18 @@ The implementation of the Service Layer Library can be found [here](https://gith
 
 `php artisan composer install`
 
-3. Start the server:
+3. Create your `.env` file as shown in [.env.example](https://github.com/Argo-Navis-Dev/anchor-reference-server/blob/main/.env.example)
+
+4. Start the server:
 
 `php artisan serve` - The server will run on `http://localhost:8000`
 
-4. Start vite:
+5. Start vite:
 
 `npm run dev` - Now the server accepts requests at: `https://localhost:5173`
 
-5. Run the db migration and seed the data:
+6. Run the db migration and seed the data:
 
 `php artisan migrate:refresh --seed`
 
-6. Run the [StellarCustomerTest](https://github.com/Argo-Navis-Dev/anchor-reference-server/blob/main/tests/Unit/StellarCustomerTest.php) cases - The test uses SEP-01, SEP-10, SEP-09 and SEP-12 functionality. 
+7. Run the [StellarCustomerTest](https://github.com/Argo-Navis-Dev/anchor-reference-server/blob/main/tests/Unit/StellarCustomerTest.php) cases - The test uses SEP-01, SEP-10, SEP-09 and SEP-12 functionality. 
