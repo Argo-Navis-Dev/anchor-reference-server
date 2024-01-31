@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\StellarAuthController;
+use App\Http\Controllers\StellarCustomerController;
 use App\Http\Middleware\StellarAuthMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +18,11 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('auth', [StellarAuthController::class, 'auth']);
 Route::post('auth', [StellarAuthController::class, 'auth']);
+
+Route::get('customer', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
+Route::put('customer', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
+Route::put('customer/verification', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
+Route::delete('customer/{account_id}', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
 
 Route::get('/test_stellar_auth', function (Request $request) {
     return $request->input('stellar_auth');

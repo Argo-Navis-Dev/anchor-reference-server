@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Reference Server</title>
+    <title>Test</title>
+    @vite('resources/css/app.css')
 </head>
-<body>
-    <h3>Anchor Reference Server</h3>
+
+<body class="antialiased">
+Test HTTPS
 </body>
+
 </html>

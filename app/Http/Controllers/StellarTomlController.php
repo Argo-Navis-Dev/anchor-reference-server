@@ -31,8 +31,9 @@ class StellarTomlController extends Controller
         $generalInfo = new GeneralInformation();
         $generalInfo->version = "2.0.0";
         $generalInfo->networkPassphrase = Network::testnet()->getNetworkPassphrase();
-        $generalInfo->webAuthEndpoint = "http://localhost:8000/webauth";
-        $generalInfo->signingKey = "GCIFNTTPECZ4M2PXR76FTRDJM4AV7P2Q7275FL24BNFB56XCWMO53474";
+        $generalInfo->webAuthEndpoint = "https://localhost:5173/auth";
+        $generalInfo->kYCServer = "https://localhost:5173/";
+        $generalInfo->signingKey = "GCAT3G32LQV2V3WHRMKXLFAQNOCQXTUPUQXOXSTLSLSCLIVQP2NRQQ3T";
         $tomlData->generalInformation = $generalInfo;
 
         $doc = new Documentation();
