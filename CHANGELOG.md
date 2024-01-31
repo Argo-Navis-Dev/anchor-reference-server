@@ -11,3 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - SEP-01 Support
 - SEP-10 Support
+
+## [0.2.0] - 2023-01-31
+
+### Added
+
+- SEP-12 Support
+- SEP-09 Support
