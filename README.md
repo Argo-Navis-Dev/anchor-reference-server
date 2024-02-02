@@ -30,7 +30,7 @@ The implementation of the Service Layer Library can be found [here](https://gith
 
 2. Install the dependencies: 
 
-`php artisan composer install`
+`php composer install`
 
 3. Create your `.env` file as shown in [.env.example](https://github.com/Argo-Navis-Dev/anchor-reference-server/blob/main/.env.example)
 
