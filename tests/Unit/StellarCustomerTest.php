@@ -65,7 +65,7 @@ class StellarCustomerTest extends TestCase
             $filePath = '../files/id_front.png';
         }
         $naturalPersonFields->photoIdFront = file_get_contents($filePath, false);
-        $naturalPersonFields->emailAddress = "c.rogobete@soneso.com";
+        $naturalPersonFields->emailAddress = "testuser@stellargate.com";
         $kyc = new StandardKYCFields();
         $kyc->naturalPersonKYCFields = $naturalPersonFields;
         $request->KYCFields = $kyc;

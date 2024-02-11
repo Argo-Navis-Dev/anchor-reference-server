@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\StellarAuthController;
 use App\Http\Controllers\StellarCustomerController;
+use App\Http\Controllers\StellarInteractiveFlowController;
 use App\Http\Middleware\StellarAuthMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,14 @@ Route::get('customer', [StellarCustomerController::class, 'customer'])->middlewa
 Route::put('customer', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
 Route::put('customer/verification', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
 Route::delete('customer/{account_id}', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
+
+// SEP-24
+Route::get('sep24/info', [StellarInteractiveFlowController::class, 'interactive']);
+Route::get('sep24/fee', [StellarInteractiveFlowController::class, 'interactive']);
+Route::post('sep24/transactions/deposit/interactive', [StellarInteractiveFlowController::class, 'interactive'])->middleware(StellarAuthMiddleware::class);
+Route::post('sep24/transactions/withdraw/interactive', [StellarInteractiveFlowController::class, 'interactive'])->middleware(StellarAuthMiddleware::class);
+Route::get('sep24/transaction', [StellarInteractiveFlowController::class, 'interactive'])->middleware(StellarAuthMiddleware::class);
+Route::get('sep24/transactions', [StellarInteractiveFlowController::class, 'interactive'])->middleware(StellarAuthMiddleware::class);
 
 // other
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

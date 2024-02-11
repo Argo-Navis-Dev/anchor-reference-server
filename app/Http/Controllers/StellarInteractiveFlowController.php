@@ -2,35 +2,34 @@
 
 declare(strict_types=1);
 
-// Copyright 2023 Argo Navis Dev. All rights reserved.
+// Copyright 2024 Argo Navis Dev. All rights reserved.
 // Use of this source code is governed by a license that can be
 // found in the LICENSE file.
 
 namespace App\Http\Controllers;
 
-use App\Stellar\Sep12Customer\CustomerIntegration;
+use App\Stellar\Sep24Interactive\InteractiveFlowIntegration;
+use App\Stellar\StellarSep24Config;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidSep10JwtData;
 use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Jwt;
-use ArgoNavis\PhpAnchorSdk\Sep12\Sep12Service;
-use Illuminate\Http\Request;
+use ArgoNavis\PhpAnchorSdk\Sep12\RequestBodyDataParser;
+use ArgoNavis\PhpAnchorSdk\Sep24\Sep24Service;
+use Illuminate\Support\Facades\Log;
 use Laminas\Diactoros\Response\JsonResponse;
-use Laminas\Diactoros\ServerRequestFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class StellarCustomerController extends Controller
+class StellarInteractiveFlowController extends Controller
 {
-    public function customer(ServerRequestInterface $request): ResponseInterface {
+    public function interactive(ServerRequestInterface $request): ResponseInterface {
 
         $auth = $this->getStellarAuthData($request);
-        if ($auth === null) {
-            return new JsonResponse(['error' => 'Unauthorized! Use SEP-10 to authenticate.'], 401);
-        }
         try {
-            $sep10Jwt = Sep10Jwt::fromArray($auth);
-            $customerIntegration = new CustomerIntegration();
-            $sep12Service = new Sep12Service($customerIntegration);
-            return $sep12Service->handleRequest($request, $sep10Jwt);
+            $sep10Jwt = $auth === null ? null : Sep10Jwt::fromArray($auth);
+            $sep24Config = new StellarSep24Config();
+            $sep24Integration = new InteractiveFlowIntegration();
+            $sep24Service = new Sep24Service($sep24Config, $sep24Integration);
+            return $sep24Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
             return new JsonResponse(['error' => 'Unauthorized! Invalid token data: ' . $e->getMessage()], 401);
         }
