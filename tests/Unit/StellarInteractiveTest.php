@@ -46,7 +46,7 @@ class StellarInteractiveTest extends TestCase
 
         assertNotNull($response->featureFlags);
         $featureFlags = $response->featureFlags;
-        self::assertFalse($featureFlags->accountCreation);
+        self::assertTrue($featureFlags->accountCreation);
         self::assertFalse($featureFlags->claimableBalances);
 
         $depositAssets = $response->depositAssets;

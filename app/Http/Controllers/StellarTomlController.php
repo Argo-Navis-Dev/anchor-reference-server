@@ -12,6 +12,8 @@ use ArgoNavis\PhpAnchorSdk\Sep01\TomlData;
 use ArgoNavis\PhpAnchorSdk\Sep01\TomlProvider;
 use Psr\Http\Message\ResponseInterface;
 use Soneso\StellarSDK\Network;
+use Soneso\StellarSDK\SEP\Toml\Currencies;
+use Soneso\StellarSDK\SEP\Toml\Currency;
 use Soneso\StellarSDK\SEP\Toml\Documentation;
 use Soneso\StellarSDK\SEP\Toml\GeneralInformation;
 use Soneso\StellarSDK\SEP\Toml\PointOfContact;
@@ -36,6 +38,23 @@ class StellarTomlController extends Controller
         $generalInfo->transferServerSep24 = "https://localhost:5173/sep24";
         $generalInfo->signingKey = "GCAT3G32LQV2V3WHRMKXLFAQNOCQXTUPUQXOXSTLSLSCLIVQP2NRQQ3T";
         $tomlData->generalInformation = $generalInfo;
+
+        $currencyART = new Currency();
+        $currencyART->code = 'ART';
+        $currencyART->issuer = 'GDD4AM7ZITM6VIJBF6GFA6GCYY5EKMZ77OKYCLWGQYXNAK3KABDUOART';
+        $currencyART->status = 'test';
+        $currencyART->isAssetAnchored = false;
+        $currencyART->desc = 'Argo Navis Reference Token (ART) is an asset issued on testnet and is used as an anchored asset for this reference server for demonstration and testing purposes.';
+
+        $currencyUSDC = new Currency();
+        $currencyUSDC->code = 'USDC';
+        $currencyUSDC->issuer = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
+        $currencyUSDC->status = 'test';
+        $currencyUSDC->isAssetAnchored = false;
+        $currencyUSDC->desc = 'Circle USDC Token';
+
+        $currencies = new Currencies($currencyART, $currencyUSDC);
+        $tomlData->currencies = $currencies;
 
         $doc = new Documentation();
         $doc->orgName = "Argo Navis Dev";

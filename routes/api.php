@@ -31,6 +31,7 @@ Route::get('/test_stellar_auth', function (Request $request) {
 Route::get('customer', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
 Route::put('customer', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
 Route::put('customer/verification', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
+Route::put('customer/callback', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
 Route::delete('customer/{account_id}', [StellarCustomerController::class, 'customer'])->middleware(StellarAuthMiddleware::class);
 
 // SEP-24

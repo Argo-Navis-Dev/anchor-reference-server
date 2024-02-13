@@ -23,7 +23,6 @@ use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerField;
 use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
 use DateTime;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Psr\Http\Message\UploadedFileInterface;
 
@@ -124,9 +123,6 @@ class Sep12Helper
         }
 
         $accountId = $request->account;
-        if ($accountId === null) {
-            throw new AnchorFailure('account id is null');
-        }
 
         $customer = self::getSep12CustomerByAccountId($request->account, $request->memo, $request->type);
         if ($customer != null) {
@@ -137,17 +133,7 @@ class Sep12Helper
         $customer = new Sep12Customer;
         $customer->status = CustomerStatus::PROCESSING;
         $customer->account_id = $accountId;
-
-        $memo = $request->memo;
-        if ($memo !== null && !is_numeric($memo)) {
-            throw new AnchorFailure('unsupported memo, not numeric');
-        }
-        $customer->memo = $memo;
-
-        $memoType = $request->memoType;
-        if ($memoType != null && $memoType != 'id') {
-            throw new AnchorFailure('unsupported memo type ' . $memoType);
-        }
+        $customer->memo = $request->memo;
 
         if ($request->type != null) {
             $customer->type = $request->type;
@@ -241,11 +227,14 @@ class Sep12Helper
         if ($request->kycUploadedFiles !== null) {
             $kycData = array_merge($kycData, $request->kycUploadedFiles);
         }
+
         $newProvidedFields = self::createSep12ProvidedFieldsFromKycFields($customer->id, $kycData, allSep12Fields: $allSep12Fields);
+
         /**
-         * @var array<Sep12ProvidedField> $updatedNewProvidedFields
+         * @var array<Sep12ProvidedField> $toInsertFields
          */
-        $updatedNewProvidedFields = array();
+        $toInsertFields = array();
+
         // update the fields that we already have
         foreach($newProvidedFields as $newProvidedField) {
 
@@ -263,21 +252,18 @@ class Sep12Helper
                 $existing->save();
                 $existing->refresh();
 
-                // add to list of updated
-                $updatedNewProvidedFields[] = $newProvidedField;
-
                 // check if the field requires verification
                 if ($newProvidedField->status === ProvidedCustomerFieldStatus::VERIFICATION_REQUIRED) {
                     $fieldsThatRequireVerification[] = $existing;
                 }
+            } else {
+                $toInsertFields[] = $newProvidedField;
             }
         }
 
-        // check if there are any new provided fields to insert
-        $toInsert = array_diff($newProvidedFields, $updatedNewProvidedFields);
-        if (count($toInsert) > 0) {
+        if (count($toInsertFields) > 0) {
             // add the new ones
-            foreach($toInsert as $newProvidedField) {
+            foreach($toInsertFields as $newProvidedField) {
                 $newProvidedField->save();
 
                 // check if the field requires verification
@@ -359,12 +345,12 @@ class Sep12Helper
     /**
      * Loads a customer from the db for the given data.
      * @param string $accountId account id of the customer.
-     * @param string|null $memo memo that identifies the customer, if any.
+     * @param int|null $memo memo that identifies the customer, if any.
      * @param string|null $type type of the customer if any.
      * @return Sep12Customer|null The customer if found.
      */
     public static function getSep12CustomerByAccountId(string  $accountId,
-                                                       ?string $memo = null,
+                                                       ?int $memo = null,
                                                        ?string $type = null) : ?Sep12Customer {
         $query = ['account_id' => $accountId];
 

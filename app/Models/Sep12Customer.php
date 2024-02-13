@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
+
 /**
  * App\Models\Sep12Customer
  *
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $status
  * @property string $type
  * @property string|null $message
+ * @property string|null $callback_url
  * @property string $lang
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -21,6 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Sep12Customer newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Sep12Customer query()
  * @method static \Illuminate\Database\Eloquent\Builder|Sep12Customer whereAccountId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Sep12Customer whereCallbackUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Sep12Customer whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Sep12Customer whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Sep12Customer whereLang($value)

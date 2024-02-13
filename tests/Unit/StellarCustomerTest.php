@@ -10,6 +10,7 @@ use Soneso\StellarSDK\Crypto\KeyPair;
 use Soneso\StellarSDK\Network;
 use Soneso\StellarSDK\SEP\KYCService\GetCustomerInfoRequest;
 use Soneso\StellarSDK\SEP\KYCService\KYCService;
+use Soneso\StellarSDK\SEP\KYCService\PutCustomerCallbackRequest;
 use Soneso\StellarSDK\SEP\KYCService\PutCustomerInfoRequest;
 use Soneso\StellarSDK\SEP\KYCService\PutCustomerVerificationRequest;
 use Soneso\StellarSDK\SEP\StandardKYCFields\NaturalPersonKYCFields;
@@ -91,6 +92,11 @@ class StellarCustomerTest extends TestCase
         $naturalPersonFields->lastName = "Doe2";
         $naturalPersonFields->idNumber = "91283763";
         $naturalPersonFields->idType = "Passport";
+        $filePath = 'tests/files/id_back.png';
+        if (str_ends_with(getcwd(), 'Unit')) {
+            $filePath = '../files/id_back.png';
+        }
+        $naturalPersonFields->photoIdFront = file_get_contents($filePath, false);
         $kyc->naturalPersonKYCFields = $naturalPersonFields;
         $request->id = $id;
         $request->KYCFields = $kyc;
@@ -133,7 +139,16 @@ class StellarCustomerTest extends TestCase
         $emailField = $providedFields['email_address'];
         assertEquals(ProvidedCustomerFieldStatus::ACCEPTED, $emailField->getStatus());
         */
-        $kycService->deleteCustomer($userAccountId, $jwtToken);
+
+        $callbackRequest = new PutCustomerCallbackRequest();
+        $callbackRequest->url = 'https://test.com/customer/callback';
+        $callbackRequest->jwt = $jwtToken;
+
+        $response = $kycService->putCustomerCallback($callbackRequest);
+        self::assertEquals(200, $response->getStatusCode());
+
+        $deleteResponse = $kycService->deleteCustomer($userAccountId, $jwtToken);
+        assertEquals(200, $deleteResponse->getStatusCode());
 
         $request = new GetCustomerInfoRequest();
         $request->account = $userAccountId;

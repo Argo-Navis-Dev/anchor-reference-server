@@ -13,12 +13,12 @@ use App\Models\Sep12ProvidedField;
 use ArgoNavis\PhpAnchorSdk\callback\GetCustomerRequest;
 use ArgoNavis\PhpAnchorSdk\callback\GetCustomerResponse;
 use ArgoNavis\PhpAnchorSdk\callback\ICustomerIntegration;
+use ArgoNavis\PhpAnchorSdk\callback\PutCustomerCallbackRequest;
 use ArgoNavis\PhpAnchorSdk\callback\PutCustomerRequest;
 use ArgoNavis\PhpAnchorSdk\callback\PutCustomerResponse;
 use ArgoNavis\PhpAnchorSdk\callback\PutCustomerVerificationRequest;
-use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
 use ArgoNavis\PhpAnchorSdk\exception\CustomerNotFoundForId;
-use Illuminate\Support\Facades\Log;
+use ArgoNavis\PhpAnchorSdk\exception\SepNotAuthorized;
 
 class CustomerIntegration implements ICustomerIntegration
 {
@@ -27,6 +27,8 @@ class CustomerIntegration implements ICustomerIntegration
      */
     public function getCustomer(GetCustomerRequest $request): GetCustomerResponse
     {
+        $account = $request->account;
+        $memo = $request->memo;
         $customer = null;
 
         if ($request->id != null) {
@@ -34,9 +36,13 @@ class CustomerIntegration implements ICustomerIntegration
             if ($customer === null) {
                 throw new CustomerNotFoundForId($request->id);
             }
+
+            if ($account !== $customer->account_id || $memo !== $customer->memo) {
+                throw new SepNotAuthorized('Unauthorized');
+            }
+
         } else if ($request->account != null) {
-            $customer = Sep12Helper::getSep12CustomerByAccountId($request->account,
-                $request->memo, $request->type);
+            $customer = Sep12Helper::getSep12CustomerByAccountId($account, $memo, $request->type);
         }
 
         return Sep12Helper::buildCustomerResponse($customer);
@@ -48,11 +54,8 @@ class CustomerIntegration implements ICustomerIntegration
     public function putCustomer(PutCustomerRequest $request): PutCustomerResponse
     {
         $account = $request->account;
-        $id = $request->id;
+        $memo = $request->memo;
 
-        if ($account === null && $id === null) {
-            throw new AnchorFailure('missing id or account');
-        }
         $customer = null;
 
         if ($request->id != null) {
@@ -60,9 +63,13 @@ class CustomerIntegration implements ICustomerIntegration
             if ($customer === null) {
                 throw new CustomerNotFoundForId($request->id);
             }
+
+            if ($account !== $customer->account_id || $memo !== $customer->memo) {
+                throw new SepNotAuthorized('Unauthorized');
+            }
+
         } else if ($request->account != null) {
-            $customer = Sep12Helper::getSep12CustomerByAccountId($request->account,
-                $request->memo, $request->type);
+            $customer = Sep12Helper::getSep12CustomerByAccountId($account, $memo, $request->type);
         }
 
         if ($customer === null) {
@@ -81,9 +88,16 @@ class CustomerIntegration implements ICustomerIntegration
      */
     public function putCustomerVerification(PutCustomerVerificationRequest $request): GetCustomerResponse
     {
+        $account = $request->account;
+        $memo = $request->memo;
+
         $customer = Sep12Customer::where('id', $request->id)->first();
         if ($customer === null) {
             throw new CustomerNotFoundForId($request->id);
+        }
+
+        if ($account !== $customer->account_id || $memo !== $customer->memo) {
+            throw new SepNotAuthorized('Unauthorized');
         }
 
         Sep12Helper::handleVerification($customer, $request->verificationFields);
@@ -100,4 +114,38 @@ class CustomerIntegration implements ICustomerIntegration
         Sep12Customer::destroy($id);
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function putCustomerCallback(PutCustomerCallbackRequest $request): void
+    {
+        $account = $request->account;
+        $memo = $request->memo;
+
+        $customer = null;
+
+        if ($request->id != null) {
+            $customer = Sep12Customer::where('id', $request->id)->first();
+            if ($customer === null) {
+                throw new CustomerNotFoundForId($request->id);
+            }
+
+            if ($account !== $customer->account_id || $memo !== $customer->memo) {
+                throw new SepNotAuthorized('Unauthorized');
+            }
+        } else {
+
+            $customer = Sep12Helper::getSep12CustomerByAccountId($account, $memo);
+            if ($customer === null) {
+                $id = $account;
+                if ($memo !== null) {
+                    $id .= ':'.$memo;
+                }
+                throw new CustomerNotFoundForId($id);
+            }
+        }
+
+        $customer->callback_url = $request->url;
+        $customer->save();
+    }
 }

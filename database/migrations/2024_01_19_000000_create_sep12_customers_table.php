@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->string('status')->default('NEEDS_INFO');
             $table->string('type')->default('default');
             $table->string('message')->nullable();
+            $table->string('callback_url')->nullable();
             $table->string('lang')->default('en');
             $table->timestamps();
             $table->unique(['account_id', 'memo', 'type']);
