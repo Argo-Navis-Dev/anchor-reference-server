@@ -102,7 +102,7 @@ class CustomerIntegration implements ICustomerIntegration
 
         Sep12Helper::handleVerification($customer, $request->verificationFields);
 
-        return $this->getCustomer(new GetCustomerRequest($request->id));
+        return $this->getCustomer(new GetCustomerRequest($account, $memo, $request->id));
     }
 
     /**

@@ -8,6 +8,9 @@ use Soneso\StellarSDK\Network;
 class StellarAppConfig implements IAppConfig
 {
 
+    /**
+     * @inheritDoc
+     */
     public function getStellarNetwork(): Network
     {
         $networkName = config('stellar.app.network', 'testnet');
@@ -23,6 +26,9 @@ class StellarAppConfig implements IAppConfig
         return Network::testnet();
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getHorizonUrl(): string
     {
         return config('stellar.app.horizon_url', 'https://horizon-testnet.stellar.org');

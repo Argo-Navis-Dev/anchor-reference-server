@@ -13,21 +13,33 @@ use ArgoNavis\PhpAnchorSdk\config\ISep24Config;
 class StellarSep24Config implements ISep24Config
 {
 
+    /**
+     * @inheritDoc
+     */
     public function isAccountCreationSupported(): bool
     {
         return true;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function areClaimableBalancesSupported(): bool
     {
         return false;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isFeeEndpointSupported(): bool
     {
         return true;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function feeEndpointRequiresAuthentication(): bool
     {
         return false;
