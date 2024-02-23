@@ -1,0 +1,138 @@
+/**
+    * This file is used to style the SEP-10 and SEP-12 demo page.
+    * 
+    * The following styles are applied:
+    * - Hide the verification form, customer info, and registration form
+    * - Change the color of the labels and headers
+    * - Change the color of the edit and sync icons
+    * - Add padding to the bottom of the body
+    * - Style the customer info wrapper
+    * - Change the color of the table headers
+    * - Add a flashing animation for the status text
+    * - Change the color of the status text based on the status
+    * - Add a spinning overlay for loading
+    * - Style the modal dialog and body
+    * - Add margin to the title wrapper
+    * - Change the font size of the authenticated as header
+*/
+
+.sep12-demo .verification-form-wrapper,
+.authenticated-as-wrapper,
+.sep12-demo .customer-info-wrapper,
+.sep12-demo .registration-form-wrapper {
+    display: none;   
+}
+
+label,
+h1, h2, h3, h4, h5, h6 {
+    color: var(--info) !important;
+}
+
+.fa.fa-edit,
+.fa.fa-sync {
+    color: var(--info) !important;
+}
+
+h1 p {
+    display: inline;
+}
+
+body {
+    padding-bottom: 50px;
+}
+
+.customer-info-inner-wrapper {
+    background-color: #cde5ff;
+    border-radius: 0.25rem;
+
+}
+
+.table thead th {
+    border-color: #ffffff !important
+}
+
+.status-text {
+    font-weight: 700;
+}
+
+.status-text.warning {
+    color: var(--orange);
+}
+
+.status-text.success {
+    color: var(--green) !important;
+}
+
+@keyframes flash {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.flash-text {
+    animation: flash 1.5s infinite;
+}
+
+.table thead th {
+    color:rgb(55, 55, 55);
+}
+
+.needs-info {
+    color: var(--indigo);
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;    
+    display: none;
+}
+
+.overlay::after {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 4px solid #ffffff;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.modal-dialog {
+    top: 25%;
+}
+
+.modal-body {    
+    font-size: 1.45rem;
+}
+
+.title-wrapper {
+    margin-top: 2.75rem;
+}
+
+.authenticated-as-wrapper h3 {
+    font-size: 1.45rem;
+}
