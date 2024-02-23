@@ -544,7 +544,7 @@ class Sep12Helper
                                 throw new AnchorFailure($kycFieldKey . 'could not be uploaded.');
                             }
                             $stream = $kycFieldValue->getStream();
-                            $providedField->binary_value = $stream->__toString();
+                            $providedField->binary_value = file_get_contents($kycFieldValue->getStream()->getMetadata('uri'));
                             $result[] = $providedField;
                             continue;
                         }
