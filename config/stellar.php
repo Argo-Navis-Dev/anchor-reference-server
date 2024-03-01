@@ -91,10 +91,13 @@ return [
         |--------------------------------------------------------------------------
         |
         | Set the timeout in seconds of the authenticated JSON Web Token. An expired JWT will be
-        | rejected. This is the timeout period after the client has authenticated.
+        | rejected. This is the timeout period after the client received the SEP-10 authentication challenge
+        | challenge transaction we can not use the current timestamp to generate the jwt token's issued at value.
+        | Therefore, we must use the timestamp from the challenge transaction. So the value returned here
+        | should be higher than the authentication challenge transaction timeout.
         |
         */
-        'jwt_timeout' => 300,
+        'jwt_timeout' => 3600,
 
         /*
         |--------------------------------------------------------------------------
