@@ -97,7 +97,7 @@ return [
         | should be higher than the authentication challenge transaction timeout.
         |
         */
-        'jwt_timeout' => 3600,
+        'jwt_timeout' => 300,
 
         /*
         |--------------------------------------------------------------------------
