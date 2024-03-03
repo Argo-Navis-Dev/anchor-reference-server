@@ -17,7 +17,7 @@ $(document).ready(function() {
  */
 function authenticate(accountId) { 
     setLoading(true);
-    fetch(`auth?account=${accountId}`)
+    fetch(`/auth?account=${accountId}`)
         .then(response => response.json())
         .then(response => {
             let transaction = response.transaction;            
@@ -61,7 +61,7 @@ async function signTransactionAndGetJWTToken(accountId, transaction) {
         }
         try {                                    
             let signedTransaction = await window.freighterApi.signTransaction(transaction, {network: STELLAR_NETWORK,});                    
-            return fetch(`auth?account=${accountId}`, {
+            return fetch(`/auth?account=${accountId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -174,7 +174,7 @@ function refreshCustomerInfo() {
     let token = localStorage.getItem("accessToken");
     if(customerId) {
         setLoading(true);
-        fetch(`customer?id=${customerId}`, {
+        fetch(`/customer?id=${customerId}`, {
             headers: {'Authorization': `Bearer ${token}`}
         }).then(response => response.json())
             .then(response => {
