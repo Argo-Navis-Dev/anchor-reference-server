@@ -1,9 +1,10 @@
 /**
  * This is a simple demo of how to use the SEP-10 and SEP-12 endpoint in the Anchor Reference Server.
  */
-import './bootstrap';
+import * as bootstrap from 'bootstrap'
+import $ from "jquery";
 
-$(document).ready(function() {
+$(function() {    
     init();    
 });
 
@@ -89,11 +90,13 @@ function registerOrUpdateCustomer(form) {
 
     let formData = new FormData($(form)[0]);
     // Remove empty values from the FormData
-    for (let [key, value] of formData.entries()) {
-        if (value === '') {
-            formData.delete(key);
+    let emptyKeys = [];
+    for (let [key, value] of formData.entries()) {        
+        if (value === '' || value?.size == 0) {
+            emptyKeys.push(key);
         }
     }
+    emptyKeys.forEach(key => formData.delete(key));
 
     $.ajax({
         url: `/customer?id=${customerId}`,            
@@ -104,8 +107,7 @@ function registerOrUpdateCustomer(form) {
         data: formData, 
         processData: false, 
         contentType: false, 
-        success: function(response) {
-            console.log(response);
+        success: function(response) {            
             setLoading(false); 
             
             if(customerId == null && response.id) {                              
@@ -218,15 +220,16 @@ function updateCustomerInfo(customerData) {
  * @param {boolean} isProvidedFields Field type, if true the passed fields object represents the provided fields otherwise represents the mssing missing fields.
  */
 function updateCustomerFields(fields, tbodyId, isProvidedFields) {
+    $(tbodyId).empty();
     for(let key in fields) {
         let field = fields[key];
         let statusColorClasses = getStatusColorClass(field.status);
         statusColorClasses += ' status-text flash-text ';
         let status = field.status ? field.status : '';
         if(isProvidedFields) {
-            $(tbodyId).append(`<tr><td>${key}</td><td>${field.description}</td><td class = "${statusColorClasses}">${status}</td></tr>`);
+            $(tbodyId).append(`<tr scope="row"><td>${key}</td><td>${field.description}</td><td class = "${statusColorClasses}">${status}</td></tr>`);
         }else {
-            $(tbodyId).append(`<tr><td>${key}</td><td>${field.description}</td></tr>`);
+            $(tbodyId).append(`<tr scope="row"><td>${key}</td><td>${field.description}</td></tr>`);
         }
       
     }   
@@ -247,17 +250,19 @@ function getStatusColorClass(status) {
  * @param {*} title The dialog title.
  * @returns 
  */
-function showAlert(msg, title) {
-    let modalContent = $('#info-dialog .modal-body');
-    modalContent.html(msg);
+function showAlert(msg, title) {       
+    let myModal = new bootstrap.Modal($('#info-dialog'), {
+        keyboard: false        
+    });
+    $('#info-dialog .modal-body').html(msg);         
     if(title) {
         $('#info-dialog .modal-title').html(title);
-    }
-    return new Promise(function(resolve, reject){
-        $('#info-dialog').modal('show');        
-        $('#info-dialog .btn-primary').click(function(){
+    }        
+    myModal.toggle();
+    return new Promise(function(resolve, _reject) {
+        document.getElementById('info-dialog').addEventListener('hide.bs.modal', event => {            
             resolve();
-        });       
+        });
     });
 }
 
@@ -302,7 +307,7 @@ function init() {
         deleteCustomer();             
     });   
     
-    $('.fa.fa-sync').click(function(e) {   
+    $('.fa.fa-refresh').click(function(e) {   
         refreshCustomerInfo();
     });   
     $('#update-btn').click(function(e) {   

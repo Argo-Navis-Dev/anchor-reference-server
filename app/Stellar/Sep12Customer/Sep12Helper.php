@@ -25,6 +25,8 @@ use DateTime;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
 use Psr\Http\Message\UploadedFileInterface;
+use Psr\Http\Message\StreamInterface;
+use Illuminate\Support\Facades\Log;
 
 class Sep12Helper
 {
@@ -165,6 +167,9 @@ class Sep12Helper
             // create the db objects needed
             $providedFields = self::createSep12ProvidedFieldsFromKycFields($customer->id, $kycData, allSep12Fields: $allSep12Fields);
             foreach ($providedFields as $providedField) {
+                $streamSize = $providedField->binary_value;
+                LOG::info('File uploaded: '. $providedField->id . ' ' . ', Size: ' . $streamSize);
+
                 // save the field.
                 $providedField->save();
                 // check if the field requires verification
@@ -542,9 +547,9 @@ class Sep12Helper
                                 throw new AnchorFailure($kycFieldKey . ' too large');
                             } elseif ($kycFieldValue->getError() !== UPLOAD_ERR_OK) {
                                 throw new AnchorFailure($kycFieldKey . 'could not be uploaded.');
-                            }
-                            $stream = $kycFieldValue->getStream();
-                            $providedField->binary_value = file_get_contents($kycFieldValue->getStream()->getMetadata('uri'));
+                            }                                         
+                            $fileContents =  $kycFieldValue->getStream()->getContents();                            
+                            $providedField->binary_value = $fileContents;
                             $result[] = $providedField;
                             continue;
                         }
