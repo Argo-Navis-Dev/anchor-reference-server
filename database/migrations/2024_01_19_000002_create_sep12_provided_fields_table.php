@@ -19,7 +19,6 @@ return new class extends Migration {
             $table->string('error')->nullable();
             $table->string('string_value')->nullable();
             $table->integer('number_value')->nullable();
-            $table->binary('binary_value')->nullable();
             $table->date('date_value')->nullable();
             $table->string('verification_code')->nullable();
             $table->boolean('verified')->default(false);
@@ -28,6 +27,8 @@ return new class extends Migration {
             $table->foreign('sep12_customer_id')->references('id')->on('sep12_customers');
             $table->unique(['sep12_customer_id', 'sep12_field_id']);
         });
+        //Add binary_value column separetedly in order to specify the type.
+        DB::statement('ALTER TABLE sep12_provided_fields ADD binary_value mediumblob AFTER number_value');
     }
 
     /**
