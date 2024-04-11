@@ -4,64 +4,32 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <div class="card">
+            <div class="card admin-customers-table-wrapper">
                 <div class="card-body">
                     <h5 class="card-title text-uppercase mb-0 text-primary">Manage customers</h5>
+                </div>                    
+                <div id="customers-table-toolbar" class="customers-table-toolbar">    
+                    <div class="ms-3 mb-3">
+                        <label for="customer-status" class="col-form-label text-md-start">{{ __('Filter by customer status') }}</label>
+                        <select id="customer-status" class="form-control form-select">                                                                                    
+                            <option value="NONE" selected>NONE</option>
+                            <option value="ACCEPTED" >ACCEPTED</option>
+                            <option value="PROCESSING">PROCESSING</option>
+                            <option value="NEEDS_INFO">NEEDS_INFO</option>
+                            <option value="REJECTED">REJECTED</option>                    
+                        </select>                
+                    </div>                
                 </div>
-                <div class="table-responsive">
-                    <table class="table no-wrap user-table mb-0">
-                        <thead>
-                            <tr>
-                                <th scope="col" class="border-0 text-uppercase font-medium pl-4">#</th>                                
-                                <th scope="col" class="border-0 text-uppercase font-medium">First Name</th>
-                                <th scope="col" class="border-0 text-uppercase font-medium">Last name</th>                                
-                                <th scope="col" class="border-0 text-uppercase font-medium">Account ID</th>
-                                <th scope="col" class="border-0 text-uppercase font-medium">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($customers as $index => $customer)
-                            <td class="pl-4 align-middle">{{ $index + 1 }}</td>                            
-                            <td class="align-middle">
-                                @if(isset($customer['first_name']))
-                                    <h5 class="font-medium mb-0">{{ $customer['first_name'] }}</h5>   
-                                @else
-                                    <h5 class="font-medium mb-0">N/A</h5>
-                                @endif  
-                            </td>
 
-                            <td class="align-middle">
-                                @if(isset($customer['last_name']))
-                                    <h5 class="font-medium mb-0">{{ $customer['last_name'] }}</h5>
-                                @else
-                                    <h5 class="font-medium mb-0">N/A</h5>
-                                @endif
-                            </td>  
-                            <td class="align-middle">
-                                <h5 class="font-medium mb-0">{{ $customer['account_id'] }}</h5>
-                                <span class="text-muted"><strong>Status:</strong> {{ $customer['status'] }}</span>
-                                <span class="text-muted"><strong>Type:</strong> {{ $customer['type'] }}</span>
-                            </td>
-                            <td class="align-middle">                                                             
-                                <button type="button"
-                                    onclick="window.location='{{ URL::route('admin_customer', $customer['id']) }}'"                                    
-                                    class="edit-user btn btn-outline-info btn-circle btn-lg btn-circle ml-2"><i
-                                        class="fa fa-edit"></i> </button>
-                                <button type="button"                                    
-                                    data-customer-id="{{ $customer['id'] }}"
+                <table
+                    id = "admin-customers-table"
+                    data-toolbar="#customers-table-toolbar"                    
+                    data-minimum-count-columns="1"                                                
+                    data-id-field="id"  
+                    data-search="true"                                              
+                    data-ajax="loadAdminCustomersData">
+                </table>
 
-                                    @if(isset($customer['first_name']) && isset($customer['last_name']))
-                                        data-customer-name="{{ $customer['first_name'] }} {{ $customer['last_name'] }}"
-                                    @endif
-                                    class="delete-customer btn btn-outline-info btn-circle btn-lg btn-circle ml-2"><i
-                                        class="fa fa-trash"></i> </button>        
-                            </td>                      
-                        @endforeach
-
-                
-                        </tbody>
-                    </table>
-                </div>
             </div>
         </div>
     </div>

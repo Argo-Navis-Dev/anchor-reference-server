@@ -34,6 +34,9 @@ Auth::routes();
 Route::get('/admin-home', [App\Http\Controllers\Admin\AdminHomeController::class, 'index'])->name('admin_home');
 //Renders the users
 Route::get('/admin-users', [App\Http\Controllers\Admin\AdminUserController::class, 'loadAdminUsers'])->name('admin_users');
+//Returns the admin users data as a JSON array
+Route::get('/load-admin-users-data', [App\Http\Controllers\Admin\AdminUserController::class, 'loadAdminUsersData']);
+
 //Renders one speicifc user  
 Route::get('/admin-user/{id}', [App\Http\Controllers\Admin\AdminUserController::class, 'loadAdminUser'])->name('admin_user');
 //Stores the user data
@@ -44,6 +47,9 @@ Route::delete('/admin-user', [App\Http\Controllers\Admin\AdminUserController::cl
 Route::get('/admin-customer/{id}/get-customer-img-field/{fieldID}', [App\Http\Controllers\Admin\AdminCustomerController::class, 'getCustomerImgField']);
 //Renders the customers
 Route::get('/admin-customers', [App\Http\Controllers\Admin\AdminCustomerController::class, 'loadAdminCustomers'])->name('admin_customers');
+//Loads the admin customers data as a JSON array
+Route::get('/load-admin-customers-data', [App\Http\Controllers\Admin\AdminCustomerController::class, 'loadAdminCustomersData']);
+
 //Deletes the customer
 Route::delete('/admin-customer', [App\Http\Controllers\Admin\AdminCustomerController::class, 'deleteAdminCustomer']);
 //Renders the customer

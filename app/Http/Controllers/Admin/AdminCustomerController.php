@@ -43,8 +43,21 @@ class AdminCustomerController extends Controller
      */
     public function loadAdminCustomers()
     {
-        Log::debug('Accessing the admin customers page.');
-        
+        Log::debug('Accessing the admin customers page.');        
+        $customersData = $this->getCustomersData();
+        LOG::debug('The customer data is: ' . json_encode($customersData));
+        return view('/admin/admin_customers', ['customers' => $customersData]);
+    }
+
+    public function loadAdminCustomersData()
+    {
+        Log::debug('Loading the admin customers data.');        
+        $customersData = $this->getCustomersData();        
+        return response()->json($customersData, 200);        
+    }
+
+    private function getCustomersData() 
+    {
         $customers = Sep12Customer::all();
         $customersData = array();
 
@@ -62,9 +75,8 @@ class AdminCustomerController extends Controller
             $customerData['status'] = $customer->status;
             $customerData['type'] = $customer->type;
             $customersData[] = $customerData;
-        }        
-        LOG::debug('The customer data is: ' . json_encode($customersData));
-        return view('/admin/admin_customers', ['customers' => $customersData]);
+        }
+        return $customersData;
     }
 
     /**

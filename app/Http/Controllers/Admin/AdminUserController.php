@@ -35,6 +35,14 @@ class AdminUserController extends Controller
         return view('/admin/admin_users', ['users' => $users]); // Pass the users model to the view
     }
 
+    
+    public function loadAdminUsersData()
+    {
+        Log::debug('Accessing the users page');
+        $users = User::all(); // Select all users from the database        
+        return response()->json($users, 200);
+    }
+
 
     /**
      * Delete the passed admin user.
