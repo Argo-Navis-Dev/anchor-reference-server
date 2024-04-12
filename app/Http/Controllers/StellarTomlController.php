@@ -36,24 +36,47 @@ class StellarTomlController extends Controller
         $generalInfo->webAuthEndpoint = "https://localhost:5173/auth";
         $generalInfo->kYCServer = "https://localhost:5173/";
         $generalInfo->transferServerSep24 = "https://localhost:5173/sep24";
+        $generalInfo->anchorQuoteServer = "https://localhost:5173/sep38";
         $generalInfo->signingKey = "GCAT3G32LQV2V3WHRMKXLFAQNOCQXTUPUQXOXSTLSLSCLIVQP2NRQQ3T";
+        $generalInfo->accounts = [
+            'GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2',
+            'GAKRN7SCC7KVT52XLMOFFWOOM4LTI2TQALFKKJ6NKU3XWPNCLD5CFRY2',
+            'GBDQ4I7EIIPAIEBGN4GOKTU7MGUCOOC37NYLNRBN76SSWOWFGLWTXW3U',
+            'GCMMCKP2OJXLBZCANRHXSGMMUOGJQKNCHH7HQZ4G3ZFLAIBZY5ODJYO6',
+            'GCAT3G32LQV2V3WHRMKXLFAQNOCQXTUPUQXOXSTLSLSCLIVQP2NRQQ3T'];
         $tomlData->generalInformation = $generalInfo;
 
-        $currencyART = new Currency();
-        $currencyART->code = 'ART';
-        $currencyART->issuer = 'GDD4AM7ZITM6VIJBF6GFA6GCYY5EKMZ77OKYCLWGQYXNAK3KABDUOART';
-        $currencyART->status = 'test';
-        $currencyART->isAssetAnchored = false;
-        $currencyART->desc = 'Argo Navis Reference Token (ART) is an asset issued on testnet and is used as an anchored asset for this reference server for demonstration and testing purposes.';
+        $currencyUSD = new Currency();
+        $currencyUSD->code = 'USD';
+        $currencyUSD->status = 'test';
+        $currencyUSD->displayDecimals = 2;
+        $currencyUSD->name = 'US Dollar fiat';
+        $currencyUSD->desc = 'US Dollar fiat token for testing';
+        $currencyUSD->isAssetAnchored = false;
 
         $currencyUSDC = new Currency();
         $currencyUSDC->code = 'USDC';
-        $currencyUSDC->issuer = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
+        $currencyUSDC->issuer = 'GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2';
         $currencyUSDC->status = 'test';
-        $currencyUSDC->isAssetAnchored = false;
-        $currencyUSDC->desc = 'Circle USDC Token';
+        $currencyUSDC->displayDecimals = 2;
+        $currencyUSDC->name = 'US Dollar token on the chain';
+        $currencyUSDC->desc = 'US Dollar on the chain for testing';
+        $currencyUSDC->isAssetAnchored = true;
+        $currencyUSDC->anchorAsset = 'USD';
+        $currencyUSDC->redemptionInstructions = 'You can purchase the USDC token with USD, JYPC or native stellar lumens. You can sell it for USD or JYPC';
 
-        $currencies = new Currencies($currencyART, $currencyUSDC);
+        $currencyJYPC = new Currency();
+        $currencyJYPC->code = 'JPYC';
+        $currencyJYPC->issuer = 'GBDQ4I7EIIPAIEBGN4GOKTU7MGUCOOC37NYLNRBN76SSWOWFGLWTXW3U';
+        $currencyJYPC->status = 'test';
+        $currencyJYPC->displayDecimals = 2;
+        $currencyJYPC->name = 'Japan Yen token on the chain';
+        $currencyJYPC->desc = 'Japan Yen on the chain for testing';
+        $currencyJYPC->isAssetAnchored = true;
+        $currencyJYPC->anchorAsset = 'JPY';
+        $currencyJYPC->redemptionInstructions = 'You can purchase the JPYC token with USD, or USDC. You can sell it for USD or USDC';
+
+        $currencies = new Currencies($currencyUSD, $currencyUSDC, $currencyJYPC);
         $tomlData->currencies = $currencies;
 
         $doc = new Documentation();

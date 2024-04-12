@@ -19,8 +19,8 @@ The implementation of the Service Layer Library can be found [here](https://gith
 - Implementation of [SEP-10](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md) Service (Stellar Authentication) until Dec.27.2023 -> Done
 - Implementation of [SEP-12](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md) KYC API Service &  [SEP-09](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0009.md) Standard KYC Fields -> Done
 - Implementation of [SEP-24](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md) Hosted Deposit and Withdrawal - Interactive Flow Service -> Done
-- Implementation of [SEP-38](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md) Anchor RFQ Service -> in progress
-- Implementation of [SEP-06](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md) Deposit and Withdrawal Service
+- Implementation of [SEP-38](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md) Anchor RFQ Service -> Done
+- Implementation of [SEP-06](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md) Deposit and Withdrawal Service -> in progress
 - Implementation of [SEP-31](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md) Cross-Border Payments Service
 
 

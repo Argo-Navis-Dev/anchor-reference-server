@@ -8,26 +8,24 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Stellar\Sep24Interactive\InteractiveFlowIntegration;
-use App\Stellar\StellarSep24Config;
+use App\Stellar\Sep38Quote\QuotesIntegration;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidSep10JwtData;
 use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Jwt;
-use ArgoNavis\PhpAnchorSdk\Sep24\Sep24Service;
+use ArgoNavis\PhpAnchorSdk\Sep38\Sep38Service;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class StellarInteractiveFlowController extends Controller
+class StellarQuotesController extends Controller
 {
-    public function interactive(ServerRequestInterface $request): ResponseInterface {
+    public function quotes(ServerRequestInterface $request): ResponseInterface {
 
         $auth = $this->getStellarAuthData($request);
         try {
             $sep10Jwt = $auth === null ? null : Sep10Jwt::fromArray($auth);
-            $sep24Config = new StellarSep24Config();
-            $sep24Integration = new InteractiveFlowIntegration();
-            $sep24Service = new Sep24Service($sep24Config, $sep24Integration);
-            return $sep24Service->handleRequest($request, $sep10Jwt);
+            $sep38Integration = new QuotesIntegration();
+            $sep38Service = new Sep38Service($sep38Integration);
+            return $sep38Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
             return new JsonResponse(['error' => 'Unauthorized! Invalid token data: ' . $e->getMessage()], 401);
         }

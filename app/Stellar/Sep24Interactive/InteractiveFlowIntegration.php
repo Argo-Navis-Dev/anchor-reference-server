@@ -8,13 +8,17 @@ declare(strict_types=1);
 
 namespace App\Stellar\Sep24Interactive;
 
+use App\Stellar\Sep38Quote\Sep38Helper;
 use ArgoNavis\PhpAnchorSdk\callback\IInteractiveFlowIntegration;
 use ArgoNavis\PhpAnchorSdk\callback\InteractiveDepositRequest;
 use ArgoNavis\PhpAnchorSdk\callback\InteractiveTransactionResponse;
 use ArgoNavis\PhpAnchorSdk\callback\InteractiveWithdrawRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep24TransactionHistoryRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep24TransactionResponse;
+use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
+use ArgoNavis\PhpAnchorSdk\exception\QuoteNotFoundForId;
 use ArgoNavis\PhpAnchorSdk\shared\Sep24AssetInfo;
+use ArgoNavis\PhpAnchorSdk\shared\Sep38Quote;
 
 class InteractiveFlowIntegration implements IInteractiveFlowIntegration
 {
@@ -40,7 +44,7 @@ class InteractiveFlowIntegration implements IInteractiveFlowIntegration
      */
     public function getFee(string $operation, string $assetCode, float $amount, ?string $type = null): float
     {
-        return 0.0;
+        throw new AnchorFailure('fee endpoint is not supported');
     }
 
     /**
@@ -138,5 +142,10 @@ class InteractiveFlowIntegration implements IInteractiveFlowIntegration
     ): ?array
     {
         return Sep24Helper::getTransactionHistory($request, $accountId, $accountMemo);
+    }
+
+    public function getQuoteById(string $quoteId, string $accountId, ?string $accountMemo = null): Sep38Quote
+    {
+        return Sep38Helper::getQuoteById($quoteId, $accountId, $accountMemo);
     }
 }

@@ -34,7 +34,7 @@ class StellarSep24Config implements ISep24Config
      */
     public function isFeeEndpointSupported(): bool
     {
-        return true;
+        return false;
     }
 
     /**

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             Sep12FieldsSeeder::class,
             Sep12TypeToFieldsSeeder::class,
             AnchorAssetsSeeder::class,
+            Sep38RatesSeeder::class,
         ]);
 
         // \App\Models\User::factory(10)->create();

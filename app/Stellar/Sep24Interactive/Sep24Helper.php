@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Stellar\Sep24Interactive;
 
 use App\Models\AnchorAsset;
 use App\Models\Sep24Transaction;
 use App\Stellar\Sep12Customer\CustomerIntegration;
 use App\Stellar\Sep12Customer\Sep12Helper;
-use ArgoNavis\PhpAnchorSdk\callback\GetCustomerRequest;
 use ArgoNavis\PhpAnchorSdk\callback\InteractiveDepositRequest;
-use ArgoNavis\PhpAnchorSdk\callback\InteractiveTransactionResponse;
 use ArgoNavis\PhpAnchorSdk\callback\InteractiveWithdrawRequest;
 use ArgoNavis\PhpAnchorSdk\callback\PutCustomerRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep24DepositTransactionResponse;
@@ -17,7 +21,6 @@ use ArgoNavis\PhpAnchorSdk\callback\Sep24TransactionResponse;
 use ArgoNavis\PhpAnchorSdk\callback\Sep24WithdrawTransactionResponse;
 use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
-use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Jwt;
 use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
 use ArgoNavis\PhpAnchorSdk\shared\DepositOperation;
 use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
@@ -212,7 +215,7 @@ class Sep24Helper
         $memoType = MemoHelper::memoTypeAsString($memo->getType());
         $memoValue = null;
         if ($memoType === 'hash' || $memoType === 'return') {
-            $memoValue = base64_encode($memoValue);
+            $memoValue = base64_encode($memo->getValue());
         } else if ($memo->getValue() !== null) {
             $memoValue = strval($memo->getValue());
         }
@@ -234,7 +237,7 @@ class Sep24Helper
         );
         $depositOp = new DepositOperation
         (
-            $anchorAsset->deposit_enabled,
+            (bool)$anchorAsset->deposit_enabled,
             $anchorAsset->deposit_min_amount,
             $anchorAsset->deposit_max_amount,
             $anchorAsset->deposit_fee_fixed,
@@ -243,7 +246,7 @@ class Sep24Helper
         );
         $withdrawOp = new WithdrawOperation
         (
-            $anchorAsset->withdrawal_enabled,
+            (bool)$anchorAsset->withdrawal_enabled,
             $anchorAsset->withdrawal_min_amount,
             $anchorAsset->withdrawal_max_amount,
             $anchorAsset->withdrawal_fee_fixed,
@@ -281,7 +284,7 @@ class Sep24Helper
                 updatedAt: $tx->tx_updated_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_updated_at),
                 externalTransactionId: $tx->external_transaction_id,
                 message: $tx->status_message,
-                refunded: $tx->refunded
+                refunded: boolval($tx->refunded)
             );
             // TODO: add refunds
         } else {
@@ -308,7 +311,7 @@ class Sep24Helper
                 updatedAt: $tx->tx_updated_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_updated_at),
                 externalTransactionId: $tx->external_transaction_id,
                 message: $tx->status_message,
-                refunded: $tx->refunded
+                refunded: boolval($tx->refunded)
             );
             // TODO: add refunds
         }
