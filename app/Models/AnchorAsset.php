@@ -50,6 +50,10 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereWithdrawalFeePercent($value)
  * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereWithdrawalMaxAmount($value)
  * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereWithdrawalMinAmount($value)
+ * @property int $sep38_enabled
+ * @property string|null $sep38_info
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep38Enabled($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep38Info($value)
  * @mixin \Eloquent
  */
 class AnchorAsset extends Model

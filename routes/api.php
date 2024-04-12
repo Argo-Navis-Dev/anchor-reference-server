@@ -3,6 +3,7 @@
 use App\Http\Controllers\StellarAuthController;
 use App\Http\Controllers\StellarCustomerController;
 use App\Http\Controllers\StellarInteractiveFlowController;
+use App\Http\Controllers\StellarQuotesController;
 use App\Http\Middleware\StellarAuthMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,13 @@ Route::post('sep24/transactions/deposit/interactive', [StellarInteractiveFlowCon
 Route::post('sep24/transactions/withdraw/interactive', [StellarInteractiveFlowController::class, 'interactive'])->middleware(StellarAuthMiddleware::class);
 Route::get('sep24/transaction', [StellarInteractiveFlowController::class, 'interactive'])->middleware(StellarAuthMiddleware::class);
 Route::get('sep24/transactions', [StellarInteractiveFlowController::class, 'interactive'])->middleware(StellarAuthMiddleware::class);
+
+// SEP-38
+Route::get('sep38/info', [StellarQuotesController::class, 'quotes']);
+Route::get('sep38/prices', [StellarQuotesController::class, 'quotes']);
+Route::get('sep38/price', [StellarQuotesController::class, 'quotes']);
+Route::post('sep38/quote', [StellarQuotesController::class, 'quotes'])->middleware(StellarAuthMiddleware::class);
+Route::get('sep38/quote/{quote_id}', [StellarQuotesController::class, 'quotes'])->middleware(StellarAuthMiddleware::class);
 
 // other
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
