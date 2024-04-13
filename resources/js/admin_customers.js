@@ -9,8 +9,10 @@
 import * as adminBase from './admin_base';
 import $ from "jquery";
 
-$(function() {
-    init();   
+$(document).on('appReady', function (_event, routeName) {    
+    if (routeName === 'admin_customers') {
+        init();
+    }    
 });
 
 

@@ -20,7 +20,7 @@
     
 </head>
 
-<body>
+<body data-route-name = "{{ Route::currentRouteName() }}">
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">                    

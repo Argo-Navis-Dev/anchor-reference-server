@@ -11,9 +11,10 @@ import * as adminBase from './admin_base';
 import 'bootstrap'
 import 'bootstrap-table/dist/bootstrap-table.js'
 
-
-$(function () {    
-    init();
+$(document).on('appReady', function (_event, routeName) {    
+    if (routeName === 'admin_users') {
+        init();
+    }    
 });
 
 /**
