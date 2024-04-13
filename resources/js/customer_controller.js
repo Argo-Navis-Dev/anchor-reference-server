@@ -2,7 +2,7 @@ import * as adminBase from './admin_base';
 import $ from "jquery";
 
 $(document).on('appReady', function (_event, routeName) {    
-    if (routeName === 'admin_customer') {
+    if (routeName === 'customer.index') {
         init();
     }    
 });

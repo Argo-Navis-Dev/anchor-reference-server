@@ -13,7 +13,7 @@
                     <div class="col-md-12 p-2 mt-4">
                         <h2 class = "text-primary fs-3">Dashboard</h2>
                         <p class = "text-secondary">Helps you to administer the customers.</p>
-                        <a href="{{ route('admin_home') }}" class="btn btn-primary">{{ __('Dashboard') }}</a>
+                        <a href="{{ route('home.index') }}" class="btn btn-primary">{{ __('Dashboard') }}</a>
                     </div>
                     <div class="col-md-12 p-2 ">
                         <hr>

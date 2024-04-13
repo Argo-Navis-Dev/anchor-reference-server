@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 //Home page for the Anchor Reference Server
 Route::get('/', function () {
-    return view('home');
+    return view('welcome');
 });
 
 //SEP-01
@@ -29,30 +29,37 @@ Route::get('/sep12demo', function () {
 })->name('sep12demo');
 
 // Admin dashboard
-Auth::routes();
+Auth::routes(['register' => false]);
+//Auth::routes(['register' => false]);
+
 //The home page for the admin dashboard
-Route::get('/admin-home', [App\Http\Controllers\Admin\AdminHomeController::class, 'index'])->name('admin_home');
+Route::get('/home', [App\Http\Controllers\Admin\HomeController::class, 'index'])->name('home.index');
+
 //Renders the users
-Route::get('/admin-users', [App\Http\Controllers\Admin\AdminUserController::class, 'renderAdminUsers'])->name('admin_users');
+Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
 //Returns the admin users data as a JSON array
-Route::get('/load-admin-users-data', [App\Http\Controllers\Admin\AdminUserController::class, 'loadAdminUsersData']);
+Route::get('/load-users', [App\Http\Controllers\Admin\UserController::class, 'loadUsers']);
 
 //Renders one specific user  
-Route::get('/admin-user/{id}', [App\Http\Controllers\Admin\AdminUserController::class, 'loadAdminUser'])->name('admin_user');
+Route::get('/user/{id}', [App\Http\Controllers\Admin\UserController::class, 'show'])->name('user.index');
 //Stores the user data
-Route::post('/admin-user/${id}', [App\Http\Controllers\Admin\AdminUserController::class, 'updateAdminUser'])->name('update_admin_user');
+Route::post('/user/${id}', [App\Http\Controllers\Admin\UserController::class, 'store'])->name('user.store');
 //Deletes the user
-Route::delete('/admin-user', [App\Http\Controllers\Admin\AdminUserController::class, 'deleteAminUser']);
+Route::delete('/user', [App\Http\Controllers\Admin\UserController::class, 'destroy']);
+
+
 //Retrieves the customer image field to be rendered on the page
-Route::get('/admin-customer/{id}/get-customer-img-field/{fieldID}', [App\Http\Controllers\Admin\AdminCustomerController::class, 'getCustomerImgField']);
+Route::get('/customer/{id}/binary-field/{fieldID}', [App\Http\Controllers\Admin\CustomerController::class, 'getBinaryField']);
 //Renders the customers
-Route::get('/admin-customers', [App\Http\Controllers\Admin\AdminCustomerController::class, 'loadAdminCustomers'])->name('admin_customers');
+
+Route::get('/customers', [App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('customers.index');
 //Loads the admin customers data as a JSON array
-Route::get('/load-admin-customers-data', [App\Http\Controllers\Admin\AdminCustomerController::class, 'loadAdminCustomersData']);
+Route::get('/load-customers', [App\Http\Controllers\Admin\CustomerController::class, 'loadCustomers']);
 
 //Deletes the customer
-Route::delete('/admin-customer', [App\Http\Controllers\Admin\AdminCustomerController::class, 'deleteAdminCustomer']);
+Route::delete('/customer', [App\Http\Controllers\Admin\CustomerController::class, 'destroy']);
+
 //Renders the customer
-Route::get('/admin-customer/{id}', [App\Http\Controllers\Admin\AdminCustomerController::class, 'loadAdminCustomer'])->name('admin_customer');
+Route::get('/customer/{id}', [App\Http\Controllers\Admin\CustomerController::class, 'show'])->name('customer.index');
 //Stores the customer data
-Route::post('/admin-customer/${id}', [App\Http\Controllers\Admin\AdminCustomerController::class, 'updateAdminCustomer'])->name('update_admin_customer');
+Route::post('/customer/${id}', [App\Http\Controllers\Admin\CustomerController::class, 'store'])->name('customer.store');

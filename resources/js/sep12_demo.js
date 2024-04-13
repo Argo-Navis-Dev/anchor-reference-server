@@ -157,10 +157,40 @@ function verifyEmail() {
         contentType: false, 
         success: function(response) {
             setLoading(false);
-            $('.verification-form-wrapper').fadeOut(300);  
+            $('.verification-form-wrapper').fadeOut(300);              
+            $('.callback-wrapper').fadeIn(300);
             $('.customer-info-wrapper').fadeIn(300);
             showAlert(`Email address verified! <br> You can view your customer info.`); 
             refreshCustomerInfo();
+        },
+        error: function(error) {
+            console.error(error);
+        }
+    });    
+}
+
+
+function saveCustomerCallback() {
+    let token = localStorage.getItem("accessToken");
+    let customerId = localStorage.getItem("customerId");
+    
+    let callback = $('#callback').val();    
+    let formData = new FormData();
+    formData.append('id', customerId);
+    formData.append('url', callback);
+    setLoading(true);
+    $.ajax({
+        url: '/customer/callback',
+        type: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        data: formData,
+        processData: false, 
+        contentType: false, 
+        success: function(response) {
+            setLoading(false);            
+            showAlert(`The passed callback has been saved successfully!`);             
         },
         error: function(error) {
             console.error(error);
@@ -303,6 +333,11 @@ function init() {
     $('#verify-btn').click(function(e) {   
         verifyEmail();             
     });
+
+    $('#save-customer-callback-btn').click(function(e) {   
+        saveCustomerCallback();             
+    });
+
     $('#delete-btn').click(function(e) {           
         deleteCustomer();             
     });   

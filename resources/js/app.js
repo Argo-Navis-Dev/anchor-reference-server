@@ -1,9 +1,9 @@
 import $ from "jquery";
 window.jQuery = window.$ = $
 
-import './admin_customers';
-import './admin_users';
-import './admin_customer';
+import './customers_controller';
+import './users_controller';
+import './customer_controller';
 
 
 $(function() {

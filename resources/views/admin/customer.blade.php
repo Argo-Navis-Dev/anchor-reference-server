@@ -18,7 +18,7 @@
             <div class="card">
                 <div class="card-header text-primary">{{ __('UPDATE CUSTOMER') }}</div>
 
-                <form method="POST" action="{{ route('update_admin_customer', $customer['id']) }}">
+                <form method="POST" action="{{ route('customer.store', $customer['id']) }}">
                     @csrf
                     <div class="card-body">
                         <!-- The customer status -->
@@ -94,7 +94,7 @@
                                     {{ __('Save') }}
                                 </button>
 
-                                <button class="btn btn-secondary ms-2" onclick="event.preventDefault(); window.location.href = '{{ route('admin_customers')}}'">
+                                <button class="btn btn-secondary ms-2" onclick="event.preventDefault(); window.location.href = '{{ route('customers.index')}}'">
                                     {{ __('Done') }}
                                 </button>
                             </div>

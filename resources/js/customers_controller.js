@@ -10,7 +10,7 @@ import * as adminBase from './admin_base';
 import $ from "jquery";
 
 $(document).on('appReady', function (_event, routeName) {    
-    if (routeName === 'admin_customers') {
+    if (routeName === 'customers.index') {
         init();
     }    
 });
@@ -22,7 +22,7 @@ $(document).on('appReady', function (_event, routeName) {
  */
 function deleteCustomer(userId) {
     $.ajax({
-        url: `/admin-customer?id=${userId}`,
+        url: `/customer?id=${userId}`,
         type: 'DELETE',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -57,7 +57,7 @@ function customerActionFormatter(value, row, index) {
  
 window.customerActionEvents = {
     'click .edit-customer': function (e, value, row, index) {
-        window.open(`/admin-customer/${row.id}`, '_self');    
+        window.open(`/customer/${row.id}`, '_self');    
     },
     'click .delete-customer': function (e, value, row, index) {        
         let customerId = row.id;
@@ -71,9 +71,9 @@ window.customerActionEvents = {
 }
 
 
-window.loadAdminCustomersData = function (params) {    
+window.loadCustomers = function (params) {    
     $.ajax({
-        url: `/load-admin-customers-data`,
+        url: `/load-customers`,
         type: 'GET',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -165,5 +165,5 @@ function init() {
 }
 
 function getTable() {
-    return $('#admin-customers-table');
+    return $('#customers-table');
 }

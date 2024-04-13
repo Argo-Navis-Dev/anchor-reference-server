@@ -12,7 +12,7 @@ import 'bootstrap'
 import 'bootstrap-table/dist/bootstrap-table.js'
 
 $(document).on('appReady', function (_event, routeName) {    
-    if (routeName === 'admin_users') {
+    if (routeName === 'users.index') {
         init();
     }    
 });
@@ -21,10 +21,9 @@ $(document).on('appReady', function (_event, routeName) {
  * Deletes the passed user.
  * @param {integer} userId 
  */
-function deleteUser(userId) {
-    alert('deleteUser' + userId)
+function deleteUser(userId) {    
     $.ajax({
-        url: `/admin-user?id=${userId}`,
+        url: `/user?id=${userId}`,
         type: 'DELETE',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -50,7 +49,7 @@ function deleteUser(userId) {
 
 window.loadAdminUsersData = function (params) {    
     $.ajax({
-        url: `/load-admin-users-data`,
+        url: `/load-users`,
         type: 'GET',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -89,7 +88,7 @@ function dateTimeFormatter(value, row, index) {
 
 window.userActionEvents = {
     'click .edit-user': function (e, value, row, index) {
-        window.open(`/admin-user/${row.id}`, '_self');    
+        window.open(`/user/${row.id}`, '_self');    
     },
     'click .delete-user': function (e, value, row, index) {        
         let userId = row.id;

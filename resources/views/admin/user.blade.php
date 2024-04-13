@@ -19,7 +19,7 @@
                 <div class="card-header">{{ __('Update user') }}</div>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('update_admin_user', $user->id) }}">
+                    <form method="POST" action="{{ route('user.store', $user->id) }}">
                         @csrf
 
                         <div class="row mb-3">
@@ -86,7 +86,7 @@
                                     {{ __('Save') }}
                                 </button>
                                 
-                                <button class="btn btn-secondary ms-2" onclick="event.preventDefault(); window.location.href = '{{ route('admin_users')}}'">
+                                <button class="btn btn-secondary ms-2" onclick="event.preventDefault(); window.location.href = '{{ route('users.index')}}'">
                                     {{ __('Done') }}
                                 </button>
                             </div>

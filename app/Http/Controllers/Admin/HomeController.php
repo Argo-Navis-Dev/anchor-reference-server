@@ -14,7 +14,7 @@ use App\Models\User; // Add this line to import the User model
 /**
  * Controller for the admin. home page.
  */
-class AdminHomeController extends Controller
+class HomeController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -27,7 +27,7 @@ class AdminHomeController extends Controller
     }
 
     /**
-     * Shows the admin home page: admin_home.blade.php
+     * Shows the admin home page: home.blade.php
      * The auth middleware is used to authenticate the user.
      * This controller can be accessed exclusively by authenticated users.
      *
@@ -35,6 +35,6 @@ class AdminHomeController extends Controller
      */
     public function index()
     {        
-        return view('admin_home'); // Pass the users to the view
+        return view('/admin/home'); // Pass the users to the view
     }
 }

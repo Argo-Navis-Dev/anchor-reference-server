@@ -104,6 +104,15 @@
         </div>
     </div>
 
+    <!-- Authenticate form -->
+    <div id="callback-wrapper" class="container callback-wrapper mt-5">
+        <h3 class="py-1 text-left">Set customer callback URL</h3>
+        <div class="input-group">
+            <input id="callback" type="text" class="form-control" placeholder="Customer callback URL">
+            <button id="save-customer-callback-btn" type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </div>
+
     <!-- Customer info -->
     <div id="customer-info-wrapper" class="container customer-info-wrapper mt-5 p-0">
         <div class="container ">

@@ -11,7 +11,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\User; 
-class AdminUserController extends Controller
+class UserController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -26,17 +26,17 @@ class AdminUserController extends Controller
 
     /**
      * Renders the admin users page.
-     * @return \Illuminate\View\View The admin users page: admin_users.blade.php
+     * @return \Illuminate\View\View The admin users page: users.blade.php
      */
-    public function renderAdminUsers()
+    public function index()
     {
         Log::debug('Accessing the users page');
         $users = User::all(); // Select all users from the database
-        return view('/admin/admin_users', ['users' => $users]); // Pass the users model to the view
+        return view('/admin/users', ['users' => $users]); // Pass the users model to the view
     }
 
     
-    public function loadAdminUsersData()
+    public function loadUsers()
     {
         Log::debug('Accessing the users page');
         $users = User::all(); // Select all users from the database        
@@ -48,9 +48,9 @@ class AdminUserController extends Controller
      * Delete the passed admin user.
      *
      * @param  Request  $request The request object
-     * @return \Illuminate\View\View The admin users page: admin_users.blade.php
+     * @return \Illuminate\View\View The admin users page: users.blade.php
      */
-    public function deleteAminUser(Request $request)
+    public function destroy(Request $request)
     {
         $id = $request->input('id');
         Log::debug('Deleting user by id: ' . $id);        
@@ -76,7 +76,7 @@ class AdminUserController extends Controller
      * @param int $id The ID of the admin user to load.
      * @return \Illuminate\View\View The admin user page: admin_user.blade.php
      */
-    public function loadAdminUser($id) 
+    public function show($id) 
     {
         LOG::debug('Accessing admin user page by ID: ' . $id);
         $user = User::find($id); // Load the user by id
@@ -84,7 +84,7 @@ class AdminUserController extends Controller
             Log::debug('User not found!');
             return view('/admin/admin_user', ['error' => "Nor found!"]);     
         }
-        return view('/admin/admin_user', ['user' => $user]); 
+        return view('/admin/user', ['user' => $user]); 
     }
 
     /**
@@ -94,7 +94,7 @@ class AdminUserController extends Controller
      * @param  int  $id
      * @return \Illuminate\View\View The admin user page: admin_user.blade.php
      */
-    public function updateAdminUser(Request $request, $id)
+    public function store(Request $request, $id)
     {
         LOG::debug('Updating the user: ' . $id);
 
@@ -120,6 +120,6 @@ class AdminUserController extends Controller
         }        
         $user->save();
         Log::debug('The user has been updated successfully!');
-        return view('/admin/admin_user', ['user' => $user, 'success' => "The user has been updated successfully!"]); // Pass the user to the view
+        return view('/admin/user', ['user' => $user, 'success' => "The user has been updated successfully!"]); // Pass the user to the view
     }
 }

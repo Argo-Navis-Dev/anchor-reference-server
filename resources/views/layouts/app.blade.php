@@ -24,7 +24,7 @@
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">                    
-                <a class="navbar-brand text-secondary" href="{{ route('admin_home') }}">
+                <a class="navbar-brand text-secondary" href="{{ route('home.index') }}">
                     <i class="fa fa-anchor"></i> 
                     {{ config('app.name', 'Anchor Reference Server') }}
                 </a>
@@ -39,11 +39,11 @@
                     <ul class="navbar-nav me-auto">
                         @auth                        
                         <li class="nav-item">                            
-                            <a class="nav-link text-primary" href="{{ route('admin_users') }}"><i class="fa fa-user-circle"></i><span class = "ms-1">MANAGE USERS</span></a>
+                            <a class="nav-link text-primary" href="{{ route('users.index') }}"><i class="fa fa-user-circle"></i><span class = "ms-1">MANAGE USERS</span></a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link text-primary" href="{{ route('admin_customers') }}"><i class="fa fa-user-md"></i><span class = "ms-1">MANAGE CUSTOMERS</span></a>
+                            <a class="nav-link text-primary" href="{{ route('customers.index') }}"><i class="fa fa-user-md"></i><span class = "ms-1">MANAGE CUSTOMERS</span></a>
                         </li>
                         @endauth
                     </ul>

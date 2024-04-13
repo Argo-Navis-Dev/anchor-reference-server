@@ -4,7 +4,7 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <div class="card admin-customers-table-wrapper">
+            <div class="card customers-table-wrapper">
                 <div class="card-body">
                     <h5 class="card-title text-uppercase mb-0 text-primary">Manage customers</h5>
                 </div>                    
@@ -22,12 +22,12 @@
                 </div>
 
                 <table
-                    id = "admin-customers-table"
+                    id = "customers-table"
                     data-toolbar="#customers-table-toolbar"                    
                     data-minimum-count-columns="1"                                                
                     data-id-field="id"  
                     data-search="true"                                              
-                    data-ajax="loadAdminCustomersData">
+                    data-ajax="loadCustomers">
                 </table>
 
             </div>

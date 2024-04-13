@@ -20,7 +20,7 @@ use App\Models\Sep12Field;
 /**
  * Controller for the admin customers and customer page.
  */
-class AdminCustomerController extends Controller    
+class CustomerController extends Controller    
 {    
 
     /**
@@ -37,17 +37,17 @@ class AdminCustomerController extends Controller
     /**
      * Loads the customers page.
      *
-     * @return \Illuminate\Contracts\Support\Renderable The view to be rendered: admin_customers.blade.php
+     * @return \Illuminate\Contracts\Support\Renderable The view to be rendered: customers.blade.php
      */
-    public function loadAdminCustomers()
+    public function index()
     {
         Log::debug('Accessing the admin customers page.');        
         $customersData = $this->getCustomersData();
         LOG::debug('The customer data is: ' . json_encode($customersData));
-        return view('/admin/admin_customers', ['customers' => $customersData]);
+        return view('/admin/customers', ['customers' => $customersData]);
     }
 
-    public function loadAdminCustomersData()
+    public function loadCustomers()
     {
         Log::debug('Loading the admin customers data.');        
         $customersData = $this->getCustomersData();        
@@ -83,7 +83,7 @@ class AdminCustomerController extends Controller
      * @param  Request  $request the request object.
      * @return \Illuminate\Http\Response The response object contianing a JSON body.
      */
-    public function deleteAdminCustomer(Request $request) 
+    public function destroy(Request $request) 
     {
         $id = $request->input('id');
         Log::debug('Deleting the customer by id: ' . $id);  
@@ -104,17 +104,17 @@ class AdminCustomerController extends Controller
      * Loads the customer page which permits editing the customer data.
      *
      * @param  int  $id the customer id.
-     * @return \Illuminate\Contracts\Support\Renderable The view to be rendered: admin_customers.blade.php
+     * @return \Illuminate\Contracts\Support\Renderable The view to be rendered: customers.blade.php
      */
-    public function loadAdminCustomer($id) 
+    public function show($id) 
     {
         LOG::debug('Accessing customer page: ' . $id);
         $customerData = $this->getCustomerData($id);
         if (!$customerData) {
             Log::debug('Customer not found!');
-            return view('/admin/admin_customer', ['error' => "Not found!"]);     
+            return view('/admin/customer', ['error' => "Not found!"]);     
         }       
-        return view('/admin/admin_customer', ['customer' => $customerData, 'fields' => $this->getFildsData()]); // Pass the user to the view
+        return view('/admin/customer', ['customer' => $customerData, 'fields' => $this->getFildsData()]); // Pass the user to the view
     }
 
     private function getFildsData() 
@@ -181,9 +181,9 @@ class AdminCustomerController extends Controller
      *
      * @param  \Illuminate\Http\Request $request The request object.
      * @param  int  $id The customer ID.
-     * @return \Illuminate\Contracts\Support\Renderable The view to be rendered: admin_customer.blade.php
+     * @return \Illuminate\Contracts\Support\Renderable The view to be rendered: customer.blade.php
      */
-    public function updateAdminCustomer(Request $request, $id)
+    public function store(Request $request, $id)
     {
         LOG::debug('Updating the customer data by customer ID: ' . $id);        
         $customer = Sep12Customer::find($id);
@@ -191,7 +191,7 @@ class AdminCustomerController extends Controller
 
         if (!$customer) {
             Log::debug('Customer not found!');
-            return view('/admin/admin_customer', ['error' => "Customer not found!"]);     
+            return view('/admin/customer', ['error' => "Customer not found!"]);     
         }
         //Load the fields
         $fields = Sep12Field::all();
@@ -242,7 +242,7 @@ class AdminCustomerController extends Controller
             LOG::debug('The customer status has been changed from: ' . $customer->status . ' to: ' . $customerStatus);                               
             Sep12Helper::onCustomerStatusChanged($customer);                            
         }        
-        return view('/admin/admin_customer', ['success' => 'The customer data has been updated successfully!', 'customer' => $customerData, 'fields' => $this->getFildsData()]);
+        return view('/admin/customer', ['success' => 'The customer data has been updated successfully!', 'customer' => $customerData, 'fields' => $this->getFildsData()]);
     }
     
     
@@ -289,7 +289,7 @@ class AdminCustomerController extends Controller
      * @param int $fieldID The ID of the image field.
      * @return void
      */
-    public function getCustomerImgField($id, $fieldID)
+    public function getBinaryField($id, $fieldID)
     {
         LOG::debug('Loading image field: ' . $fieldID . ' by customer: ' . $id);        
         $imgField = Sep12ProvidedField::where('sep12_customer_id', $id)
