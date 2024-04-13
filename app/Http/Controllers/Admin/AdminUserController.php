@@ -25,10 +25,10 @@ class AdminUserController extends Controller
     }
 
     /**
-     * Load the admin users page.
+     * Renders the admin users page.
      * @return \Illuminate\View\View The admin users page: admin_users.blade.php
      */
-    public function loadAdminUsers()
+    public function renderAdminUsers()
     {
         Log::debug('Accessing the users page');
         $users = User::all(); // Select all users from the database

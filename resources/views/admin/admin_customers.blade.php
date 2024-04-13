@@ -10,8 +10,8 @@
                 </div>                    
                 <div id="customers-table-toolbar" class="customers-table-toolbar">    
                     <div class="ms-3 mb-3">
-                        <label for="customer-status" class="col-form-label text-md-start">{{ __('Filter by customer status') }}</label>
-                        <select id="customer-status" class="form-control form-select">                                                                                    
+                        <label for="customer-status-filter" class="col-form-label text-md-start">{{ __('Filter by customer status') }}</label>
+                        <select id="customer-status-filter" class="form-control form-select">                                                                                    
                             <option value="NONE" selected>NONE</option>
                             <option value="ACCEPTED" >ACCEPTED</option>
                             <option value="PROCESSING">PROCESSING</option>

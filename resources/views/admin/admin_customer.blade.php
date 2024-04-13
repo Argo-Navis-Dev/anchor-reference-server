@@ -28,7 +28,7 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <div class="col-md-12">
-                                        <select id="status" class="form-control form-select @error('status') is-invalid @enderror"
+                                        <select id="customer-status" class="form-control form-select @error('status') is-invalid @enderror"
                                             name="status" required>
                                             <option value="ACCEPTED"
                                                 {{ $customer['status'] == "ACCEPTED" ? "selected" : "" }}>
@@ -62,19 +62,17 @@
                                             @include('admin/customer_fields/dropdown_field', [
                                                 'customerID' => $customer['id'], 
                                                 'fieldName' => $field['key'],
-                                                'fieldValue' => $customer[$field['key']], 
-                                                'fieldID' => $field['id'],
-                                                'statusValue' => $customer[$field['key'].'_status'], 
-                                                'localizedLabel' => __($field['key']),
+                                                'fieldValue' => $customer[$field['key']] ?? '',                                                 
+                                                'statusValue' => $customer[$field['key'].'_status'] ?? 'PROCESSING', 
+                                                'localizedLabel' => __('admin_dashboard.' . $field['key']),
                                                 'options' => $field['choices']])
                                         @else
                                             @include('admin/customer_fields/string_field', [
                                                 'customerID' => $customer['id'],
                                                 'fieldName' => $field['key'],
-                                                'fieldValue' => $customer[$field['key']],
-                                                'fieldID' => $field['id'],
-                                                'statusValue' => $customer[$field['key'].'_status'],
-                                                'localizedLabel' => __($field['key'])
+                                                'fieldValue' => $customer[$field['key']] ?? '',
+                                                'statusValue' => $customer[$field['key'].'_status'] ?? 'PROCESSING',
+                                                'localizedLabel' => __('admin_dashboard.' . $field['key'])
                                             ])
                                         @endif
                                     @break
@@ -82,49 +80,14 @@
                                         @include('admin/customer_fields/binary_field', [
                                             'customerID' => $customer['id'],
                                             'fieldName' => $field['key'],
-                                            'fieldID' => $customer['id_number_id'],
-                                            'statusValue' => $customer[$field['key'].'_status'],
-                                            'localizedLabel' => __($field['key'])
+                                            'providedFieldID' => $customer[$field['key'] . '_id'] ?? 'null',
+                                            'statusValue' => $customer[$field['key'].'_status'] ?? 'PROCESSING',
+                                            'localizedLabel' => __('admin_dashboard.' . $field['key'])
                                         ])
                                 @endswitch                                                            
                             @endforeach                     
                         @endif
-                        <!-- The customer fields -->
-                        @include('admin/customer_fields/string_field',
-                        ['customerID' => $customer['id'], 'fieldName' => 'first_name', 'fieldValue' =>
-                        $customer['first_name'],
-                        'fieldID' => $customer['first_name_id'], 'statusValue' => $customer['first_name_status'],
-                        'localizedLabel' => __('First Name')])
-
-                        @include('admin/customer_fields/string_field',
-                        ['customerID' => $customer['id'], 'fieldName' => 'last_name',
-                        'fieldValue' => $customer['last_name'], 'fieldID' => $customer['last_name_id'],
-                        'statusValue' => $customer['last_name_status'], 'localizedLabel' => __('Last Name')])
-
-                        @include('admin/customer_fields/string_field',
-                        ['customerID' => $customer['id'], 'fieldName' => 'email_address',
-                        'fieldValue' => $customer['email_address'], 'fieldID' => $customer['email_address_id'],
-                        'statusValue' => $customer['email_address_status'], 'localizedLabel' => __('Email address')])
-
-                        @include('admin/customer_fields/string_field',
-                        ['customerID' => $customer['id'], 'fieldName' => 'id_number',
-                        'fieldValue' => $customer['id_number'], 'fieldID' => $customer['id_number_id'],
-                        'statusValue' => $customer['id_number_status'], 'localizedLabel' => __('ID number')])
-
-                        @include('admin/customer_fields/dropdown_field',
-                        ['customerID' => $customer['id'], 'fieldName' => 'id_type',
-                        'fieldValue' => $customer['id_type'], 'fieldID' => $customer['id_type_id'],
-                        'statusValue' => $customer['id_type_status'], 'localizedLabel' => __('ID type'),
-                        'options' => [['label' => 'ID card', 'id' => 'ID_CARD'], ['label' => 'Passport', 'id' =>
-                        'Passport']]])
-
-                        @include('admin/customer_fields/binary_field',
-                        ['customerID' => $customer['id'], 'fieldName' => 'photo_id_front', 'fieldID' =>
-                        $customer['photo_id_front_id'], 'statusValue' => $customer['photo_id_front_status'],
-                        'localizedLabel' => __('Photo ID front')])
-
-                  
-                        <div class="dropdown">
+         
                         <div class="row mb-0">
                             <div class="col-md-6 offset-md-4-start">
                                 <button type="submit" class="btn btn-primary">
@@ -136,6 +99,7 @@
                                 </button>
                             </div>
                         </div>
+
                     </div>
                 </form>
             </div>

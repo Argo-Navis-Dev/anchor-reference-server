@@ -33,11 +33,11 @@ Auth::routes();
 //The home page for the admin dashboard
 Route::get('/admin-home', [App\Http\Controllers\Admin\AdminHomeController::class, 'index'])->name('admin_home');
 //Renders the users
-Route::get('/admin-users', [App\Http\Controllers\Admin\AdminUserController::class, 'loadAdminUsers'])->name('admin_users');
+Route::get('/admin-users', [App\Http\Controllers\Admin\AdminUserController::class, 'renderAdminUsers'])->name('admin_users');
 //Returns the admin users data as a JSON array
 Route::get('/load-admin-users-data', [App\Http\Controllers\Admin\AdminUserController::class, 'loadAdminUsersData']);
 
-//Renders one speicifc user  
+//Renders one specific user  
 Route::get('/admin-user/{id}', [App\Http\Controllers\Admin\AdminUserController::class, 'loadAdminUser'])->name('admin_user');
 //Stores the user data
 Route::post('/admin-user/${id}', [App\Http\Controllers\Admin\AdminUserController::class, 'updateAdminUser'])->name('update_admin_user');

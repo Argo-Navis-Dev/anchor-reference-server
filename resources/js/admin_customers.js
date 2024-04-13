@@ -97,7 +97,7 @@ window.loadAdminCustomersData = function (params) {
 
 function init() {
     const CLEAR_FILTER = 'NONE';
-    $('#customer-status').change(function() {        
+    $('#customer-status-filter').on('change', function() {        
         var selectedStatus = $(this).val();
         let filterOptions = {};
         if(selectedStatus !== CLEAR_FILTER) {

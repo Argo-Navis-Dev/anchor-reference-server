@@ -8,16 +8,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
-use App\Stellar\Sep12Customer\CustomerIntegration;
-use ArgoNavis\PhpAnchorSdk\Sep12\Sep12Service;
+
+use App\Stellar\Sep12Customer\Sep12Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\Sep12Customer;
 use App\Models\Sep12ProvidedField;
 use App\Models\Sep12Field;
-use Illuminate\Validation\Validator;
-use ArgoNavis\PhpAnchorSdk\callback\GetCustomerRequest;
-use GuzzleHttp\Client;
+
 
 /**
  * Controller for the admin customers and customer page.
@@ -160,8 +158,9 @@ class AdminCustomerController extends Controller
             Log::debug('Customer not found: ' . $id);
             return [];
         }
-        $fields = Sep12Field::all();
+        $fields = Sep12Field::all();        
         $fieldIDToBean = $fields->keyBy('id')->all();
+        
         $customerData = array();
         //Populate the fields from the provided fields
         Sep12ProvidedField::where('sep12_customer_id', $customer->id)->get()->each(function($providedField) use (&$customerData, $fieldIDToBean) {                                
@@ -169,17 +168,7 @@ class AdminCustomerController extends Controller
             $customerData[$fieldName] = $providedField->string_value;
             $customerData[$fieldName . '_status'] = $providedField->status;
             $customerData[$fieldName . '_id'] = $providedField->id;
-        });
-        //The default status for the missing fields
-        $DEFAULT_STATUS_FOR_MISSING_FIELD = "PROCESSING";
-        //Populate the fields that are not in the provided fields (in order to display them in the view).
-        foreach ($fieldIDToBean as $fieldID => $fieldBean) {
-            if (!array_key_exists($fieldBean->key, $customerData)) {
-                $customerData[$fieldBean->key] = '';
-                $customerData[$fieldBean->key . '_status'] = $DEFAULT_STATUS_FOR_MISSING_FIELD;
-                $customerData[$fieldBean->key . '_id'] = null;
-            }
-        }
+        }); 
         $customerData['account_id'] = $customer->account_id;
         $customerData['id'] = $customer->id;
         $customerData['status'] = $customer->status;
@@ -198,6 +187,8 @@ class AdminCustomerController extends Controller
     {
         LOG::debug('Updating the customer data by customer ID: ' . $id);        
         $customer = Sep12Customer::find($id);
+        $oldCustomerStatus = $customer->status;
+
         if (!$customer) {
             Log::debug('Customer not found!');
             return view('/admin/admin_customer', ['error' => "Customer not found!"]);     
@@ -228,10 +219,7 @@ class AdminCustomerController extends Controller
         
         //Save the customer status
         $customerStatus = $submittedData['status'];                
-        if($customerStatus) {
-            if($customerStatus != $customer->status) {
-                LOG::debug('The customer status has been changed from: ' . $customer->status . ' to: ' . $customerStatus);
-            }        
+        if($customerStatus) {            
             $customer->status = $customerStatus;
             $customer->save();
         }
@@ -249,7 +237,12 @@ class AdminCustomerController extends Controller
         $this->updateCustomerField($fieldNameToBean['photo_id_front'], $providedFields, 'photo_id_front', null, $submittedData['photo_id_front_status'], $customer);
         $this->updateCustomerField($fieldNameToBean['photo_id_back'], $providedFields, 'photo_id_back', null, $submittedData['photo_id_back_status'], $customer);
         $customerData = $this->getCustomerData($id);    
-        return view('/admin/admin_customer', ['success' => 'The customer data has been updated successfully!', 'customer' => $customerData]);
+
+        if($oldCustomerStatus != $customer->status) {
+            LOG::debug('The customer status has been changed from: ' . $customer->status . ' to: ' . $customerStatus);                               
+            Sep12Helper::onCustomerStatusChanged($customer);                            
+        }        
+        return view('/admin/admin_customer', ['success' => 'The customer data has been updated successfully!', 'customer' => $customerData, 'fields' => $this->getFildsData()]);
     }
     
     
@@ -275,11 +268,7 @@ class AdminCustomerController extends Controller
             if($fieldValue && $field->type == 'string') {
                 $providedField->string_value = $fieldValue;
             }
-            $providedField->save();
-            if($currentStatuss != $newStatusValue) {
-                LOG::debug('The field ' . $fieldName . ' status has been changed from: ' . $currentStatuss . ' to: ' . $newStatusValue);
-                $this->onCustomerFieldStatusChnaged($customer);            
-            }
+            $providedField->save();            
         }
         else {
             $providedField = new Sep12ProvidedField();
@@ -291,37 +280,7 @@ class AdminCustomerController extends Controller
             $providedField->status = 'PROCESSING';
             $providedField->save();
         }        
-    }
-
-    /**
-     * Handler for customer field status change.
-     * Calls the SEP12 service to get the customer data and sends it to the callback URL.
-     *
-     * @param Sep12Customer $customer The customer object.
-     * @return void
-     */    
-    private function onCustomerFieldStatusChnaged($customer) 
-    {
-        $callbackUrl = $customer->callback_url;
-        LOG::debug('The customer field status change callback URL: ' . $callbackUrl);
-        if ($callbackUrl && !empty($callbackUrl)) {
-        
-            $getCustomerRequest = new GetCustomerRequest($customer->account_id, $customer->memo);
-            $customerIntegration = new CustomerIntegration();
-            $sep12CustomerData = $customerIntegration->getCustomer($getCustomerRequest);
-                        
-            $httpClient = new Client();
-            $response = $httpClient->post($customer->callback_url, [
-                'json' => $sep12CustomerData
-            ]);
-            // Check the response status code
-            if ($response->getStatusCode() == 200) {
-                LOG::debug('The customer status change callback has been sent successfully!');
-            } else {
-                LOG::error('The customer status change callback has failed!');
-            }
-        }
-    }
+    }    
 
     /**
      * Retrieves the passed custome image field or a dummy image if it does not exist.

@@ -9,7 +9,21 @@
 import $ from "jquery";
 import * as bootstrap from 'bootstrap'
 
-export { setLoading, showAlert, showYesNo };
+export { setLoading, showAlert, showYesNo, CUSTOMER_STATUS, CUSTOMER_FIELD_STATUS};
+
+const CUSTOMER_STATUS = {
+    ACCEPTED: 'ACCEPTED',
+    PROCESSING: 'PROCESSING',
+    NEEDS_INFO: 'NEEDS_INFO',
+    REJECTED: 'REJECTED'
+}
+
+const CUSTOMER_FIELD_STATUS = {
+    ACCEPTED: 'ACCEPTED',
+    PROCESSING: 'PROCESSING',
+    REJECTED: 'REJECTED',
+    VERIFICATION_REQUIRED: 'VERIFICATION_REQUIRED'
+}
 
 /**
  * Shows or hides the loading overlay.
