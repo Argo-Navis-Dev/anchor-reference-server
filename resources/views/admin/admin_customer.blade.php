@@ -54,25 +54,59 @@
                             </div>
                         </div>
 
+                        @if(isset($fields))                       
+                            @foreach($fields as $field)
+                                @switch($field['type'])
+                                    @case('string')
+                                        @if(isset($field['choices']))
+                                            @include('admin/customer_fields/dropdown_field', [
+                                                'customerID' => $customer['id'], 
+                                                'fieldName' => $field['key'],
+                                                'fieldValue' => $customer[$field['key']], 
+                                                'fieldID' => $field['id'],
+                                                'statusValue' => $customer[$field['key'].'_status'], 
+                                                'localizedLabel' => __($field['key']),
+                                                'options' => $field['choices']])
+                                        @else
+                                            @include('admin/customer_fields/string_field', [
+                                                'customerID' => $customer['id'],
+                                                'fieldName' => $field['key'],
+                                                'fieldValue' => $customer[$field['key']],
+                                                'fieldID' => $field['id'],
+                                                'statusValue' => $customer[$field['key'].'_status'],
+                                                'localizedLabel' => __($field['key'])
+                                            ])
+                                        @endif
+                                    @break
+                                    @case ('binary')
+                                        @include('admin/customer_fields/binary_field', [
+                                            'customerID' => $customer['id'],
+                                            'fieldName' => $field['key'],
+                                            'fieldID' => $customer['id_number_id'],
+                                            'statusValue' => $customer[$field['key'].'_status'],
+                                            'localizedLabel' => __($field['key'])
+                                        ])
+                                @endswitch                                                            
+                            @endforeach                     
+                        @endif
                         <!-- The customer fields -->
-
-                        @include('admin/customer_fields/shorttext_field',
+                        @include('admin/customer_fields/string_field',
                         ['customerID' => $customer['id'], 'fieldName' => 'first_name', 'fieldValue' =>
                         $customer['first_name'],
                         'fieldID' => $customer['first_name_id'], 'statusValue' => $customer['first_name_status'],
                         'localizedLabel' => __('First Name')])
 
-                        @include('admin/customer_fields/shorttext_field',
+                        @include('admin/customer_fields/string_field',
                         ['customerID' => $customer['id'], 'fieldName' => 'last_name',
                         'fieldValue' => $customer['last_name'], 'fieldID' => $customer['last_name_id'],
                         'statusValue' => $customer['last_name_status'], 'localizedLabel' => __('Last Name')])
 
-                        @include('admin/customer_fields/shorttext_field',
+                        @include('admin/customer_fields/string_field',
                         ['customerID' => $customer['id'], 'fieldName' => 'email_address',
                         'fieldValue' => $customer['email_address'], 'fieldID' => $customer['email_address_id'],
                         'statusValue' => $customer['email_address_status'], 'localizedLabel' => __('Email address')])
 
-                        @include('admin/customer_fields/shorttext_field',
+                        @include('admin/customer_fields/string_field',
                         ['customerID' => $customer['id'], 'fieldName' => 'id_number',
                         'fieldValue' => $customer['id_number'], 'fieldID' => $customer['id_number_id'],
                         'statusValue' => $customer['id_number_status'], 'localizedLabel' => __('ID number')])
@@ -89,10 +123,7 @@
                         $customer['photo_id_front_id'], 'statusValue' => $customer['photo_id_front_status'],
                         'localizedLabel' => __('Photo ID front')])
 
-                        @include('admin/customer_fields/binary_field',
-                        ['customerID' => $customer['id'], 'fieldName' => 'photo_id_back', 'fieldID' =>
-                        $customer['photo_id_back_id'], 'statusValue' => $customer['photo_id_back_status'],
-                        'localizedLabel' => __('Photo ID back')])
+                  
                         <div class="dropdown">
                         <div class="row mb-0">
                             <div class="col-md-6 offset-md-4-start">

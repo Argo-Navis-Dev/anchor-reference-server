@@ -115,8 +115,34 @@ class AdminCustomerController extends Controller
         if (!$customerData) {
             Log::debug('Customer not found!');
             return view('/admin/admin_customer', ['error' => "Not found!"]);     
-        }        
-        return view('/admin/admin_customer', ['customer' => $customerData]); // Pass the user to the view
+        }       
+        return view('/admin/admin_customer', ['customer' => $customerData, 'fields' => $this->getFildsData()]); // Pass the user to the view
+    }
+
+    private function getFildsData() 
+    {
+        $sep12Fields = Sep12Field::all();
+        $fieldsJson = [];
+        foreach ($sep12Fields as $field) {
+            $fieldJson = [];
+            $fieldJson['id'] = $field->id;
+            $fieldJson['key'] = $field->key;
+            $fieldJson['type'] = $field->type;
+            if ($field->choices !== null) {                
+                $choices = explode(',', $field->choices);
+                $labelIdChoices = [];
+                foreach ($choices as $choice) {
+                    $ch = [];
+                    $ch['id'] = $choice;
+                    $ch['label'] = $choice;
+                    $labelIdChoices[] = $ch;
+                }
+                $fieldJson['choices'] = $labelIdChoices;
+            }
+            $fieldsJson[] = $fieldJson;
+        }
+        return $fieldsJson;
+
     }
 
 
