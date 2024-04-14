@@ -1,7 +1,11 @@
 <div class="row mb-3">
     <div class="col-md-8 mx-auto">
         <label class="col-md-3 text-md-start">{{ $localizedLabel }}</label><br>
-        <img class="img-fluid" src="/customer/{{ $customerID }}/binary-field/{{ $providedFieldID ?? '-1' }}" alt="{{ $localizedLabel }}">
+        @if ($providedFieldID && $providedFieldID !== 'null')
+            <img class="img-fluid" src="/customer/{{ $customerID }}/binary-field/{{ $providedFieldID }}" alt="{{ $localizedLabel }}">
+        @else 
+            <img class="img-fluid" src="/customer/{{ $customerID }}/binary-field/-1" alt="{{ $localizedLabel }}">
+        @endif
     </div>
     <div class="col-md-4">
         <label for="{{ $fieldName }}_status" class="col-md-3 col-form-label text-md-start">{{ __('Status') }}</label>

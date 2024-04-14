@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 /**
- * This file contains the base functions for the admin pages.
+ * This file contains the base and common functions for the admin pages.
  */
 
 import $ from "jquery";
@@ -11,6 +11,9 @@ import * as bootstrap from 'bootstrap'
 
 export { setLoading, showAlert, showYesNo, CUSTOMER_STATUS, CUSTOMER_FIELD_STATUS};
 
+/**
+ * Customer status constants.
+ */
 const CUSTOMER_STATUS = {
     ACCEPTED: 'ACCEPTED',
     PROCESSING: 'PROCESSING',
@@ -18,6 +21,9 @@ const CUSTOMER_STATUS = {
     REJECTED: 'REJECTED'
 }
 
+/**
+ * Customer field status constants.
+ */
 const CUSTOMER_FIELD_STATUS = {
     ACCEPTED: 'ACCEPTED',
     PROCESSING: 'PROCESSING',

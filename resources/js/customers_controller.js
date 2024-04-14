@@ -4,11 +4,14 @@
 
 /**
  * This file contains the logic for administering the customers.
- */
+*/
 
 import * as adminBase from './admin_base';
 import $ from "jquery";
 
+/**
+ * Event handler when the app is ready.
+ */
 $(document).on('appReady', function (_event, routeName) {    
     if (routeName === 'customers.index') {
         init();
@@ -17,7 +20,7 @@ $(document).on('appReady', function (_event, routeName) {
 
 
 /**
- * Deletes a customer.
+ * Deletes the passed customer.
  * @param {integer} userId 
  */
 function deleteCustomer(userId) {
@@ -46,6 +49,13 @@ function deleteCustomer(userId) {
     });
 }
 
+/**
+ * Special renderer for the customer actions column.
+ * @param {string} value 
+ * @param {object} row 
+ * @param {integer} index 
+ * @returns 
+ */
 function customerActionFormatter(value, row, index) {
     return `<button type = "button" class="edit-customer btn btn-outline-info btn-circle btn-md btn-circle me-2">
                 <i class="fa fa-edit"></i> 
@@ -54,7 +64,10 @@ function customerActionFormatter(value, row, index) {
                 <i class="fa fa-trash"></i>
             </button>`; 
 }
- 
+
+/**
+ * Event handlers for the customer actions.
+ */
 window.customerActionEvents = {
     'click .edit-customer': function (e, value, row, index) {
         window.open(`/customer/${row.id}`, '_self');    
@@ -70,7 +83,10 @@ window.customerActionEvents = {
     }
 }
 
-
+/**
+ * Loads the customers data.
+ * @param {*} params 
+ */
 window.loadCustomers = function (params) {    
     $.ajax({
         url: `/load-customers`,
@@ -97,6 +113,9 @@ window.loadCustomers = function (params) {
     });
 }
 
+/**
+ * Initializes the customers page wires the listeners.
+ */
 function init() {
     const CLEAR_FILTER = 'NONE';
     $('#customer-status-filter').on('change', function() {        
@@ -164,6 +183,10 @@ function init() {
     });    
 }
 
+/**
+ * Returns the customers table element.
+ * @returns jQuery object
+ */
 function getTable() {
     return $('#customers-table');
 }

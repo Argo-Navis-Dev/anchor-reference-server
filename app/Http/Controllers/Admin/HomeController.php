@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use App\Models\User; // Add this line to import the User model
 
 /**
- * Controller for the admin. home page.
+ * Controller for the dashboard home page.
  */
 class HomeController extends Controller
 {
@@ -27,7 +27,7 @@ class HomeController extends Controller
     }
 
     /**
-     * Shows the admin home page: home.blade.php
+     * Shows the dashboard home page: home.blade.php
      * The auth middleware is used to authenticate the user.
      * This controller can be accessed exclusively by authenticated users.
      *

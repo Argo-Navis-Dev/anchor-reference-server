@@ -1,3 +1,7 @@
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be.
+// found in the LICENSE file.
+
 /**
  * This is a simple demo of how to use the SEP-10 and SEP-12 endpoint in the Anchor Reference Server.
  */
@@ -170,6 +174,9 @@ function verifyEmail() {
 }
 
 
+/**
+ * Saves the callback URL for the customer.
+ */
 function saveCustomerCallback() {
     let token = localStorage.getItem("accessToken");
     let customerId = localStorage.getItem("customerId");

@@ -1,5 +1,5 @@
 /**
- * The admin. dashboard styles.
+ * The dashboard custom styles.
 */
 
 body{
@@ -143,4 +143,9 @@ body {
     float: left !important;
     margin-left: 30px;
     margin-top: 45px !important;
+}
+
+.users-table-wrapper .bootstrap-table .search {
+    float: left !important;
+    margin-left: 30px;    
 }

@@ -16,10 +16,14 @@
             </div>
         @endif
             <div class="card">
-                <div class="card-header">{{ __('Update user') }}</div>
+                @if($user->id)  
+                    <div class="card-header">{{ __('Update user') }}</div>
+                @else
+                    <div class="card-header">{{ __('Create user') }}</div>
+                @endif
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('user.store', $user->id) }}">
+                    <form method="POST" action="{{ $user->id ? route('user.store', $user->id) : route('user.store', "null") }}">
                         @csrf
 
                         <div class="row mb-3">

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-//Home page for the Anchor Reference Server
+//Welcome page for the Anchor Reference Server
 Route::get('/', function () {
     return view('welcome');
 });
@@ -30,16 +30,13 @@ Route::get('/sep12demo', function () {
 
 // Admin dashboard
 Auth::routes(['register' => false]);
-//Auth::routes(['register' => false]);
 
-//The home page for the admin dashboard
+//Renders the home page of the dashboard
 Route::get('/home', [App\Http\Controllers\Admin\HomeController::class, 'index'])->name('home.index');
-
-//Renders the users
+//Renders the users page
 Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
-//Returns the admin users data as a JSON array
+//Loads the users data as a JSON array
 Route::get('/load-users', [App\Http\Controllers\Admin\UserController::class, 'loadUsers']);
-
 //Renders one specific user  
 Route::get('/user/{id}', [App\Http\Controllers\Admin\UserController::class, 'show'])->name('user.index');
 //Stores the user data
@@ -47,18 +44,14 @@ Route::post('/user/${id}', [App\Http\Controllers\Admin\UserController::class, 's
 //Deletes the user
 Route::delete('/user', [App\Http\Controllers\Admin\UserController::class, 'destroy']);
 
-
-//Retrieves the customer image field to be rendered on the page
+//Renders the customer (binary) image field
 Route::get('/customer/{id}/binary-field/{fieldID}', [App\Http\Controllers\Admin\CustomerController::class, 'getBinaryField']);
 //Renders the customers
-
 Route::get('/customers', [App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('customers.index');
-//Loads the admin customers data as a JSON array
+//Loads the customers data as a JSON array
 Route::get('/load-customers', [App\Http\Controllers\Admin\CustomerController::class, 'loadCustomers']);
-
 //Deletes the customer
 Route::delete('/customer', [App\Http\Controllers\Admin\CustomerController::class, 'destroy']);
-
 //Renders the customer
 Route::get('/customer/{id}', [App\Http\Controllers\Admin\CustomerController::class, 'show'])->name('customer.index');
 //Stores the customer data

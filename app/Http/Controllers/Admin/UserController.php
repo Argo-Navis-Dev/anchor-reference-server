@@ -11,6 +11,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\User; 
+
+/**
+ * Controller for administering the users.
+ */
 class UserController extends Controller
 {
     /**
@@ -23,6 +27,23 @@ class UserController extends Controller
     {
         $this->middleware('auth');
     }
+        
+    /**
+     * Load the passed user data by ID.
+     *
+     * @param string $id The ID of the user to be shown.
+     * @return \Illuminate\View\View The user page: user.blade.php
+     */
+    public function show(string $id) 
+    {
+        LOG::debug('Accessing user page, ID: ' . $id);
+        $user = User::find($id); // Load the user by id
+        if (!$user) {
+            Log::debug('User not found, creating new one.');
+            $user = new User();            
+        }
+        return view('/admin/user', ['user' => $user]); 
+    }
 
     /**
      * Renders the admin users page.
@@ -30,22 +51,24 @@ class UserController extends Controller
      */
     public function index()
     {
-        Log::debug('Accessing the users page');
+        Log::debug('Accessing the users page.');
         $users = User::all(); // Select all users from the database
         return view('/admin/users', ['users' => $users]); // Pass the users model to the view
     }
-
     
+    /**
+     * Load the users data as a JSON array.
+     * @return \Illuminate\Http\JsonResponse The admin users data as a JSON array
+     */
     public function loadUsers()
     {
-        Log::debug('Accessing the users page');
+        Log::debug('Loading all users.');
         $users = User::all(); // Select all users from the database        
         return response()->json($users, 200);
     }
 
-
     /**
-     * Delete the passed admin user.
+     * Deletes the passed user.
      *
      * @param  Request  $request The request object
      * @return \Illuminate\View\View The admin users page: users.blade.php
@@ -69,39 +92,22 @@ class UserController extends Controller
         }       
     }
 
-    
     /**
-     * Load a the passed user data by ID.
-     *
-     * @param int $id The ID of the admin user to load.
-     * @return \Illuminate\View\View The admin user page: admin_user.blade.php
-     */
-    public function show($id) 
-    {
-        LOG::debug('Accessing admin user page by ID: ' . $id);
-        $user = User::find($id); // Load the user by id
-        if (!$user) {
-            Log::debug('User not found!');
-            return view('/admin/admin_user', ['error' => "Nor found!"]);     
-        }
-        return view('/admin/user', ['user' => $user]); 
-    }
-
-    /**
-     * Update the passed user data.
+     * Update or creates the user with the passed data.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\View\View The admin user page: admin_user.blade.php
+     * @param  string  $id
+     * @return \Illuminate\View\View The admin user page: user.blade.php
      */
-    public function store(Request $request, $id)
+    public function store(Request $request, string $id)
     {
-        LOG::debug('Updating the user: ' . $id);
-
-        $user = User::find($id); // Load the user by id
+        LOG::debug('Updating/creating user, passed id: ' . $id);
+        $user = User::find($id); 
+        $isNew = false;
         if (!$user) {
-            Log::debug('User not found: ' . $id);
-            return view('/admin/admin_user', ['error' => "Nor found!"]);     
+            Log::debug('User not found, creating new one.');
+            $user = new User();
+            $isNew = true;
         }
         //Validation
         $fieldsToValidate = [
@@ -118,8 +124,9 @@ class UserController extends Controller
         if ($request->has('password') && !empty($request->input('password'))) {            
             $user->password = bcrypt($request->input('password')); // Hash the password
         }        
-        $user->save();
-        Log::debug('The user has been updated successfully!');
-        return view('/admin/user', ['user' => $user, 'success' => "The user has been updated successfully!"]); // Pass the user to the view
+        $user->save();        
+        $isNew ? $msg = "The user has been created successfully!" : $msg = "The user has been updated successfully!";
+        Log::debug($msg);
+        return view('/admin/user', ['user' => $user, 'success' => $msg]); // Pass the user to the view
     }
 }

@@ -47,7 +47,11 @@ function deleteUser(userId) {
     });
 }
 
-window.loadAdminUsersData = function (params) {    
+/**
+ * Loads all users.
+ * @param {*} params 
+ */
+window.loadUsers = function (params) {    
     $.ajax({
         url: `/load-users`,
         type: 'GET',
@@ -73,6 +77,13 @@ window.loadAdminUsersData = function (params) {
     });
 }
 
+/**
+ * Renderer for the user actions column.
+ * @param {string} value 
+ * @param {object} row 
+ * @param {integer} index 
+ * @returns 
+ */
 function userActionFormatter(value, row, index) {
     return `<button type = "button" class="edit-user btn btn-outline-info btn-circle btn-md btn-circle me-2">
                 <i class="fa fa-edit"></i> 
@@ -82,10 +93,20 @@ function userActionFormatter(value, row, index) {
             </button>`; 
 }
 
+/**
+ * Renderer for the date time column.
+ * @param {string} value 
+ * @param {object} row 
+ * @param {integer} index 
+ * @returns 
+ */
 function dateTimeFormatter(value, row, index) {    
     return new Date(value).toLocaleString("en-US");
 }
 
+/**
+ * Event handlers for the user actions.
+*/
 window.userActionEvents = {
     'click .edit-user': function (e, value, row, index) {
         window.open(`/user/${row.id}`, '_self');    
@@ -101,6 +122,9 @@ window.userActionEvents = {
     }
 }
 
+/**
+ * Initializes the users page.
+ */
 function init() {
     getTable().bootstrapTable('destroy').bootstrapTable({
         height: 550,
@@ -146,6 +170,10 @@ function init() {
     });    
 }
 
+/**
+ * Returns the users table.
+ * @returns jQuery object
+ */
 function getTable() {
     return $('#admin-users-table');
 }
