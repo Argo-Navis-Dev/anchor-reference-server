@@ -224,9 +224,9 @@ class CustomerController extends Controller
         $FIELD_TO_IGNORE_ON_VALIDATION = ['photo_id_front', 'photo_id_back'];
         foreach ($fields as $field) {
             if (!in_array($field->key, $FIELD_TO_IGNORE_ON_VALIDATION)) {
-                $fieldsToValidate[$field->key] = 'required|string';
+                $fieldsToValidate[$field->key] = 'string|nullable';
             }
-            $fieldsToValidate[$field->key . '_status'] = 'required|string|in:ACCEPTED,PROCESSING,REJECTED,VERIFICATION_REQUIRED';
+            $fieldsToValidate[$field->key . '_status'] = 'string|in:ACCEPTED,PROCESSING,REJECTED,VERIFICATION_REQUIRED';
         }
         $request->validate($fieldsToValidate);
         LOG::debug('The submitted data has been validated successfully!');
