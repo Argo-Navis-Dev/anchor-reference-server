@@ -20,7 +20,7 @@
     
 </head>
 
-<body data-route-name = "{{ Route::currentRouteName() }}">
+<body data-page-name = "@yield('pageType')">
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">                    

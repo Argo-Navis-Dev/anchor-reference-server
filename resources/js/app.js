@@ -13,6 +13,6 @@ import './customer_controller';
  * This event is triggered when the app is ready.
  */
 $(function() {
-    const routeName = $('body').data('route-name');    
-    $(document).trigger('appReady', [routeName]);
+    const pageName = $('body').data('page-name');        
+    $(document).trigger('appReady', [pageName]);
 });

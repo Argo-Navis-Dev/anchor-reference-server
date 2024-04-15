@@ -31,6 +31,10 @@ Route::get('/sep12demo', function () {
 // Admin dashboard
 Auth::routes(['register' => false]);
 
+View::composer('*', function($view){
+    View::share('view_name', $view->getName());
+}); 
+
 //Renders the home page of the dashboard
 Route::get('/home', [App\Http\Controllers\Admin\HomeController::class, 'index'])->name('home.index');
 //Renders the users page

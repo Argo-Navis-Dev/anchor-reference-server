@@ -11,8 +11,8 @@ import * as adminBase from './admin_base';
 import 'bootstrap'
 import 'bootstrap-table/dist/bootstrap-table.js'
 
-$(document).on('appReady', function (_event, routeName) {    
-    if (routeName === 'users.index') {
+$(document).on('appReady', function (_event, pageName) {    
+    if (pageName === 'users-page') {
         init();
     }    
 });
@@ -61,8 +61,7 @@ window.loadUsers = function (params) {
         beforeSend: function () {
             adminBase.setLoading(true);
         },
-        success: function (response) {
-            console.log(response);
+        success: function (response) {            
             params.success({
                 "rows": response,
                 "total": response.length

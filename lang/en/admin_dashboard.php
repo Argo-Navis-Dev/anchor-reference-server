@@ -17,6 +17,7 @@ return [
     'id_number' => 'ID number',
     'id_type' => 'ID type',
     'photo_id_front' => 'Phopto ID front',
-    'photo_id_back' => 'Photo ID back'
+    'photo_id_back' => 'Photo ID back',
+    'new_field' => 'New field'
 
 ];

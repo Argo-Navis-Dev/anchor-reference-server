@@ -18,7 +18,7 @@ import $ from "jquery";
  * Event handler when the app is ready.
  */
 $(document).on('appReady', function (_event, routeName) {    
-    if (routeName === 'customer.index') {
+    if (routeName === 'customer-page') {
         init();
     }    
 });

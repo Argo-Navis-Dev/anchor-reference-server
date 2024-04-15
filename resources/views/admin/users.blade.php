@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('pageType', 'users-page')
+
 @section('content')
 <div class="container">
     <div class="row">

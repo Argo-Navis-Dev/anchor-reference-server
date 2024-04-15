@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('pageType', 'customer-page')
 @section('content')
 <div class="container">
     @if(!empty($error))

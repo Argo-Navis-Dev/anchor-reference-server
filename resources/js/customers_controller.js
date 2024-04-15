@@ -12,8 +12,8 @@ import $ from "jquery";
 /**
  * Event handler when the app is ready.
  */
-$(document).on('appReady', function (_event, routeName) {    
-    if (routeName === 'customers.index') {
+$(document).on('appReady', function (_event, pageName) {    
+    if (pageName === 'customers-page') {
         init();
     }    
 });
@@ -97,8 +97,7 @@ window.loadCustomers = function (params) {
         beforeSend: function () {
             adminBase.setLoading(true);
         },
-        success: function (response) {
-            console.log(response);
+        success: function (response) {            
             params.success({
                 "rows": response,
                 "total": response.length

@@ -217,8 +217,7 @@ function refreshCustomerInfo() {
             headers: {'Authorization': `Bearer ${token}`}
         }).then(response => response.json())
             .then(response => {
-                setLoading(false);
-                console.log(response); 
+                setLoading(false);                
                 updateCustomerInfo(response);
             })  
             .catch(error => {

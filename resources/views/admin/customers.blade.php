@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('pageType', 'customers-page')
 @section('content')
 <div class="container">
     <div class="row">

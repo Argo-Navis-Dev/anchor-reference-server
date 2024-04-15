@@ -238,6 +238,7 @@ class CustomerController extends Controller
             $customer->save();
             $customer->refresh();
         }
+        
 
         foreach ($submittedData as $fieldName => $fieldValue) {
             //Ignore all fields that are not in the database sep_12_fields table           
