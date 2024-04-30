@@ -20,13 +20,6 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
         });
-
-        // Create a default user
-        DB::table('users')->insert([
-            'name' => 'Anchor Admin',
-            'email' => 'anchor.admin@argo-navis.dev',
-            'password' => bcrypt('AnchorAdmin2023!'),
-        ]);
     }
 
     /**
