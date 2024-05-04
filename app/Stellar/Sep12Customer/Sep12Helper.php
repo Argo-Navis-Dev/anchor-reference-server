@@ -25,8 +25,9 @@ use DateTime;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
 use Psr\Http\Message\UploadedFileInterface;
-use Psr\Http\Message\StreamInterface;
 use Illuminate\Support\Facades\Log;
+
+use Soneso\StellarSDK\Crypto\KeyPair;
 
 use ArgoNavis\PhpAnchorSdk\callback\GetCustomerRequest;
 use GuzzleHttp\Client;
@@ -144,9 +145,9 @@ class Sep12Helper
             $customer->type = $request->type;
         }
 
-        // save the customer        
+        // save the customer
         $customer->save();
-        $customer->refresh();        
+        $customer->refresh();
 
         // add the provided fields for the customer
         /**
@@ -180,16 +181,16 @@ class Sep12Helper
                     $fieldsThatRequireVerification[] = $providedField;
                 }
             }
-        }        
+        }
         if (self::customerNeedsInfo($customer, $allSep12Fields)) {
             $customer->status = CustomerStatus::NEEDS_INFO;
             $customer->save();
-            $customer->refresh();            
+            $customer->refresh();
         }
 
         // check if any automatic validation request can be sent.
         self::sendVerificationCode($allSep12Fields, $fieldsThatRequireVerification);
-                
+
         //Call the status change callback.
         self::onCustomerStatusChanged($customer);
         return $customer;
@@ -555,8 +556,8 @@ class Sep12Helper
                                 throw new AnchorFailure($kycFieldKey . ' too large');
                             } elseif ($kycFieldValue->getError() !== UPLOAD_ERR_OK) {
                                 throw new AnchorFailure($kycFieldKey . 'could not be uploaded.');
-                            }                                         
-                            $fileContents =  $kycFieldValue->getStream()->getContents();                            
+                            }
+                            $fileContents =  $kycFieldValue->getStream()->getContents();
                             $providedField->binary_value = $fileContents;
                             $result[] = $providedField;
                             continue;
@@ -642,30 +643,34 @@ class Sep12Helper
      * Calls the customer status change callback if the customer has a callback url.
      * Will submit POST requests until the user's status changes to ACCEPTED or REJECTED.
      * If so, remove the callback_url field from the DB.
-     * (This method might saves and refreshes the customer object, previously updated and not saved customer object field is lost).     
+     * (This method might saves and refreshes the customer object, previously updated and not saved customer object field is lost).
      * Should be called only after the customer status has been changed.
      * @param Sep12Customer $customer the customer to handle.
      * @return void
      */
-    public static function onCustomerStatusChanged(Sep12Customer $customer) 
+    public static function onCustomerStatusChanged(Sep12Customer $customer)
     {
         $callbackUrl = $customer->callback_url;
         $newStatus = $customer->status;
         LOG::debug('Handling the customer status change callback: ' . $newStatus . ' callback URL: ' . $callbackUrl);
-        if ($callbackUrl && !empty($callbackUrl)) {        
+        if ($callbackUrl && !empty($callbackUrl)) {
             $getCustomerRequest = new GetCustomerRequest($customer->account_id, $customer->memo);
             $customerIntegration = new CustomerIntegration();
             $sep12CustomerData = $customerIntegration->getCustomer($getCustomerRequest);
-                        
+            $signature = self::getCallbackSignaturedHeader($sep12CustomerData, $callbackUrl);
             $httpClient = new Client();
             $response = $httpClient->post($customer->callback_url, [
+                'headers' => [
+                    'Signature' => $signature,
+                    'X-Stellar-Signature' => $signature, //Deprecated
+                ],
                 'json' => $sep12CustomerData
             ]);
             // Check the response status code
             if ($response->getStatusCode() == 200) {
                 LOG::debug('The customer status change callback has been called successfully!');
             } else {
-                LOG::error('Failed to call the customer status change callback!');         
+                LOG::error('Failed to call the customer status change callback!');
             }
             if($newStatus === CustomerStatus::ACCEPTED ||
                $newStatus === CustomerStatus::REJECTED) {
@@ -674,5 +679,25 @@ class Sep12Helper
                 $customer->refresh();
             }
         }
+    }
+
+    /**
+     * Returns the signature header value for the customer callback.
+     *
+     * @param GetCustomerResponse $sep12CustomerData the customer data to be sent in request body.
+     * @param string $callbackUrl the callback URL.
+     */
+    private static function getCallbackSignaturedHeader(GetCustomerResponse $sep12CustomerData, string $callbackUrl)
+    {
+        $signingSeed = env('STELLAR_SIGNING_KEY');
+        $anchorKeys = KeyPair::fromSeed($signingSeed);
+        $currentTime = round(microtime(true));
+        $signature = $currentTime . '.' . $callbackUrl . '.' . json_encode($sep12CustomerData);
+        LOG::debug('The Sep12 customer callback header signature to be signed is: <' . $signature . '>');
+        $signature = $anchorKeys->sign($signature);
+        $based64Signature = base64_encode($signature);
+        $signatureHeader = 't=' . $currentTime . ', s=' . $based64Signature;
+        LOG::debug('The Sep12 customer callback signature header value is: ' . $signatureHeader . '>');
+        return $signatureHeader;
     }
 }
