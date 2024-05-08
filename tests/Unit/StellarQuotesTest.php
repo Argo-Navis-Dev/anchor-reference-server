@@ -10,7 +10,12 @@ use Soneso\StellarSDK\SEP\Quote\QuoteService;
 use Soneso\StellarSDK\SEP\Quote\SEP38PostQuoteRequest;
 use Soneso\StellarSDK\SEP\Toml\StellarToml;
 use Soneso\StellarSDK\SEP\WebAuth\WebAuth;
+use function PHPUnit\Framework\assertContains;
+use function PHPUnit\Framework\assertCount;
+use function PHPUnit\Framework\assertEquals;
 use function PHPUnit\Framework\assertNotNull;
+use const E_ALL;
+use function error_reporting;
 
 class StellarQuotesTest extends TestCase
 {
@@ -21,12 +26,17 @@ class StellarQuotesTest extends TestCase
     private string $usdAsset = 'iso4217:USD';
     private string $nativeAsset = 'stellar:native';
 
+    public function setUp(): void
+    {
+        // Turn on error reporting
+        error_reporting(E_ALL);
+    }
 
     public function testGetInfo()
     {
         $quotesService = $this->getQuotesService();
         $response = $quotesService->info();
-        self::assertCount(4, $response->assets);
+        assertCount(4, $response->assets);
         $usdc = null;
         $jpyc = null;
         $usd = null;
@@ -43,25 +53,25 @@ class StellarQuotesTest extends TestCase
             }
         }
 
-        self::assertNotNull($usdc);
-        self::assertNotNull($jpyc);
-        self::assertNotNull($usd);
-        self::assertNotNull($native);
+        assertNotNull($usdc);
+        assertNotNull($jpyc);
+        assertNotNull($usd);
+        assertNotNull($native);
 
-        self::assertNotNull($usd->sellDeliveryMethods);
-        self::assertNotNull($usd->buyDeliveryMethods);
-        self::assertNotNull($usd->countryCodes);
+        assertNotNull($usd->sellDeliveryMethods);
+        assertNotNull($usd->buyDeliveryMethods);
+        assertNotNull($usd->countryCodes);
 
-        self::assertContains('USA', $usd->countryCodes);
-        self::assertCount(1, $usd->sellDeliveryMethods);
-        self::assertCount(1, $usd->buyDeliveryMethods);
-        self::assertEquals('WIRE', $usd->sellDeliveryMethods[0]->name);
-        self::assertEquals(
+        assertContains('USA', $usd->countryCodes);
+        assertCount(1, $usd->sellDeliveryMethods);
+        assertCount(1, $usd->buyDeliveryMethods);
+        assertEquals('WIRE', $usd->sellDeliveryMethods[0]->name);
+        assertEquals(
             "Send USD directly to the Anchor's bank account.",
             $usd->sellDeliveryMethods[0]->description,
         );
-        self::assertEquals('WIRE', $usd->buyDeliveryMethods[0]->name);
-        self::assertEquals(
+        assertEquals('WIRE', $usd->buyDeliveryMethods[0]->name);
+        assertEquals(
             "Have USD sent directly to your bank account.",
             $usd->buyDeliveryMethods[0]->description,
         );
@@ -71,7 +81,7 @@ class StellarQuotesTest extends TestCase
 
         $quotesService = $this->getQuotesService();
         $response = $quotesService->prices(sellAsset: $this->usdAsset, sellAmount: 10);
-        self::assertCount(2, $response->buyAssets);
+        assertCount(2, $response->buyAssets);
 
         $usdc = null;
         $jpyc = null;
@@ -83,14 +93,14 @@ class StellarQuotesTest extends TestCase
             }
         }
 
-        self::assertNotNull($usdc);
-        self::assertNotNull($jpyc);
+        assertNotNull($usdc);
+        assertNotNull($jpyc);
 
-        self::assertEquals("0.0066666666666667", $jpyc->price);
-        self::assertEquals(2, $jpyc->decimals);
+        assertEquals("0.0066666666666667", $jpyc->price);
+        assertEquals(2, $jpyc->decimals);
 
-        self::assertEquals("1.010101010101", $usdc->price);
-        self::assertEquals(2, $usdc->decimals);
+        assertEquals("1.010101010101", $usdc->price);
+        assertEquals(2, $usdc->decimals);
     }
 
     public function testGetPrice()
@@ -103,20 +113,19 @@ class StellarQuotesTest extends TestCase
             sellAmount: "1000",
         );
 
-        self::assertEquals("1.010101010101", $response->totalPrice);
-        self::assertEquals("1", $response->price);
-        self::assertEquals("1000", $response->sellAmount);
-        self::assertEquals("990", $response->buyAmount);
+        assertEquals("1.010101010101", $response->totalPrice);
+        assertEquals("1", $response->price);
+        assertEquals("1000", $response->sellAmount);
+        assertEquals("990", $response->buyAmount);
         assertNotNull($response->fee);
-        self::assertEquals("10", $response->fee->total);
-        self::assertEquals($this->usdAsset, $response->fee->asset);
+        assertEquals("10", $response->fee->total);
+        assertEquals($this->usdAsset, $response->fee->asset);
     }
 
     public function testPostQuoteAndGetById()
     {
         // create a new stellar account
         $userKeyPair = KeyPair::random();
-        $userAccountId = $userKeyPair->getAccountId();
 
         // request jwt token via sep-10
         $jwtToken = $this->getJwtToken($userKeyPair);
@@ -130,30 +139,30 @@ class StellarQuotesTest extends TestCase
         );
 
         $quote = $quotesService->postQuote($request, $jwtToken);
-        self::assertEquals("1.010101010101", $quote->totalPrice);
-        self::assertEquals("1", $quote->price);
-        self::assertEquals($this->usdAsset, $quote->sellAsset);
-        self::assertEquals("1000", $quote->sellAmount);
-        self::assertEquals($this->usdcAsset, $quote->buyAsset);
-        self::assertEquals("990", $quote->buyAmount);
+        assertEquals("1.010101010101", $quote->totalPrice);
+        assertEquals("1", $quote->price);
+        assertEquals($this->usdAsset, $quote->sellAsset);
+        assertEquals("1000", $quote->sellAmount);
+        assertEquals($this->usdcAsset, $quote->buyAsset);
+        assertEquals("990", $quote->buyAmount);
 
         assertNotNull($quote->fee);
-        self::assertEquals("10", $quote->fee->total);
-        self::assertEquals($this->usdAsset, $quote->fee->asset);
+        assertEquals("10", $quote->fee->total);
+        assertEquals($this->usdAsset, $quote->fee->asset);
 
         $quoteById = $quotesService->getQuote($quote->id, $jwtToken);
 
-        self::assertEquals($quote->id, $quoteById->id);
-        self::assertEquals("1.010101010101", $quoteById->totalPrice);
-        self::assertEquals("1", $quoteById->price);
-        self::assertEquals($this->usdAsset, $quoteById->sellAsset);
-        self::assertEquals("1000", $quoteById->sellAmount);
-        self::assertEquals($this->usdcAsset, $quoteById->buyAsset);
-        self::assertEquals("990", $quoteById->buyAmount);
+        assertEquals($quote->id, $quoteById->id);
+        assertEquals("1.010101010101", $quoteById->totalPrice);
+        assertEquals("1", $quoteById->price);
+        assertEquals($this->usdAsset, $quoteById->sellAsset);
+        assertEquals("1000", $quoteById->sellAmount);
+        assertEquals($this->usdcAsset, $quoteById->buyAsset);
+        assertEquals("990", $quoteById->buyAmount);
 
         assertNotNull($quoteById->fee);
-        self::assertEquals("10", $quoteById->fee->total);
-        self::assertEquals($this->usdAsset, $quoteById->fee->asset);
+        assertEquals("10", $quoteById->fee->total);
+        assertEquals($this->usdAsset, $quoteById->fee->asset);
     }
 
     private function getQuotesService() : QuoteService {

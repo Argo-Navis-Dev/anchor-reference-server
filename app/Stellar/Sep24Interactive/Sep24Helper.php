@@ -16,7 +16,7 @@ use ArgoNavis\PhpAnchorSdk\callback\InteractiveDepositRequest;
 use ArgoNavis\PhpAnchorSdk\callback\InteractiveWithdrawRequest;
 use ArgoNavis\PhpAnchorSdk\callback\PutCustomerRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep24DepositTransactionResponse;
-use ArgoNavis\PhpAnchorSdk\callback\Sep24TransactionHistoryRequest;
+use ArgoNavis\PhpAnchorSdk\callback\TransactionHistoryRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep24TransactionResponse;
 use ArgoNavis\PhpAnchorSdk\callback\Sep24WithdrawTransactionResponse;
 use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
@@ -26,6 +26,8 @@ use ArgoNavis\PhpAnchorSdk\shared\DepositOperation;
 use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
 use ArgoNavis\PhpAnchorSdk\shared\Sep24AssetInfo;
 use ArgoNavis\PhpAnchorSdk\shared\Sep24TransactionStatus;
+use ArgoNavis\PhpAnchorSdk\shared\TransactionRefundPayment;
+use ArgoNavis\PhpAnchorSdk\shared\TransactionRefunds;
 use ArgoNavis\PhpAnchorSdk\shared\WithdrawOperation;
 use ArgoNavis\PhpAnchorSdk\util\MemoHelper;
 use DateTime;
@@ -111,7 +113,7 @@ class Sep24Helper
     }
 
     public static function getTransactionHistory(
-        Sep24TransactionHistoryRequest $request,
+        TransactionHistoryRequest $request,
         string $accountId,
         ?string $memo = null,
     ) : ?array {
@@ -257,7 +259,23 @@ class Sep24Helper
         return new Sep24AssetInfo($formattedAsset, $depositOp, $withdrawOp);
     }
 
+    /**
+     * @throws AnchorFailure
+     */
     private static function sep24TransactionResponseFromTx(Sep24Transaction $tx) : Sep24TransactionResponse {
+
+        try {
+            $amountInAsset = $tx->amount_in_asset !== null ? IdentificationFormatAsset::fromString($tx->amount_in_asset) : null;
+            $amountOutAsset = $tx->amount_out_asset !== null ? IdentificationFormatAsset::fromString($tx->amount_out_asset) : null;
+            $amountFeeAsset = $tx->amount_fee_asset !== null ? IdentificationFormatAsset::fromString($tx->amount_fee_asset) : null;
+        } catch (InvalidAsset) {
+            throw new AnchorFailure('Invalid asset in DB', 500);
+        }
+
+        $refunds = null;
+        if ($tx->refunds !== null) {
+            $refunds = self::parseRefunds($tx->refunds);
+        }
 
         if ($tx->kind === 'deposit') {
 
@@ -267,26 +285,26 @@ class Sep24Helper
                 startedAt: DateTime::createFromFormat(DATE_ATOM, $tx->tx_started_at),
                 from:$tx->from_account,
                 to: $tx->to_account,
-                amountIn: $tx->amount_in,
-                amountOut: $tx->amount_out,
-                amountFee: $tx->amount_fee,
+                amountIn: $tx->amount_in === null ? null : strval($tx->amount_in),
+                amountOut: $tx->amount_out === null ? null : strval($tx->amount_out),
+                amountFee: $tx->amount_fee === null ? null : strval($tx->amount_fee),
                 moreInfoUrl: $tx->more_info_url,
                 stellarTransactionId: $tx->stellar_transaction_id,
                 claimableBalanceId: $tx->claimable_balance_id,
                 depositMemo: $tx->memo,
                 depositMemoType:$tx->memo_type,
                 statusEta: $tx->status_eta,
-                amountInAsset: $tx->amount_in_asset,
-                amountOutAsset: $tx->amount_out_asset,
-                amountFeeAsset: $tx->amount_fee_asset,
+                amountInAsset: $amountInAsset,
+                amountOutAsset: $amountOutAsset,
+                amountFeeAsset: $amountFeeAsset,
                 quoteId: $tx->quote_id,
                 completedAt: $tx->tx_completed_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_completed_at),
                 updatedAt: $tx->tx_updated_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_updated_at),
                 externalTransactionId: $tx->external_transaction_id,
                 message: $tx->status_message,
-                refunded: boolval($tx->refunded)
+                refunded: boolval($tx->refunded),
+                refunds: $refunds,
             );
-            // TODO: add refunds
         } else {
             return new Sep24WithdrawTransactionResponse(
                 id: $tx->id,
@@ -303,17 +321,17 @@ class Sep24Helper
                 withdrawMemo: $tx->memo,
                 withdrawMemoType:$tx->memo_type,
                 statusEta: $tx->status_eta,
-                amountInAsset: $tx->amount_in_asset,
-                amountOutAsset: $tx->amount_out_asset,
-                amountFeeAsset: $tx->amount_fee_asset,
+                amountInAsset: $amountInAsset,
+                amountOutAsset: $amountOutAsset,
+                amountFeeAsset: $amountFeeAsset,
                 quoteId: $tx->quote_id,
                 completedAt: $tx->tx_completed_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_completed_at),
                 updatedAt: $tx->tx_updated_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_updated_at),
                 externalTransactionId: $tx->external_transaction_id,
                 message: $tx->status_message,
-                refunded: boolval($tx->refunded)
+                refunded: boolval($tx->refunded),
+                refunds: $refunds,
             );
-            // TODO: add refunds
         }
     }
 
@@ -357,5 +375,62 @@ class Sep24Helper
         // The token needs to be replaced with a new short-lived jwt token.
         $newJwtToken = 'placeholderToken';
         return 'https://localhost:5173/interactive-popup?tx=' . $txId . '&token=' . $newJwtToken;
+    }
+
+    /**
+     * Parses fee refunds into a TransactionRefunds object from a given json string
+     * E.g. json string:
+     * {
+     *  "amount_refunded": "10",
+     *  "amount_fee": "5",
+     *  "payments": [
+     *      {
+     *          "id": "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020",
+     *          "id_type": "stellar",
+     *          "amount": "10",
+     *          "fee": "5"
+     *      }
+     *  ]
+     * }
+     *
+     * @param string $refundsJson
+     * @return TransactionRefunds|null
+     */
+    private static function parseRefunds(string $refundsJson) : ?TransactionRefunds {
+        $refunds = json_decode($refundsJson, true);
+
+        if ($refunds != null) {
+            if (isset($refunds['amount_refunded']) && is_string($refunds['amount_refunded'])
+                && isset($refunds['amount_fee']) && is_string($refunds['amount_fee'])
+                && isset($refunds['payments']) && is_array($refunds['payments'])) {
+
+                /**
+                 * @var array<TransactionRefundPayment> $payments
+                 */
+                $payments = [];
+                foreach($refunds['payments'] as $payment) {
+                    if(isset($payment['id']) && is_string($payment['id'])
+                        && isset($payment['id_type']) && is_string($payment['id_type'])
+                        && isset($payment['amount']) && is_string($payment['amount'])
+                        && isset($payment['fee']) && is_string($payment['fee']) ) {
+
+                        $payment = new TransactionRefundPayment(
+                            id: $payment['id'],
+                            idType: $payment['id_type'],
+                            amount: $payment['amount'],
+                            fee: $payment['fee']
+                        );
+
+                        $payments[] = $payment;
+                    }
+                }
+                return new TransactionRefunds(
+                    amountRefunded: $refunds['amount_refunded'],
+                    amountFee: $refunds['amount_fee'],
+                    payments: $payments[],
+                );
+            }
+        }
+        return null;
     }
 }

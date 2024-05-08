@@ -21,8 +21,8 @@ use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38AssetInfo;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38BuyAsset;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38DeliveryMethod;
-use ArgoNavis\PhpAnchorSdk\shared\Sep38Fee;
-use ArgoNavis\PhpAnchorSdk\shared\Sep38FeeDetails;
+use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfo;
+use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfoDetail;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38Price;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38Quote;
 use DateInterval;
@@ -117,7 +117,7 @@ class Sep38Helper
 
             $sellAmount = floatval($request->sellAmount);
             $fee = ($rate->fee_percent / 100) * $sellAmount;
-            $sep38Fee = new Sep38Fee(strval(round($fee, $sellAssetDecimals)), $request->sellAsset);
+            $sep38Fee = new TransactionFeeInfo(strval(round($fee, $sellAssetDecimals)), $request->sellAsset);
             $buyAmount = ($sellAmount - $fee) / $rate->rate;
             $totalPrice = $sellAmount / $buyAmount;
 
@@ -132,7 +132,7 @@ class Sep38Helper
             $buyAmount = floatval($request->buyAmount);
             $fee = ($rate->fee_percent / 100) * $buyAmount;
             $sellAmount = $rate->rate * ($buyAmount + $fee);
-            $sep38Fee = new Sep38Fee(strval(round($fee, $buyAssetDecimals)), $request->buyAsset);
+            $sep38Fee = new TransactionFeeInfo(strval(round($fee, $buyAssetDecimals)), $request->buyAsset);
             $totalPrice = $sellAmount / $buyAmount;
 
             return new Sep38Price(
@@ -250,7 +250,7 @@ class Sep38Helper
 
         $sep38Info = $anchorAsset->sep38_info;
         if ($sep38Info !== null) {
-            $jsonData = @json_decode($sep38Info, true);
+            $jsonData = json_decode($sep38Info, true);
             if ($jsonData === null) {
                 return $result;
             }
@@ -309,7 +309,7 @@ class Sep38Helper
      * @throws Exception
      */
     private static function sep38QuoteFromExchangeQuote(Sep38ExchangeQuote $exchangeQuote) : Sep38Quote {
-        $feeJsonData = @json_decode($exchangeQuote->fee, true);
+        $feeJsonData = json_decode($exchangeQuote->fee, true);
         if ($feeJsonData === null) {
             throw new Exception('invalid fee data in quote ' . $exchangeQuote->id);
         }
@@ -318,21 +318,21 @@ class Sep38Helper
             throw new Exception('invalid fee data in quote '  . $exchangeQuote->id);
         }
 
-        $sep38Fee = new Sep38Fee(
+        $sep38Fee = new TransactionFeeInfo(
             total: $feeJsonData['total'],
             asset: IdentificationFormatAsset::fromString($feeJsonData['asset']),
         );
 
         if (isset($feeJsonData['details']) && is_array($feeJsonData['details'])) {
             /**
-             * @var array<Sep38FeeDetails> $feeDetails
+             * @var array<TransactionFeeInfoDetail> $feeDetails
              */
             $feeDetails = [];
             foreach ($feeJsonData['details'] as $detail) {
                 if (!isset($detail['name']) || !isset($detail['amount'])) {
                     throw new Exception('invalid fee data in quote '  . $exchangeQuote->id);
                 }
-                $feeDetail = new Sep38FeeDetails(
+                $feeDetail = new TransactionFeeInfoDetail(
                     name:$detail['name'],
                     amount:$detail['amount'],
                 );
@@ -343,7 +343,6 @@ class Sep38Helper
             }
             $sep38Fee->details = $feeDetails;
         }
-
         return new Sep38Quote(
             id: strval($exchangeQuote->id),
             expiresAt: DateTime::createFromFormat(DATE_ATOM, $exchangeQuote->expires_at),

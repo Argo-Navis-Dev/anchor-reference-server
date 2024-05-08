@@ -12,7 +12,6 @@ use ArgoNavis\PhpAnchorSdk\callback\IQuotesIntegration;
 use ArgoNavis\PhpAnchorSdk\callback\Sep38PriceRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep38PricesRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep38QuoteRequest;
-use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38Price;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38Quote;
 

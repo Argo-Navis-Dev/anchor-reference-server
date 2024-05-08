@@ -1,0 +1,1145 @@
+{
+	"info": {
+		"_postman_id": "365938ac-9b55-4c5c-a1b8-7e763acb3957",
+		"name": "php-anchor-sdk-reference-server",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "6604435"
+	},
+	"item": [
+		{
+			"name": "SEP-01 - Stellar toml",
+			"item": [
+				{
+					"name": "stellar.toml",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/.well-known/stellar.toml",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								".well-known",
+								"stellar.toml"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SEP-10 - Authentication",
+			"item": [
+				{
+					"name": "getAuthChallenge",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/auth?account=GASYSZMA3C7TKGEYFGPXMDOJ77PXPCQZ2GU2KMN4WREIUB23UQULIFTP",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"auth"
+							],
+							"query": [
+								{
+									"key": "account",
+									"value": "GASYSZMA3C7TKGEYFGPXMDOJ77PXPCQZ2GU2KMN4WREIUB23UQULIFTP"
+								},
+								{
+									"key": "memo",
+									"value": "1234",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "postSignedChallenge",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"transaction\": \"AAAAAgAAAACBPZt6XCuq7seLFXWUEGuFC86PpC7rymuS5CWisH6bGAAAAMgAAAAAAAAAAAAAAAEAAAAAZjsyJgAAAABmOzWqAAAAAAAAAAIAAAABAAAAACWJZYDYvzUYmCmfdg3J/993ihnRqaUxvLRIigdbpCi0AAAACgAAABNsb2NhbGhvc3Q6NTE3MyBhdXRoAAAAAAEAAABAbFprOU9ORW9vMCtyMWV4cTkxdlRTL1hoYzd0UDdOZzNwSFFHQkdPc05XL09wZ1VYSGV0bWQ0OFN5SXFsSTJSbwAAAAEAAAAAgT2belwrqu7HixV1lBBrhQvOj6Qu68prkuQlorB+mxgAAAAKAAAAD3dlYl9hdXRoX2RvbWFpbgAAAAABAAAACWxvY2FsaG9zdAAAAAAAAAAAAAACsH6bGAAAAEDbYwuSSgZVRw5IRKlMfTLOmYJZg6DuKijkzwBIMpRH6vXnJi2A3uMI8oMVUwlCgIf42W9iYlMIeScKlyJSsGgJW6QotAAAAED2k32UnUGUF2S8swhPO0GTPqUy2Z7y/pI9ZI/JnWM+eXr3qff5ZkcN/LZwTJDOl2UMK/G2pbVDjURFd5yPNf0L\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5173/auth",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"auth"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/test_stellar_auth",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"test_stellar_auth"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SEP-12 - KYC",
+			"item": [
+				{
+					"name": "Customer Info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/customer?account=GASYSZMA3C7TKGEYFGPXMDOJ77PXPCQZ2GU2KMN4WREIUB23UQULIFTP",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"customer"
+							],
+							"query": [
+								{
+									"key": "account",
+									"value": "GASYSZMA3C7TKGEYFGPXMDOJ77PXPCQZ2GU2KMN4WREIUB23UQULIFTP"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Customer Data Form",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "first_name",
+									"value": "Hazel",
+									"type": "text"
+								},
+								{
+									"key": "last_name",
+									"value": "Nutt",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "email_address",
+									"value": "hazle.nutt@stellargate.com",
+									"type": "text"
+								},
+								{
+									"key": "id_number",
+									"value": "GHO01892333PP",
+									"type": "text"
+								},
+								{
+									"key": "id_type",
+									"value": "ID Card",
+									"type": "text"
+								},
+								{
+									"key": "photo_id_front",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "photo_id_back",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5173/customer",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"customer"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Customer Info By Id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/customer?id=9bfe141b-e6c5-41e2-b548-3d39ed76610d",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"customer"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "9bfe141b-e6c5-41e2-b548-3d39ed76610d"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Email Verification",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "id",
+									"value": "9b760c3d-9c53-49f2-a8da-046caa5e13ab",
+									"type": "text"
+								},
+								{
+									"key": "email_address_verification",
+									"value": "588304",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5173/customer/verification",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"customer",
+								"verification"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Customer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI3YzFkNWVlM2JjYzBmNDlkOGJiOTY0OTg5ZGNkYmIyMThlYmJkYTA1MmJmYzRmODNlZmM0NzYxZGUxZTBjNDIzIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHREhWNllMRFhCUFZFREVESUZENjJTS0tVUEhITVg1WTIyTjJSUEVLTFVKREdYTUQySTVUWFhFTiIsImlhdCI6IjE3MDkxNTA4NjUiLCJleHAiOiIxNzA5MTU0NDY1IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.BsvQaM3YlFFZH32rtoYXDCdrqpEx5QqYRYJMS4_JQ8g",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": []
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5173/customer/GDHV6YLDXBPVEDEDIFD62SKKUPHHMX5Y22N2RPEKLUJDGXMD2I5TXXEN",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"customer",
+								"GDHV6YLDXBPVEDEDIFD62SKKUPHHMX5Y22N2RPEKLUJDGXMD2I5TXXEN"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SEP-24 Interactive",
+			"item": [
+				{
+					"name": "Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep24/info",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep24",
+								"info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fee",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep24/fee?operation=deposit&type=crypto&asset_code=USDC&amount=100",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep24",
+								"fee"
+							],
+							"query": [
+								{
+									"key": "operation",
+									"value": "deposit"
+								},
+								{
+									"key": "type",
+									"value": "crypto"
+								},
+								{
+									"key": "asset_code",
+									"value": "USDC"
+								},
+								{
+									"key": "amount",
+									"value": "100"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deposit",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "asset_code",
+									"value": "USDC",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep24/transactions/deposit/interactive",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep24",
+								"transactions",
+								"deposit",
+								"interactive"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Withdraw",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "asset_code",
+									"value": "USDC",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep24/transactions/withdraw/interactive",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep24",
+								"transactions",
+								"withdraw",
+								"interactive"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Transactions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep24/transactions?asset_code=USDC",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep24",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "asset_code",
+									"value": "USDC"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Single Transaction",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep24/transaction?id=9bfe14bc-d701-4d96-9a3e-b680186e1b88",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep24",
+								"transaction"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "9bfe14bc-d701-4d96-9a3e-b680186e1b88"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SEP-38 Quotes",
+			"item": [
+				{
+					"name": "Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep38/info",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep38",
+								"info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Prices",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep38/prices?sell_asset=iso4217:USD&sell_amount=10.0",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep38",
+								"prices"
+							],
+							"query": [
+								{
+									"key": "sell_asset",
+									"value": "iso4217:USD"
+								},
+								{
+									"key": "sell_amount",
+									"value": "10.0"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Price",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep38/price?sell_asset=iso4217:USD&buy_asset=stellar:USDC:GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2&sell_amount=1000&context=sep6",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep38",
+								"price"
+							],
+							"query": [
+								{
+									"key": "sell_asset",
+									"value": "iso4217:USD"
+								},
+								{
+									"key": "buy_asset",
+									"value": "stellar:USDC:GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2"
+								},
+								{
+									"key": "sell_amount",
+									"value": "1000"
+								},
+								{
+									"key": "context",
+									"value": "sep6"
+								},
+								{
+									"key": "buy_amount",
+									"value": "1000",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Quote",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sell_asset\" : \"stellar:JPYC:GBDQ4I7EIIPAIEBGN4GOKTU7MGUCOOC37NYLNRBN76SSWOWFGLWTXW3U\",\n    \"buy_asset\" : \"iso4217:USD\",\n    \"sell_amount\" : \"100\",\n    \"context\" : \"sep6\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep38/quote",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep38",
+								"quote"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Quote by Id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep38/quote/9bfe1541-7c71-470d-8d44-bb2d09f03824",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep38",
+								"quote",
+								"9bfe1541-7c71-470d-8d44-bb2d09f03824"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SEP-06 - Transfer",
+			"item": [
+				{
+					"name": "Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep06/info",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep06",
+								"info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deposit",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep06/deposit?asset_code=USDC&account=GC6DVE4YRDOGJUUWN3RL4KC2LTQ2RQDZVSJO2DNMOEUPAVTC625N3KUY&type=cash&amount=100",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep06",
+								"deposit"
+							],
+							"query": [
+								{
+									"key": "asset_code",
+									"value": "USDC"
+								},
+								{
+									"key": "account",
+									"value": "GC6DVE4YRDOGJUUWN3RL4KC2LTQ2RQDZVSJO2DNMOEUPAVTC625N3KUY"
+								},
+								{
+									"key": "type",
+									"value": "cash"
+								},
+								{
+									"key": "amount",
+									"value": "100"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deposit Exchange",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep06/deposit-exchange?destination_asset=JPYC&account=GC6DVE4YRDOGJUUWN3RL4KC2LTQ2RQDZVSJO2DNMOEUPAVTC625N3KUY&type=cash&amount=100&source_asset=iso4217:USD&quote_id=9bfcfe00-b21b-48c3-a252-d38f90d77289",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep06",
+								"deposit-exchange"
+							],
+							"query": [
+								{
+									"key": "destination_asset",
+									"value": "JPYC"
+								},
+								{
+									"key": "account",
+									"value": "GC6DVE4YRDOGJUUWN3RL4KC2LTQ2RQDZVSJO2DNMOEUPAVTC625N3KUY"
+								},
+								{
+									"key": "type",
+									"value": "cash"
+								},
+								{
+									"key": "amount",
+									"value": "100"
+								},
+								{
+									"key": "source_asset",
+									"value": "iso4217:USD"
+								},
+								{
+									"key": "quote_id",
+									"value": "9bfcfe00-b21b-48c3-a252-d38f90d77289"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Withdraw",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep06/withdraw?asset_code=USDC&account=GC6DVE4YRDOGJUUWN3RL4KC2LTQ2RQDZVSJO2DNMOEUPAVTC625N3KUY&type=cash&amount=100",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep06",
+								"withdraw"
+							],
+							"query": [
+								{
+									"key": "asset_code",
+									"value": "USDC"
+								},
+								{
+									"key": "account",
+									"value": "GC6DVE4YRDOGJUUWN3RL4KC2LTQ2RQDZVSJO2DNMOEUPAVTC625N3KUY"
+								},
+								{
+									"key": "type",
+									"value": "cash"
+								},
+								{
+									"key": "amount",
+									"value": "100"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Withdraw Exchange",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep06/withdraw-exchange?source_asset=JPYC&account=GC6DVE4YRDOGJUUWN3RL4KC2LTQ2RQDZVSJO2DNMOEUPAVTC625N3KUY&type=cash&amount=100&destination_asset=iso4217:USD&quote_id=9bfd0a26-f143-4195-9aa9-879266118211",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep06",
+								"withdraw-exchange"
+							],
+							"query": [
+								{
+									"key": "source_asset",
+									"value": "JPYC"
+								},
+								{
+									"key": "account",
+									"value": "GC6DVE4YRDOGJUUWN3RL4KC2LTQ2RQDZVSJO2DNMOEUPAVTC625N3KUY"
+								},
+								{
+									"key": "type",
+									"value": "cash"
+								},
+								{
+									"key": "amount",
+									"value": "100"
+								},
+								{
+									"key": "destination_asset",
+									"value": "iso4217:USD"
+								},
+								{
+									"key": "quote_id",
+									"value": "9bfd0a26-f143-4195-9aa9-879266118211"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Single Transaction",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep06/transaction?id=9bfd0a45-aa5f-4899-ada3-7fec9a386314",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep06",
+								"transaction"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "9bfd0a45-aa5f-4899-ada3-7fec9a386314"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Transactions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep06/transactions?asset_code=USDC",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep06",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "asset_code",
+									"value": "USDC"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

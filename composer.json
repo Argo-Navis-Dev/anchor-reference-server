@@ -5,7 +5,7 @@
     "keywords": ["stellar", "anchor", "sdk", "php", "reference", "example"],
     "license": "Apache-2.0",
     "require": {
-        "php": "^8.1",        
+        "php": "^8.1",
         "doctrine/dbal": "^3.8",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.10",
@@ -14,7 +14,7 @@
         "laravel/ui": "^4.5",
         "nyholm/psr7": "^1.8",
         "symfony/psr-http-message-bridge": "^7.0",
-        "argonavis/php-anchor-sdk": "^0.4"
+        "argonavis/php-anchor-sdk": "^0.5"
 
     },
     "require-dev": {
@@ -69,6 +69,5 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "repositories": []
+    "prefer-stable": true
 }

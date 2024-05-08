@@ -35,6 +35,7 @@ class StellarTomlController extends Controller
         $generalInfo->networkPassphrase = Network::testnet()->getNetworkPassphrase();
         $generalInfo->webAuthEndpoint = "https://localhost:5173/auth";
         $generalInfo->kYCServer = "https://localhost:5173/";
+        $generalInfo->transferServer = "https://localhost:5173/sep06";
         $generalInfo->transferServerSep24 = "https://localhost:5173/sep24";
         $generalInfo->anchorQuoteServer = "https://localhost:5173/sep38";
         $generalInfo->signingKey = "GCAT3G32LQV2V3WHRMKXLFAQNOCQXTUPUQXOXSTLSLSCLIVQP2NRQQ3T";
