@@ -141,7 +141,6 @@ class Sep31Helper
         if ($accountMemo !== null) {
             $query['sep10_account_memo'] = $accountMemo;
         }
-
         $tx = Sep31Transaction::where($query)->first();
         if ($tx !== null) {
             return self::sep31TransactionResponseFromTx($tx);
