@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Stellar;
 
 use ArgoNavis\PhpAnchorSdk\config\ISep10Config;
@@ -52,7 +58,7 @@ class StellarSep10Config implements ISep10Config
      */
     public function getJwtTimeout(): int
     {
-        return config('stellar.sep10.jwt_timeout', 300);
+        return config('stellar.sep10.jwt_timeout', 900);
     }
 
     /**

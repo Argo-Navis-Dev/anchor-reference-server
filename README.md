@@ -11,19 +11,24 @@ The SDK is composed of two components:
 
 This is the repo of the Anchor Reference Server. Pls. see [architecture doc](https://github.com/Argo-Navis-Dev/php-anchor-sdk/blob/main/docs/architecture.md).
 
-The implementation of the Service Layer Library can be found [here](https://github.com/Argo-Navis-Dev/php-anchor-sdk). 
+The implementation of the Service Layer Library can be found [here](https://github.com/Argo-Navis-Dev/php-anchor-sdk).
+
+
 
 ## Roadmap:
 
-- Implementation of [SEP-01](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md) Service (Stellar Info File) until Dec.10.2023 -> Done
-- Implementation of [SEP-10](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md) Service (Stellar Authentication) until Dec.27.2023 -> Done
+- Implementation of [SEP-01](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md) Service (Stellar Info File) -> Done
+- Implementation of [SEP-10](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md) Service (Stellar Authentication) -> Done
 - Implementation of [SEP-12](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md) KYC API Service &  [SEP-09](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0009.md) Standard KYC Fields -> Done
 - Implementation of [SEP-24](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md) Hosted Deposit and Withdrawal - Interactive Flow Service -> Done
 - Implementation of [SEP-38](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md) Anchor RFQ Service -> Done
-- Implementation of [SEP-06](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md) Deposit and Withdrawal Service -> in progress
-- Implementation of [SEP-31](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md) Cross-Border Payments Service
-
-
+- Implementation of [SEP-06](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md) Deposit and Withdrawal Service -> Done
+- Implementation of [SEP-31](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md) Cross-Border Payments Service -> in progress
+- Implementation of [SEP-08](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0008.md) Regulated Assets
+- Postman collection covering the SEP flows
+- Interactive Popup for SEP-24
+- Transactions Watcher, Callbacks, Event Handling
+- Localization, Logging, Administration interface
 
 
 ## Run the server locally:
@@ -49,3 +54,8 @@ The implementation of the Service Layer Library can be found [here](https://gith
 `php artisan migrate:refresh --seed`
 
 7. Run the [StellarCustomerTest](https://github.com/Argo-Navis-Dev/anchor-reference-server/blob/main/tests/Unit/StellarCustomerTest.php) cases - The test uses SEP-01, SEP-10, SEP-09 and SEP-12 functionality. 
+
+
+## Postman collection
+
+An early version covering the basic SEP Requests can be found [here](https://github.com/Argo-Navis-Dev/anchor-reference-server/tree/main/docs). 

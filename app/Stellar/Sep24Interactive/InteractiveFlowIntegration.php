@@ -13,10 +13,9 @@ use ArgoNavis\PhpAnchorSdk\callback\IInteractiveFlowIntegration;
 use ArgoNavis\PhpAnchorSdk\callback\InteractiveDepositRequest;
 use ArgoNavis\PhpAnchorSdk\callback\InteractiveTransactionResponse;
 use ArgoNavis\PhpAnchorSdk\callback\InteractiveWithdrawRequest;
-use ArgoNavis\PhpAnchorSdk\callback\Sep24TransactionHistoryRequest;
+use ArgoNavis\PhpAnchorSdk\callback\TransactionHistoryRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep24TransactionResponse;
 use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
-use ArgoNavis\PhpAnchorSdk\exception\QuoteNotFoundForId;
 use ArgoNavis\PhpAnchorSdk\shared\Sep24AssetInfo;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38Quote;
 
@@ -136,7 +135,7 @@ class InteractiveFlowIntegration implements IInteractiveFlowIntegration
      * @inheritDoc
      */
     public function getTransactionHistory(
-        Sep24TransactionHistoryRequest $request,
+        TransactionHistoryRequest $request,
         string $accountId,
         ?string $accountMemo = null,
     ): ?array

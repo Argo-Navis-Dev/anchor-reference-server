@@ -54,6 +54,16 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $sep38_info
  * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep38Enabled($value)
  * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep38Info($value)
+ * @property int $sep06_enabled
+ * @property string|null $sep06_deposit_methods
+ * @property string|null $sep06_withdraw_methods
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep06DepositMethods($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep06Enabled($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep06WithdrawMethods($value)
+ * @property int $sep06_deposit_exchange_enabled
+ * @property int $sep06_withdraw_exchange_enabled
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep06DepositExchangeEnabled($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep06WithdrawExchangeEnabled($value)
  * @mixin \Eloquent
  */
 class AnchorAsset extends Model

@@ -25,7 +25,12 @@ class AnchorAssetsSeeder extends Seeder
             'withdrawal_enabled' => true,
             'withdrawal_min_amount' => 1.0,
             'withdrawal_max_amount' => 1000.0,
-            'sep38_enabled' => true
+            'sep38_enabled' => true,
+            'sep06_enabled' => true,
+            'sep06_deposit_exchange_enabled' => true,
+            'sep06_withdraw_exchange_enabled' => true,
+            'sep06_deposit_methods' => 'WIRE, cash',
+            'sep06_withdraw_methods' => 'WIRE, cash, mobile',
         ]);
 
         DB::table('anchor_assets')->insert([
@@ -40,6 +45,11 @@ class AnchorAssetsSeeder extends Seeder
             'withdrawal_min_amount' => 1.0,
             'withdrawal_max_amount' => 1000000.0,
             'sep38_enabled' => true,
+            'sep06_enabled' => true,
+            'sep06_deposit_exchange_enabled' => true,
+            'sep06_withdraw_exchange_enabled' => true,
+            'sep06_deposit_methods' => 'WIRE, cash',
+            'sep06_withdraw_methods' => 'WIRE, cash, mobile',
         ]);
 
         DB::table('anchor_assets')->insert([
@@ -71,7 +81,7 @@ class AnchorAssetsSeeder extends Seeder
                           "description": "Have USD sent directly to your bank account."
                         }
                       ]
-                 }'
+                 }',
         ]);
 
         DB::table('anchor_assets')->insert([
