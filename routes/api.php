@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\StellarAuthController;
+use App\Http\Controllers\StellarCrossBorderController;
 use App\Http\Controllers\StellarCustomerController;
 use App\Http\Controllers\StellarInteractiveFlowController;
 use App\Http\Controllers\StellarQuotesController;
@@ -60,6 +61,10 @@ Route::get('sep06/withdraw-exchange', [StellarTransferController::class, 'transf
 Route::get('sep06/transaction', [StellarTransferController::class, 'transfer'])->middleware(StellarAuthMiddleware::class);
 Route::get('sep06/transactions', [StellarTransferController::class, 'transfer'])->middleware(StellarAuthMiddleware::class);
 
+// SEP-31
+Route::get('sep31/info', [StellarCrossBorderController::class, 'cross'])->middleware(StellarAuthMiddleware::class);
+Route::post('sep31/transactions', [StellarCrossBorderController::class, 'cross'])->middleware(StellarAuthMiddleware::class);
+Route::get('sep31/transactions/{tx_id}', [StellarCrossBorderController::class, 'cross'])->middleware(StellarAuthMiddleware::class);
 
 // other
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

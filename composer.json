@@ -14,7 +14,7 @@
         "laravel/ui": "^4.5",
         "nyholm/psr7": "^1.8",
         "symfony/psr-http-message-bridge": "^7.0",
-        "argonavis/php-anchor-sdk": "^0.5"
+        "argonavis/php-anchor-sdk": "@dev"
 
     },
     "require-dev": {
@@ -69,5 +69,14 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../php-anchor-sdk",
+            "options": {
+                "symlink": true
+            }
+        }
+    ]
 }
