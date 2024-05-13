@@ -1140,6 +1140,127 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "SEP-31",
+			"item": [
+				{
+					"name": "Info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI0ZGE2MDkzMTczODUwYWEwMzAxNmFhYjlmNGM1ODMyZGFkOTBiYWYxN2M4OTI1NDJlMzIyMDNjYmEwY2IyZjNhIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUzNDA3OTAiLCJleHAiOiIxNzE1NDMwNzkwIiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Gi5jN8v7PY8RFCKm6ds5tiWQ8FuBrAsmDL3xv-diqf4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep31/info",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep31",
+								"info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Post Transaction",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI0ZGE2MDkzMTczODUwYWEwMzAxNmFhYjlmNGM1ODMyZGFkOTBiYWYxN2M4OTI1NDJlMzIyMDNjYmEwY2IyZjNhIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUzNDA3OTAiLCJleHAiOiIxNzE1NDMwNzkwIiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Gi5jN8v7PY8RFCKm6ds5tiWQ8FuBrAsmDL3xv-diqf4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"asset_code\" : \"USDC\",\n    \"destination_asset\" : \"iso4217:USD\",\n    \"amount\" : \"100\",\n    \"sender_id\" : \"9bff23f0-d1ff-442a-b366-3143cbc28bf5\",\n    \"receiver_id\" : \"9bff0aee-4290-402a-9003-7abd8ae85ac1\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep31/transactions",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep31",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Transaction",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI0ZGE2MDkzMTczODUwYWEwMzAxNmFhYjlmNGM1ODMyZGFkOTBiYWYxN2M4OTI1NDJlMzIyMDNjYmEwY2IyZjNhIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUzNDA3OTAiLCJleHAiOiIxNzE1NDMwNzkwIiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Gi5jN8v7PY8RFCKm6ds5tiWQ8FuBrAsmDL3xv-diqf4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep31/transactions/9c027934-5745-4458-8d3f-52cbac1a0028",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep31",
+								"transactions",
+								"9c027934-5745-4458-8d3f-52cbac1a0028"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }

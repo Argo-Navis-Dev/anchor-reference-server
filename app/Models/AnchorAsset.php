@@ -64,6 +64,18 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $sep06_withdraw_exchange_enabled
  * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep06DepositExchangeEnabled($value)
  * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep06WithdrawExchangeEnabled($value)
+ * @property int $sep31_enabled
+ * @property string|null $sep31_info
+ * @property float|null $send_fee_fixed
+ * @property float|null $send_fee_percent
+ * @property float|null $send_min_amount
+ * @property float|null $send_max_amount
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSendFeeFixed($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSendFeePercent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSendMaxAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSendMinAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep31Enabled($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|AnchorAsset whereSep31Info($value)
  * @mixin \Eloquent
  */
 class AnchorAsset extends Model

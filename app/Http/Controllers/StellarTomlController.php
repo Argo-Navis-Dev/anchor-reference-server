@@ -38,6 +38,7 @@ class StellarTomlController extends Controller
         $generalInfo->transferServer = "https://localhost:5173/sep06";
         $generalInfo->transferServerSep24 = "https://localhost:5173/sep24";
         $generalInfo->anchorQuoteServer = "https://localhost:5173/sep38";
+        $generalInfo->directPaymentServer = "https://localhost:5173/sep31";
         $generalInfo->signingKey = "GCAT3G32LQV2V3WHRMKXLFAQNOCQXTUPUQXOXSTLSLSCLIVQP2NRQQ3T";
         $generalInfo->accounts = [
             'GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2',
