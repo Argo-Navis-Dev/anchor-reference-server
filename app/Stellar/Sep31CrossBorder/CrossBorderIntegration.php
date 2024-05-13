@@ -14,33 +14,48 @@ use ArgoNavis\PhpAnchorSdk\callback\Sep31PostTransactionResponse;
 use ArgoNavis\PhpAnchorSdk\callback\Sep31PutTransactionCallbackRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep31TransactionResponse;
 use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
-
+use Throwable;
 class CrossBorderIntegration implements ICrossBorderIntegration
 {
-
+    /**
+     * @inheritDoc
+     */
     public function supportedAssets(string $accountId, ?string $accountMemo = null, ?string $lang = null): array
     {
         return Sep31Helper::getSupportedAssets();
     }
 
+    /**
+     * @inheritDoc
+     */
     public function postTransaction(Sep31PostTransactionRequest $request): Sep31PostTransactionResponse
     {
-        $sep31Transaction = Sep31Helper::newTransaction($request);
-        return new Sep31PostTransactionResponse(
-            id: $sep31Transaction->id,
-            stellarAccountId: $sep31Transaction->stellar_account_id,
-            stellarMemoType: $sep31Transaction->stellar_memo_typ,
-            stellarMemo: $sep31Transaction->stellar_memo,
-        );
+        try {
+            $sep31Transaction = Sep31Helper::newTransaction($request);
+            return new Sep31PostTransactionResponse(
+                id: $sep31Transaction->id,
+                stellarAccountId: $sep31Transaction->stellar_account_id,
+                stellarMemoType: $sep31Transaction->stellar_memo_typ,
+                stellarMemo: $sep31Transaction->stellar_memo,
+            );
+        } catch (Throwable $t) {
+            throw new AnchorFailure('error creating quote');
+        }
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getTransactionById(string $id, string $accountId, ?string $accountMemo = null,): Sep31TransactionResponse
     {
         return Sep31Helper::getTransaction(id: $id, accountId: $accountId, accountMemo: $accountMemo);
     }
 
+    /**
+     * @inheritDoc
+     */
     public function putTransactionCallback(Sep31PutTransactionCallbackRequest $request): void
     {
-        throw new AnchorFailure('not yet implemented');
+        Sep31Helper::putTransactionCallback($request);
     }
 }

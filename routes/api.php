@@ -65,6 +65,7 @@ Route::get('sep06/transactions', [StellarTransferController::class, 'transfer'])
 Route::get('sep31/info', [StellarCrossBorderController::class, 'cross'])->middleware(StellarAuthMiddleware::class);
 Route::post('sep31/transactions', [StellarCrossBorderController::class, 'cross'])->middleware(StellarAuthMiddleware::class);
 Route::get('sep31/transactions/{tx_id}', [StellarCrossBorderController::class, 'cross'])->middleware(StellarAuthMiddleware::class);
+Route::put('sep31/transactions/{tx_id}/callback', [StellarCrossBorderController::class, 'cross'])->middleware(StellarAuthMiddleware::class);
 
 // other
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

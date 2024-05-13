@@ -11,20 +11,19 @@ namespace App\Stellar\Sep31CrossBorder;
 use App\Models\AnchorAsset;
 use App\Models\Sep31Transaction;
 use App\Stellar\Sep38Quote\Sep38Helper;
+use App\Stellar\Shared\SepHelper;
 use ArgoNavis\PhpAnchorSdk\callback\Sep31PostTransactionRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep31TransactionResponse;
 use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
+use ArgoNavis\PhpAnchorSdk\exception\Sep31TransactionNotFoundForId;
 use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
-use ArgoNavis\PhpAnchorSdk\shared\Sep06AssetInfo;
-use ArgoNavis\PhpAnchorSdk\shared\Sep06InfoField;
+use ArgoNavis\PhpAnchorSdk\callback\Sep31PutTransactionCallbackRequest;
 use ArgoNavis\PhpAnchorSdk\shared\Sep12Type;
 use ArgoNavis\PhpAnchorSdk\shared\Sep31AssetInfo;
 use ArgoNavis\PhpAnchorSdk\shared\Sep31TransactionStatus;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfo;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfoDetail;
-use ArgoNavis\PhpAnchorSdk\shared\TransactionRefundPayment;
-use ArgoNavis\PhpAnchorSdk\shared\TransactionRefunds;
 use ArgoNavis\PhpAnchorSdk\util\MemoHelper;
 use DateTime;
 use DateTimeInterface;
@@ -36,11 +35,13 @@ use Throwable;
 class Sep31Helper
 {
     /**
-     * @return array<Sep31AssetInfo> the assets having sep06 support enabled.
+     * Retrieves the assets having sep31 support enabled.
+     *
+     * @return array<Sep31AssetInfo> the assets having sep31 support enabled.
      */
     public static function getSupportedAssets(): array {
         /**
-         * @var array<Sep06AssetInfo> $result
+         * @var array<Sep31AssetInfo> $result
          */
         $result = [];
 
@@ -61,12 +62,13 @@ class Sep31Helper
 
     /**
      * Creates and stores a new transaction from the given request data.
+     *
      * @param Sep31PostTransactionRequest $request the request data.
      * @return Sep31Transaction the new created transaction.
+     *
      * @throws AnchorFailure if any error occurs.
      */
     public static function newTransaction(Sep31PostTransactionRequest $request) : Sep31Transaction {
-
         $sep31Transaction = new Sep31Transaction;
         $sep31Transaction->status = Sep31TransactionStatus::PENDING_RECEIVER;
         $start = new DateTime('now');
@@ -88,7 +90,6 @@ class Sep31Helper
             $sep31Transaction->refund_memo_type = $memoFields['memo_type'];
         }
         $sep31Transaction->client_domain = $request->clientDomain;
-
         // add you business logic here
         // calculate amount out here. if quoteId != null take it from the quote,
         // otherwise calculate with your business logic.
@@ -98,19 +99,32 @@ class Sep31Helper
         // others ... e.g. :
         if ($request->quoteId !== null) {
             try {
-                $quote = Sep38Helper::getQuoteById($request->quoteId, $request->sep10Account, $request->sep10AccountMemo);
+                $quote = Sep38Helper::getQuoteById($request->quoteId, $request->accountId, $request->accountMemo);
                 $sep31Transaction->fee_details = json_encode($quote->fee->toJson());
                 $sep31Transaction->amount_out = $quote->buyAmount;
             } catch (Throwable $e) {
                 throw new AnchorFailure(message: $e->getMessage(), code: $e->getCode());
             }
         } else {
+            //Improve here the fee calculation according your business logic.
+            $fee = 0.1;
+            $feeDetail = 'Service fee';
+            $feeAsset = $request->destinationAsset;
+            if($request->asset->feeFixed !== null){
+                $fee = $request->asset->feeFixed;
+                $feeDetail = 'Fee fixed';
+                $feeAsset = $request->asset->asset;
+            }else if($request->asset->feePercent !== null){
+                $fee = $request->amount * $request->asset->feePercent;
+                $feeDetail = 'Fee percent';
+                $feeAsset = $request->asset->asset;
+            }
             $feeInfo = new TransactionFeeInfo(
-                total: '0.1',
-                asset: $request->destinationAsset,
+                total: strval($fee),
+                asset: $feeAsset,
                 details: [new TransactionFeeInfoDetail(
-                    name: 'Service fee',
-                    amount: '0.1')]);
+                    name: $feeDetail,
+                    amount: strval($fee))]);
             $sep31Transaction->fee_details = json_encode($feeInfo->toJson());
         }
 
@@ -128,6 +142,14 @@ class Sep31Helper
     }
 
     /**
+     * Retrives the transaction with the given id and account id from the database
+     * and returns it as a Sep31TransactionResponse (JSON).
+     *
+     * @param string $id the transaction id.
+     * @param string $accountId the account id.
+     * @param string|null $accountMemo the account memo.
+     *
+     * @return Sep31TransactionResponse|null the transaction response.
      * @throws AnchorFailure
      */
     public static function getTransaction(
@@ -144,11 +166,40 @@ class Sep31Helper
         $tx = Sep31Transaction::where($query)->first();
         if ($tx !== null) {
             return self::sep31TransactionResponseFromTx($tx);
+        }else{
+            throw new Sep31TransactionNotFoundForId($id);
         }
-        return null;
     }
 
     /**
+     * Updates the transaction by the given id and account id with a callback URL.
+     *
+     * @param Sep31PutTransactionCallbackRequest $request the request data.
+     */
+    public static function putTransactionCallback(
+        Sep31PutTransactionCallbackRequest $request
+    ) : void {
+
+        $query = ['id' => $request->transactionId, 'sep10_account' => $request->accountId];
+        if ($request->accountMemo !== null) {
+            $query['sep10_account_memo'] = $request->accountMemo;
+        }
+        $tx = Sep31Transaction::where($query)->first();
+        if ($tx !== null) {
+            $tx->callback_url = $request->url;
+            $tx->save();
+            $tx->refresh();
+        }else {
+            throw new Sep31TransactionNotFoundForId($request->transactionId);
+        }
+    }
+
+    /**
+     * Converts the DB model to a Sep31TransactionResponse.
+     *
+     * @param Sep31Transaction $tx the transaction to convert (DB model).
+     *
+     * @return Sep31TransactionResponse the converted transaction.
      * @throws AnchorFailure
      */
     private static function sep31TransactionResponseFromTx(Sep31Transaction $tx) : Sep31TransactionResponse {
@@ -160,7 +211,7 @@ class Sep31Helper
             throw new AnchorFailure('Invalid asset in DB', 500);
         }
 
-        // todo: check if this can not be optional...
+        // todo: check if this can not be optional... (leave it as it is)
         if ($tx->fee_details === null) {
             throw new AnchorFailure('Invalid asset in DB', 500);
         }
@@ -168,7 +219,7 @@ class Sep31Helper
         $response =  new Sep31TransactionResponse(
             id: $tx->id,
             status: $tx->status,
-            feeDetails: self::parseFeeDetails($tx->fee_details),
+            feeDetails: SepHelper::parseFeeDetails($tx->fee_details),
             statusEta: $tx->status_eta,
             statusMessage: $tx->message,
             amountIn: $tx->amount_in === null ? null : strval($tx->amount_in),
@@ -186,19 +237,19 @@ class Sep31Helper
             externalTransactionId: $tx->external_transaction_id,
             requiredInfoMessage: $tx->required_info_message,
         );
-
-        // todo: parse methods are duplicated with sep-06 -> extract
-
-        // refunds
         if ($tx->refunds != null) {
-            $response->refunds = self::parseRefunds($tx->refunds);
+            $response->refunds = SepHelper::parseRefunds($tx->refunds);
         }
 
         return $response;
-
     }
 
     /**
+     * Creates a Sep31AssetInfo from the passed AnchorAsset DB model.
+     *
+     * @param AnchorAsset $anchorAsset the anchor asset to convert.
+     *
+     * @return Sep31AssetInfo the converted asset.
      * @throws InvalidAsset
      */
     private static function sep31AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep31AssetInfo {
@@ -252,7 +303,9 @@ class Sep31Helper
 
     /**
      * Extracts type and value as strings from a memo to be saved in the db
+     *
      * @param Memo $memo the memo to extract the values from
+     *
      * @return array<string,?string> keys: memo_type and memo_value
      */
     private static function memoFieldsFromMemo(Memo $memo) : array {
@@ -268,118 +321,5 @@ class Sep31Helper
             'memo_type' => MemoHelper::memoTypeAsString($memo->getType()),
             'memo_value' =>$memoValue
         ];
-    }
-
-    /**
-     * Parses fee details into a TransactionFeeInfo object from a given json string
-     * E.g. json string:
-     * {
-     *  "total": "8.40",
-     *  "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
-     *  "details": [
-     *      {
-     *          "name": "Service fee",
-     *          "amount": "8.40"
-     *      }
-     *   ]
-     * }
-     *
-     * @param string $feeDetailsJson
-     * @return TransactionFeeInfo|null
-     */
-    private static function parseFeeDetails(string $feeDetailsJson) : ?TransactionFeeInfo {
-        $feeDetails = json_decode($feeDetailsJson, true);
-
-        if ($feeDetails != null) {
-            if (isset($feeDetails['total']) && is_string($feeDetails['total'])
-                && isset($feeDetails['asset']) && is_string($feeDetails['asset'])) {
-                try {
-                    $asset = IdentificationFormatAsset::fromString($feeDetails['asset']);
-                    $feeInfo = new TransactionFeeInfo(total: $feeDetails['total'], asset: $asset);
-                    if (isset($feeDetails['details']) && is_array($feeDetails['details'])) {
-                        /**
-                         * @var array<TransactionFeeInfoDetail> $details
-                         */
-                        $details = [];
-                        foreach($feeDetails['details'] as $detail) {
-                            if(isset($detail['name']) && is_string($detail['name'])
-                                && isset($detail['amount']) && is_string($detail['amount']) ) {
-                                $feeDetail = new TransactionFeeInfoDetail(
-                                    name:$detail['name'],
-                                    amount:$detail['amount'],
-                                );
-                                if (isset($detail['description']) && is_string($detail['description'])) {
-                                    $feeDetail->description = $detail['description'];
-                                }
-                                $details[] = $feeDetail;
-                            }
-                        }
-                        $feeInfo->details = $details;
-                    }
-                    return $feeInfo;
-                } catch (InvalidAsset) {
-                    // todo: logging
-                }
-            }
-        }
-        return null;
-    }
-
-
-    /**
-     * Parses fee refunds into a TransactionRefunds object from a given json string
-     * E.g. json string:
-     * {
-     *  "amount_refunded": "10",
-     *  "amount_fee": "5",
-     *  "payments": [
-     *      {
-     *          "id": "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020",
-     *          "id_type": "stellar",
-     *          "amount": "10",
-     *          "fee": "5"
-     *      }
-     *  ]
-     * }
-     *
-     * @param string $refundsJson
-     * @return TransactionRefunds|null
-     */
-    private static function parseRefunds(string $refundsJson) : ?TransactionRefunds {
-        $refunds = json_decode($refundsJson, true);
-
-        if ($refunds != null) {
-            if (isset($refunds['amount_refunded']) && is_string($refunds['amount_refunded'])
-                && isset($refunds['amount_fee']) && is_string($refunds['amount_fee'])
-                && isset($refunds['payments']) && is_array($refunds['payments'])) {
-
-                /**
-                 * @var array<TransactionRefundPayment> $payments
-                 */
-                $payments = [];
-                foreach($refunds['payments'] as $payment) {
-                    if(isset($payment['id']) && is_string($payment['id'])
-                        && isset($payment['id_type']) && is_string($payment['id_type'])
-                        && isset($payment['amount']) && is_string($payment['amount'])
-                        && isset($payment['fee']) && is_string($payment['fee']) ) {
-
-                        $payment = new TransactionRefundPayment(
-                            id: $payment['id'],
-                            idType: $payment['id_type'],
-                            amount: $payment['amount'],
-                            fee: $payment['fee']
-                        );
-
-                        $payments[] = $payment;
-                    }
-                }
-                return new TransactionRefunds(
-                    amountRefunded: $refunds['amount_refunded'],
-                    amountFee: $refunds['amount_fee'],
-                    payments: $payments,
-                );
-            }
-        }
-        return null;
     }
 }

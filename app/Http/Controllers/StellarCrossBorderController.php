@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Http\Controllers;
 
 use App\Stellar\Sep12Customer\CustomerIntegration;
@@ -40,7 +46,9 @@ class StellarCrossBorderController extends Controller
     /**
      * Extracts the "stellar_auth" data provided by the StellarAuthMiddleware.
      * It represents the data contained in the jwt token.
+     *
      * @param ServerRequestInterface $request
+     *
      * @return array<array-key | mixed> |null the extracted data if found, otherwise null
      */
     private function getStellarAuthData(ServerRequestInterface $request) : ?array {
