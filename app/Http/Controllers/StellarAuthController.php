@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Stellar\StellarAppConfig;
 use App\Stellar\StellarSep10Config;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidConfig;
-use ArgoNavis\PhpAnchorSdk\Sep10\SEP10Service;
+use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Service;
 use GuzzleHttp\Client;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
