@@ -26,16 +26,16 @@ The implementation of the Service Layer Library can be found [here](https://gith
 - Implementation of [SEP-31](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md) Cross-Border Payments Service -> Done
 - Implementation of [SEP-08](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0008.md) Regulated Assets
 - Postman collection covering the SEP flows
+- Integrate transaction watcher and callback handlers
+- Localization, Logging, Extend administration interface
 - Interactive Popup for SEP-24
-- Transactions Watcher, Callbacks, Event Handling
-- Localization, Logging, Administration interface
 
 
 ## Run the server locally:
 
 1. Clone this repo from GitHub.
 
-2. Install the dependencies: 
+2. Install the dependencies:
 
 `php composer install`
 
@@ -53,9 +53,9 @@ The implementation of the Service Layer Library can be found [here](https://gith
 
 `php artisan migrate:refresh --seed`
 
-7. Run the [StellarCustomerTest](https://github.com/Argo-Navis-Dev/anchor-reference-server/blob/main/tests/Unit/StellarCustomerTest.php) cases - The test uses SEP-01, SEP-10, SEP-09 and SEP-12 functionality. 
+7. Run the [StellarCustomerTest](https://github.com/Argo-Navis-Dev/anchor-reference-server/blob/main/tests/Unit/StellarCustomerTest.php) cases - The test uses SEP-01, SEP-10, SEP-09 and SEP-12 functionality.
 
 
 ## Postman collection
 
-An early version covering the basic SEP Requests can be found [here](https://github.com/Argo-Navis-Dev/anchor-reference-server/tree/main/docs). 
+An early version covering the basic SEP Requests can be found [here](https://github.com/Argo-Navis-Dev/anchor-reference-server/tree/main/docs).
