@@ -41,19 +41,23 @@ The implementation of the Service Layer Library can be found [here](https://gith
 
 3. Create your `.env` file as shown in [.env.example](https://github.com/Argo-Navis-Dev/anchor-reference-server/blob/main/.env.example)
 
-4. Start the server:
+4. Create an empty database:
 
-`php artisan serve` - The server will run on `http://localhost:8000`
+`sqlite3 database/database.sqlite "SELECT 1;"` - Creates an empty SQLite database under the database directory
 
-5. Start vite:
-
-`npm run dev` - Now the server accepts requests at: `https://localhost:5173`
-
-6. Run the db migration and seed the data:
+5. Run the db migration and seed the data:
 
 `php artisan migrate:refresh --seed`
 
-7. Run the [StellarCustomerTest](https://github.com/Argo-Navis-Dev/anchor-reference-server/blob/main/tests/Unit/StellarCustomerTest.php) cases - The test uses SEP-01, SEP-10, SEP-09 and SEP-12 functionality.
+6. Start the server:
+
+`php artisan serve` - The server will run on `http://localhost:8000`
+
+7. Start vite:
+
+`npm run dev` - Now the server accepts requests at: `https://localhost:5173`
+
+8. Run the [StellarCustomerTest](https://github.com/Argo-Navis-Dev/anchor-reference-server/blob/main/tests/Unit/StellarCustomerTest.php) cases - The test uses SEP-01, SEP-10, SEP-09 and SEP-12 functionality.
 
 
 ## Postman collection
