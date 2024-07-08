@@ -13,17 +13,7 @@ class StellarAppConfig implements IAppConfig
      */
     public function getStellarNetwork(): Network
     {
-        $networkName = config('stellar.app.network', 'testnet');
-        if ('testnet' == $networkName) {
-            return Network::testnet();
-        } else if ('public' == $networkName || 'main' == $networkName) {
-            return Network::public();
-        } else if ('futurenet' == $networkName) {
-            return Network::futurenet();
-        }
-        // else your custom network
-
-        return Network::testnet();
+        return new Network(config('stellar.app.network_passphrase', 'Test SDF Network ; September 2015'));
     }
 
     /**

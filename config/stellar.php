@@ -5,13 +5,14 @@ return [
     'app' => [
         /*
         |--------------------------------------------------------------------------
-        | Stellar App: Network
+        | Stellar App: Network Passphrase
         |--------------------------------------------------------------------------
         |
-        | Network to use. For example 'testnet', 'public', or your custom network name.
+        | Passphrase of the stellar network to use.
         |
         */
-        'network' => 'testnet',
+        'network_passphrase' => env('STELLAR_NETWORK_PASSPHRASE'),
+
         /*
         |--------------------------------------------------------------------------
         | Stellar App: Horizon url
@@ -20,7 +21,11 @@ return [
         | Url of Horizon to be used. E.g. 'https://horizon-testnet.stellar.org'.
         |
         */
-        'horizon_url' => 'https://horizon-testnet.stellar.org',
+        'horizon_url' => env('STELLAR_HORIZON_URL'),
+    ],
+
+    'api' => [
+        'endpoints_base_url' => env('STELLAR_ENDPOINTS_BASE_URL'),
     ],
 
     // ISep10Config values
@@ -137,6 +142,105 @@ return [
         |
         */
         'known_custodial_accounts' => null,
+    ],
+
+    // SEP-08 config values
+    'sep08' => [
+        /*
+        |--------------------------------------------------------------------------
+        | SEP-08: Regulated Asset code
+        |--------------------------------------------------------------------------
+        |
+        | The asset code used for the sep-08 regulated assets example implementation.
+        |
+        */
+        'asset_code' => env('SEP08_ASSET_CODE'),
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEP-08: Regulated Asset issuer id
+        |--------------------------------------------------------------------------
+        |
+        | The issuer id of the asset used for the sep-08 regulated assets example implementation.
+        |
+        */
+        'asset_issuer_id' => env('SEP08_ISSUER_ID'),
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEP-08: Regulated Asset issuer signing key
+        |--------------------------------------------------------------------------
+        |
+        | The issuer signing key used for the sep-08 regulated assets example implementation.
+        |
+        */
+        'issuer_signing_key' => env('SEP08_ISSUER_SIGNING_KEY'),
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEP-08: Regulated Asset name to be displayed in stellar.toml
+        |--------------------------------------------------------------------------
+        |
+        | The toml name of the regulated asset used for the sep-08 regulated assets example implementation.
+        |
+        */
+        'asset_toml_name' => env('SEP08_ASSET_TOML_NAME'),
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEP-08: Regulated Asset description to be displayed in stellar.toml
+        |--------------------------------------------------------------------------
+        |
+        | The toml description of the regulated asset used for the sep-08 regulated assets example implementation.
+        |
+        */
+        'asset_toml_desc' => env('SEP08_ASSET_TOML_DESC'),
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEP-08: Regulated Asset approval server to be displayed in stellar.toml
+        |--------------------------------------------------------------------------
+        |
+        | The approval server is the endpoint used by clients to approve their transaction with the server.
+        |
+        */
+        'asset_toml_approval_server' => env('SEP08_ASSET_TOML_APPROVAL_SERVER'),
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEP-08: Regulated Asset approval criteria to be displayed in stellar.toml
+        |--------------------------------------------------------------------------
+        |
+        | The approval criteria describes which kind of transactions are approved.
+        |
+        */
+        'asset_toml_approval_criteria' => env('SEP08_ASSET_TOML_APPROVAL_CRITERIA'),
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEP-08: Regulated asset payment threshold.
+        |--------------------------------------------------------------------------
+        |
+        | If a sender wants to send more of the regulated asset within one transaction,
+        | they need to provide kyc data.
+        |
+        */
+        'payment_threshold' => env('SEP08_PAYMENT_THRESHOLD'),
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEP-08: Regulated Asset kyc status endpoint
+        |--------------------------------------------------------------------------
+        |
+        | The kyc status endpoint is used to receive (POST) and fetch (GET) SEP-08 KYC data.
+        |
+        */
+        'kyc_status_endpoint' => env('SEP08_KYC_STATUS_ENDPOINT'),
     ]
 
 ];

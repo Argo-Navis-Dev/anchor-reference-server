@@ -849,7 +849,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlZDljZGY0M2JjOGFiYjY2NWE0OTM3ZDQ5MGQxNWUxMDVjZmZmZDdiMzc2YmNhMWJiZGZkOTk0OGJkZDhiMGM4IiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTU4NjEwODYiLCJleHAiOiIxNzE1OTUxMDg2IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.24jxYL_r1Mp1pdpOX7tTfFwOu4o5HMvVOWKQW8Bo_sw",
 									"type": "string"
 								}
 							]
@@ -857,7 +857,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://127.0.0.1:5173/sep06/deposit?asset_code=USDC&account=GC6DVE4YRDOGJUUWN3RL4KC2LTQ2RQDZVSJO2DNMOEUPAVTC625N3KUY&type=cash&amount=100",
+							"raw": "https://127.0.0.1:5173/sep06/deposit?asset_code=USDC&account=GC6DVE4YRDOGJUUWN3RL4KC2LTQ2RQDZVSJO2DNMOEUPAVTC625N3KUY&type=WIRE&amount=100",
 							"protocol": "https",
 							"host": [
 								"127",
@@ -881,7 +881,7 @@
 								},
 								{
 									"key": "type",
-									"value": "cash"
+									"value": "WIRE"
 								},
 								{
 									"key": "amount",
@@ -1069,7 +1069,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJkOWU0NDgzZTRkZDc2ZDI3YWQ4OGZhMzcwZmUwMjBkY2VmZGY4NDBhZjY5ODViZmQ1MGZmMWE0NGU5YjRiMzVkIiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTUxNTU0OTQiLCJleHAiOiIxNzE1MjQ1NDk0IiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.Fa3jB-_kzO0VNQ4UASNMMy91Pu27iZpZHrTy9xwLw2Y",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIwNTkxMWVjYjIyMTBjNWQ2ODQ0YmUwMWI3MDkwN2I4ZjVlM2Q0NzlkOTIxZjczNGMwNTY1MjBiZTBlNjUzOTk5IiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo1MTczL2F1dGgiLCJzdWIiOiJHQVNZU1pNQTNDN1RLR0VZRkdQWE1ET0o3N1BYUENRWjJHVTJLTU40V1JFSVVCMjNVUVVMSUZUUCIsImlhdCI6IjE3MTU4NjAzNDEiLCJleHAiOiIxNzE1OTUwMzQxIiwiaG9tZV9kb21haW4iOiJsb2NhbGhvc3Q6NTE3MyJ9.tdk8qtgX3a7nZZaydfISIMp1mfOCbDvuZfrthvwC48M",
 									"type": "string"
 								}
 							]
@@ -1077,7 +1077,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://127.0.0.1:5173/sep06/transaction?id=9bfd0a45-aa5f-4899-ada3-7fec9a386314",
+							"raw": "https://127.0.0.1:5173/sep06/transaction?id=9c0e7d6e-ca86-432f-b8f7-269b097a9ccb",
 							"protocol": "https",
 							"host": [
 								"127",
@@ -1093,7 +1093,7 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "9bfd0a45-aa5f-4899-ada3-7fec9a386314"
+									"value": "9c0e7d6e-ca86-432f-b8f7-269b097a9ccb"
 								}
 							]
 						}
@@ -1142,7 +1142,7 @@
 			]
 		},
 		{
-			"name": "SEP-31",
+			"name": "SEP-31- Cross Border",
 			"item": [
 				{
 					"name": "Info",
@@ -1255,6 +1255,132 @@
 								"sep31",
 								"transactions",
 								"9c027934-5745-4458-8d3f-52cbac1a0028"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SEP-08 Regulated Assets",
+			"item": [
+				{
+					"name": "Friendbot",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Approve",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"tx\":\"AAAAAgAAAADJYv/rh3iFm/pGjTUAK2XpH1y12/gGArTj/4VWoFNowAAAAGQABcm3AAABHgAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAGIjjM2NEwMsVwxl8r0ETd+c5zb9QaEeVWqBtJVljpX/AAAAAVNUQVIAAAAAfCfWlzWeTe74+I9FKX2rjIj4Aw1hDGZWTvGhQHRKkCkAAAAAAcnDgAAAAAAAAAABoFNowAAAAECAI7ql/IodKLY07xcbA6Md7JJpH614Pdc21lACpwsl2701toYx6MXlitMUl9eU/wI9CwW2WP+USVIRIAneQjYF\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep08/tx-approve",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep08",
+								"tx-approve"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set KYC Data",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email_address\" : \"friend@php-anchor.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep08/kyc-status/GDEWF77LQ54ILG72I2GTKABLMXUR6XFV3P4AMAVU4P7YKVVAKNUMADEI",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep08",
+								"kyc-status",
+								"GDEWF77LQ54ILG72I2GTKABLMXUR6XFV3P4AMAVU4P7YKVVAKNUMADEI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get KYC Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep08/kyc-status/GDEWF77LQ54ILG72I2GTKABLMXUR6XFV3P4AMAVU4P7YKVVAKNUMADEI",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep08",
+								"kyc-status",
+								"GDEWF77LQ54ILG72I2GTKABLMXUR6XFV3P4AMAVU4P7YKVVAKNUMADEI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete KYC Account",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://127.0.0.1:5173/sep08/kyc-status/GDEWF77LQ54ILG72I2GTKABLMXUR6XFV3P4AMAVU4P7YKVVAKNUMADEI",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5173",
+							"path": [
+								"sep08",
+								"kyc-status",
+								"GDEWF77LQ54ILG72I2GTKABLMXUR6XFV3P4AMAVU4P7YKVVAKNUMADEI"
 							]
 						}
 					},

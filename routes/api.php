@@ -5,6 +5,7 @@ use App\Http\Controllers\StellarCrossBorderController;
 use App\Http\Controllers\StellarCustomerController;
 use App\Http\Controllers\StellarInteractiveFlowController;
 use App\Http\Controllers\StellarQuotesController;
+use App\Http\Controllers\StellarRegulatedAssetsController;
 use App\Http\Controllers\StellarTransferController;
 use App\Http\Middleware\StellarAuthMiddleware;
 use Illuminate\Http\Request;
@@ -66,6 +67,13 @@ Route::get('sep31/info', [StellarCrossBorderController::class, 'cross'])->middle
 Route::post('sep31/transactions', [StellarCrossBorderController::class, 'cross'])->middleware(StellarAuthMiddleware::class);
 Route::get('sep31/transactions/{tx_id}', [StellarCrossBorderController::class, 'cross'])->middleware(StellarAuthMiddleware::class);
 Route::put('sep31/transactions/{tx_id}/callback', [StellarCrossBorderController::class, 'cross'])->middleware(StellarAuthMiddleware::class);
+
+// SEP-08
+Route::post('sep08/tx-approve', [StellarRegulatedAssetsController::class, 'approve']);
+Route::post('sep08/kyc-status/{stellar_account}', [StellarRegulatedAssetsController::class, 'setKycData']);
+Route::get('sep08/kyc-status/{stellar_account}', [StellarRegulatedAssetsController::class, 'getKycStatus']);
+Route::delete('sep08/kyc-status/{stellar_account}', [StellarRegulatedAssetsController::class, 'deleteKycAccount']);
+Route::get('sep08/friendbot', [StellarRegulatedAssetsController::class, 'friendbot']);
 
 // other
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

@@ -33,19 +33,20 @@ class StellarTomlController extends Controller
         $generalInfo = new GeneralInformation();
         $generalInfo->version = "2.0.0";
         $generalInfo->networkPassphrase = Network::testnet()->getNetworkPassphrase();
-        $generalInfo->webAuthEndpoint = "https://localhost:5173/auth";
-        $generalInfo->kYCServer = "https://localhost:5173/";
-        $generalInfo->transferServer = "https://localhost:5173/sep06";
-        $generalInfo->transferServerSep24 = "https://localhost:5173/sep24";
-        $generalInfo->anchorQuoteServer = "https://localhost:5173/sep38";
-        $generalInfo->directPaymentServer = "https://localhost:5173/sep31";
+        $generalInfo->webAuthEndpoint = config('stellar.api.endpoints_base_url') . "/auth";
+        $generalInfo->kYCServer = config('stellar.api.endpoints_base_url') . "/";
+        $generalInfo->transferServer = config('stellar.api.endpoints_base_url') . "/sep06";
+        $generalInfo->transferServerSep24 = config('stellar.api.endpoints_base_url') . "/sep24";
+        $generalInfo->anchorQuoteServer = config('stellar.api.endpoints_base_url') . "/sep38";
+        $generalInfo->directPaymentServer = config('stellar.api.endpoints_base_url') . "/sep31";
         $generalInfo->signingKey = "GCAT3G32LQV2V3WHRMKXLFAQNOCQXTUPUQXOXSTLSLSCLIVQP2NRQQ3T";
         $generalInfo->accounts = [
             'GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2',
             'GAKRN7SCC7KVT52XLMOFFWOOM4LTI2TQALFKKJ6NKU3XWPNCLD5CFRY2',
             'GBDQ4I7EIIPAIEBGN4GOKTU7MGUCOOC37NYLNRBN76SSWOWFGLWTXW3U',
             'GCMMCKP2OJXLBZCANRHXSGMMUOGJQKNCHH7HQZ4G3ZFLAIBZY5ODJYO6',
-            'GCAT3G32LQV2V3WHRMKXLFAQNOCQXTUPUQXOXSTLSLSCLIVQP2NRQQ3T'];
+            'GCAT3G32LQV2V3WHRMKXLFAQNOCQXTUPUQXOXSTLSLSCLIVQP2NRQQ3T',
+            config('stellar.sep08.asset_issuer_id')];
         $tomlData->generalInformation = $generalInfo;
 
         $currencyUSD = new Currency();
@@ -78,7 +79,19 @@ class StellarTomlController extends Controller
         $currencyJYPC->anchorAsset = 'JPY';
         $currencyJYPC->redemptionInstructions = 'You can purchase the JPYC token with USD, or USDC. You can sell it for USD or USDC';
 
-        $currencies = new Currencies($currencyUSD, $currencyUSDC, $currencyJYPC);
+        $currencySTAR = new Currency();
+        $currencySTAR->code = config('stellar.sep08.asset_code');
+        $currencySTAR->issuer = config('stellar.sep08.asset_issuer_id');
+        $currencySTAR->status = 'test';
+        $currencySTAR->displayDecimals = 2;
+        $currencySTAR->name = config('stellar.sep08.asset_toml_name');
+        $currencySTAR->desc = config('stellar.sep08.asset_toml_desc');
+        $currencySTAR->isAssetAnchored = false;
+        $currencySTAR->regulated = true;
+        $currencySTAR->approvalServer = config('stellar.sep08.asset_toml_approval_server');
+        $currencySTAR->approvalCriteria = config('stellar.sep08.asset_toml_approval_criteria');
+
+        $currencies = new Currencies($currencyUSD, $currencyUSDC, $currencyJYPC, $currencySTAR);
         $tomlData->currencies = $currencies;
 
         $doc = new Documentation();

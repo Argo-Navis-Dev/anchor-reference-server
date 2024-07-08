@@ -18,7 +18,7 @@
 
     <script>
     //Fill the network from the .env file
-    var STELLAR_NETWORK = "{{ env('STELLAR_NETWORK') }}";
+    var STELLAR_NETWORK = "{{ env('STELLAR_FREIGHTER_NETWORK_NAME') }}";
     </script>
 
 </head>
