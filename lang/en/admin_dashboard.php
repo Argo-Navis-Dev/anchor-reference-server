@@ -10,7 +10,6 @@ return [
     | The following language lines are used to support the admin dashboard localizartion.
     |
     */
-
     'first_name' => 'First name',
     'last_name' => 'Last name',
     'email_address' => 'Email address',
