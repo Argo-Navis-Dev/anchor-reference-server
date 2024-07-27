@@ -15,4 +15,6 @@ return [
     'label.created_at' => 'Created at',
     'label.updated_at' => 'Updated at',
     'label.name' => 'Name',
+    'label.description' => 'Description',
+    'label.decimals' => 'Decimals',
 ];

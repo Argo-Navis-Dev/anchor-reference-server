@@ -86,4 +86,37 @@ class AnchorAsset extends Model
      * @var string
      */
     protected $table = 'anchor_assets';
+
+    protected $fillable = [
+        'code',
+        'issuer',
+        'deposit_enabled',
+        'deposit_fee_fixed',
+        'deposit_fee_percent',
+        'deposit_fee_minimum',
+        'deposit_min_amount',
+        'deposit_max_amount',
+        'withdrawal_enabled',
+        'withdrawal_fee_fixed',
+        'withdrawal_fee_percent',
+        'withdrawal_fee_minimum',
+        'withdrawal_min_amount',
+        'withdrawal_max_amount',
+        'significant_decimals',
+        'schema',
+        'sep24_enabled',
+        'sep38_enabled',
+        'sep38_info',
+        'sep06_enabled',
+        'sep06_deposit_methods',
+        'sep06_withdraw_methods',
+        'sep06_deposit_exchange_enabled',
+        'sep06_withdraw_exchange_enabled',
+        'sep31_enabled',
+        'sep31_info',
+        'send_fee_fixed',
+        'send_fee_percent',
+        'send_min_amount',
+        'send_max_amount'
+    ];
 }

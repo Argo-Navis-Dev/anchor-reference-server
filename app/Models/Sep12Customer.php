@@ -95,7 +95,6 @@ class Sep12Customer extends Model
         return "{$this->getIdTypeAttribute()}: {$this->getIdNumberAttribute()}";
     }
 
-
     private function getProvidedFieldValue(string $fieldName): string {
         $field = Sep12Field::where('key', $fieldName)->first();
         $providedField = Sep12ProvidedField::where('sep12_customer_id', $this->id)

@@ -239,7 +239,7 @@ class Sep38Helper
     /**
      * @throws InvalidAsset
      */
-    private static function sep38AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep38AssetInfo {
+    public static function sep38AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep38AssetInfo {
         $formattedAsset = new IdentificationFormatAsset
         (
             $anchorAsset->schema,

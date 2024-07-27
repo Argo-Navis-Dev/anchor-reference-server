@@ -252,7 +252,7 @@ class Sep31Helper
      * @return Sep31AssetInfo the converted asset.
      * @throws InvalidAsset
      */
-    private static function sep31AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep31AssetInfo {
+    public static function sep31AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep31AssetInfo {
         try {
             $formattedAsset = new IdentificationFormatAsset
             (
