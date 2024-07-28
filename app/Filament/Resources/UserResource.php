@@ -6,9 +6,11 @@ use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -23,22 +25,23 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label("Name")
+                TextInput::make('name')
+                    ->label(__('user_lang.label.name'))
                     ->required(),
-                Forms\Components\TextInput::make('email')
-                    ->label("Email")
+                TextInput::make('email')
+                    ->label(__('user_lang.label.email'))
                     ->email()
                     ->required(),
-                Forms\Components\TextInput::make('password')
-                    ->label("Password")
+                TextInput::make('password')
+                    ->label(__('user_lang.label.password'))
                     ->password()
                     ->required()
                     ->confirmed(),
-                Forms\Components\TextInput::make('password_confirmation')
-                    ->label('Confirm Password')
+                TextInput::make('password_confirmation')
+                    ->label(__('user_lang.label.password_confirmation'))
                     ->password()
-                    ->required()
+                    ->required(),
+                ResourceUtil::getModelTimestampFormControls(1)
             ]);
     }
 
@@ -46,18 +49,20 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
+                    ->label(__('user_lang.label.name'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
+                    ->label(__('user_lang.label.email'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
+                    ->label(__('shared_lang.label.created_at'))
+                    ->dateTime()
+                    ->sortable(),
+                TextColumn::make('updated_at')
+                    ->label(__('shared_lang.label.updated_at'))
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
@@ -86,5 +91,15 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('user_lang.entity.name');
+    }
+
+    public static function getPluralLabel(): string
+    {
+        return __('user_lang.entity.names');
     }
 }

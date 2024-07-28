@@ -17,4 +17,7 @@ return [
     'label.name' => 'Name',
     'label.description' => 'Description',
     'label.decimals' => 'Decimals',
+    'label.id' => 'ID',
+    'label.status' => 'Status',
+    'label.errors' => 'Errors',
 ];

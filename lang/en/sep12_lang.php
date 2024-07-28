@@ -10,6 +10,9 @@ return [
     | The following language lines are used to support the SEP-12.
     |
     */
+
+    'entity.name' => 'Customer',
+    'entity.names' => 'Customers',
     'kyc.first_name' => 'First Name',
     'kyc.last_name' => 'Last Name',
     'kyc.status' => 'Status',

@@ -64,6 +64,7 @@ class AnchorAssetResource extends Resource
         $schema[] = self::getDepositOrWithdrawalConfigControls(false);
 
         $schema[] = self::getSepConfigControls();
+        $schema[] = ResourceUtil::getModelTimestampFormControls(1);
         return $form
             ->columns(3)
             ->schema($schema);
@@ -202,7 +203,6 @@ class AnchorAssetResource extends Resource
             ])
             ->actions([
                 ViewAnchorAsset::make(),
-                //Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->searchable()
@@ -327,5 +327,15 @@ class AnchorAssetResource extends Resource
             'create' => Pages\CreateAnchorAsset::route('/create'),
             'edit' => Pages\EditAnchorAsset::route('/{record}/edit')
         ];
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('asset_lang.entity.name');
+    }
+
+    public static function getPluralLabel(): string
+    {
+        return __('asset_lang.entity.names');
     }
 }

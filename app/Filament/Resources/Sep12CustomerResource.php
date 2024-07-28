@@ -29,7 +29,6 @@ class Sep12CustomerResource extends Resource
     private const KYC_FIELD_NO_STATUS = ['id_type' => true];
     protected static ?string $model = Sep12Customer::class;
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
-    protected static ?string $modelLabel = 'Customers';
 
     public static function form(Form $form): Form
     {
@@ -79,21 +78,7 @@ class Sep12CustomerResource extends Resource
             }
         }
         $components[] = Fieldset::make('KYC Fields')->schema($kycFields);
-
-        $lastEditedSection = Section::make()
-            ->schema([
-                Placeholder::make('created_at')
-                    ->label(__('shared_lang.label.created_at'))
-                    ->columns(1)
-                    ->content(fn(Sep12Customer $record): ?string => $record->created_at?->diffForHumans()),
-                Placeholder::make('updated_at')
-                    ->label(__('shared_lang.label.updated_at'))
-                    ->columns(1)
-                    ->content(fn(Sep12Customer $record): ?string => $record->updated_at?->diffForHumans())
-            ]);
-        $lastEditedSection->columnSpan(1);
-        $lastEditedSection->columns(2);
-        $components[] = $lastEditedSection;
+        $components[] = ResourceUtil::getModelTimestampFormControls(1);
 
         return $form->schema($components);
     }
@@ -215,9 +200,13 @@ class Sep12CustomerResource extends Resource
             'edit' => Pages\EditSep12Customer::route('/{record}/edit'),
         ];
     }
-
-    public static function canCreate(): bool
+    public static function getModelLabel(): string
     {
-        return false;
+        return __('sep12_lang.entity.name');
+    }
+
+    public static function getPluralLabel(): string
+    {
+        return __('sep12_lang.entity.names');
     }
 }

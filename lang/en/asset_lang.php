@@ -10,6 +10,8 @@ return [
     | The following language lines are used to support the Anchor assets.
     |
     */
+    'entity.name' => 'Anchor asset',
+    'entity.names' => 'Anchor assets',
     'label.code' => 'Code',
     'label.issuer' => 'Issuer',
     'label.deposit_enabled' => 'Deposit enabled',
