@@ -75,7 +75,9 @@ class Sep12Customer extends Model
         $lastName = Sep12ProvidedField::where('sep12_customer_id', $this->id)
             ->where('sep12_field_id', $lastNameField->id)
             ->first();
-        return "{$firstName->string_value} {$lastName->string_value}";
+        $firstName = $firstName->string_value ?? '';
+        $lastName = $lastName->string_value ?? '';
+        return "{$firstName} {$lastName}";
     }
 
     public function getEmailAttribute(): string {
@@ -100,6 +102,6 @@ class Sep12Customer extends Model
         $providedField = Sep12ProvidedField::where('sep12_customer_id', $this->id)
             ->where('sep12_field_id', $field->id)
             ->first();
-        return $providedField->string_value;
+        return $providedField->string_value ?? '';
     }
 }

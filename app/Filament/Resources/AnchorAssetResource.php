@@ -202,8 +202,8 @@ class AnchorAssetResource extends Resource
                 //
             ])
             ->actions([
-                ViewAnchorAsset::make(),
                 Tables\Actions\EditAction::make(),
+                ViewAnchorAsset::make(),
             ])
             ->searchable()
             ->bulkActions([
