@@ -14,7 +14,6 @@ return [
     'entity.names' => 'SEP-24 transactions',
     'label.destination_asset' => 'Destination Asset',
     'label.muxed_account' => 'Muxed account',
-    'label.refunded' => 'Refunded',
     'label.source_asset' => 'Source asset',
     'label.status_message' => 'Status message',
 

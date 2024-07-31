@@ -34,4 +34,13 @@ class Sep08KycStatus extends Model
      * @var string
      */
     protected $table = 'sep08_kyc_status';
+
+    protected $fillable = [
+        'stellar_address',
+        'approved',
+        'rejected',
+        'pending',
+        'created_at',
+        'updated_at',
+    ];
 }

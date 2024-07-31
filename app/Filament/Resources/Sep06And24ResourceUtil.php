@@ -12,6 +12,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Get;
+use Filament\Resources\Resource;
 use Filament\Tables\Columns\Layout\Panel;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
@@ -95,58 +96,8 @@ class Sep06And24ResourceUtil
             TextInput::make('status_message')
                 ->hidden($isSep06)
                 ->label(__('sep24_lang.label.status_message')),
-
-            Toggle::make('refunded')
-                ->label(__('sep24_lang.label.refunded'))
-                ->required(),
-
-            Fieldset::make(__("sep06_lang.label.tx_dates"))
-                ->columns(3)
-                ->schema([
-                    DateTimePicker::make('tx_started_at')
-                        ->label(__('sep06_lang.label.tx_started_at'))
-                        ->required(),
-                    DateTimePicker::make('tx_updated_at')
-                        ->label(__('sep06_lang.label.tx_updated_at')),
-                    DateTimePicker::make('tx_completed_at')
-                        ->label(__('sep06_lang.label.tx_completed_at')),
-                    Section::make(__('sep06_lang.label.transfer_received_at'))
-                        ->columns(3)
-                        ->schema([
-                            DateTimePicker::make('transfer_received_at')
-                                ->columnStart(2)
-                                ->columnSpan(1)
-                                ->hiddenLabel(true)
-                        ])
-                ]),
-
-            Fieldset::make(__("sep06_lang.label.amount_info"))
-                ->columns(4)
-                ->schema([
-                    TextInput::make('amount_in')
-                        ->label(__('sep06_lang.label.amount_in'))
-                        ->numeric(),
-                    TextInput::make('amount_out')
-                        ->label(__('sep06_lang.label.amount_out'))
-                        ->numeric(),
-                    TextInput::make('amount_expected')
-                        ->label(__('sep06_lang.label.amount_expected'))
-                        ->numeric(),
-                    TextInput::make('amount_fee')
-                        ->label(__('sep06_lang.label.amount_fee'))
-                        ->numeric(),
-
-                    TextInput::make('amount_in_asset')
-                        ->columnSpan(4)
-                        ->label(__('sep06_lang.label.amount_in_asset')),
-                    TextInput::make('amount_out_asset')
-                        ->columnSpan(4)
-                        ->label(__('sep06_lang.label.amount_out_asset')),
-                    TextInput::make('amount_fee_asset')
-                        ->columnSpan(4)
-                        ->label(__('sep06_lang.label.amount_fee_asset')),
-
-                ]),
+            ResourceUtil::getTransactionTimestampFormControls(),
+            ResourceUtil::getAmountInfoFormControls(),
             Fieldset::make(__("sep06_lang.label.sep10_account_info"))
                 ->columns(2)
                 ->schema([
@@ -156,17 +107,7 @@ class Sep06And24ResourceUtil
                         ->label(__('sep06_lang.label.sep10_account_memo')),
                 ]),
 
-            Fieldset::make(__("sep06_lang.label.refund_info"))
-                ->columns(2)
-                ->schema([
-                    Textarea::make('refunds')
-                        ->label(__('sep06_lang.label.refunds'))
-                        ->columnSpanFull(),
-                    TextInput::make('refund_memo')
-                        ->label(__('sep06_lang.label.refund_memo')),
-                    TextInput::make('refund_memo_type')
-                        ->label(__('sep06_lang.label.refund_memo_type')),
-                ]),
+            ResourceUtil::getRefundsInfoFormControls(!$isSep06),
             Fieldset::make(__("sep06_lang.label.missing_info_errors"))
                 ->columns(2)
                 ->hidden($isSep06 == false)
@@ -295,58 +236,16 @@ class Sep06And24ResourceUtil
             ])
         ];
 
+        $firstStackFields = ResourceUtil::getAmountInfoTableFields();
+        $firstStackFields[] = TextColumn::make('claimable_balance_supported')
+              ->icon(fn(Model $record): ?string => $record->claimable_balance_supported ? 'heroicon-m-check-circle' : 'heroicon-s-x-circle')
+              ->getStateUsing(function (){
+                  return __('sep06_lang.label.claimable_balance_supported');
+              });
         $columns[] = Panel::make([
             Split::make([
-                Stack::make([
-                    TextColumn::make('amount_in')
-                        ->icon('phosphor-money')
-                        ->getStateUsing(function (Model $record){
-                            return __('sep06_lang.label.amount_in') . ': '. $record->amount_in;
-                        }),
-                    TextColumn::make('amount_out')
-                        ->icon('phosphor-money')
-                        ->getStateUsing(function (Model $record){
-                            return __('sep06_lang.label.amount_out') . ': '. $record->amount_out;
-                        }),
-                    TextColumn::make('amount_expected')
-                        ->icon('phosphor-money')
-                        ->getStateUsing(function (Model $record){
-                            return __('sep06_lang.label.amount_expected') . ': '. $record->amount_expected;
-                        }),
-                    TextColumn::make('amount_fee')
-                        ->icon('phosphor-money')
-                        ->getStateUsing(function (Model $record){
-                            return __('sep06_lang.label.amount_fee') . ': '. $record->amount_fee;
-                        }),
-
-                    TextColumn::make('claimable_balance_supported')
-                        ->icon(fn(Model $record): ?string => $record->claimable_balance_supported ? 'heroicon-m-check-circle' : 'heroicon-s-x-circle')
-                        ->getStateUsing(function (){
-                            return __('sep06_lang.label.claimable_balance_supported');
-                        }),
-                ]),
-                Stack::make([
-                    TextColumn::make('tx_started_at')
-                        ->icon('heroicon-o-calendar-date-range')
-                        ->getStateUsing(function (Model $record){
-                            return __('sep06_lang.label.tx_started_at') . ': '. $record->tx_started_at;
-                        }),
-                    TextColumn::make('tx_updated_at')
-                        ->icon('heroicon-o-calendar-date-range')
-                        ->getStateUsing(function (Model $record){
-                            return __('sep06_lang.label.tx_updated_at') . ': '. $record->tx_updated_at;
-                        }),
-                    TextColumn::make('tx_completed_at')
-                        ->icon('heroicon-o-calendar-date-range')
-                        ->getStateUsing(function (Model $record){
-                            return __('sep06_lang.label.tx_completed_at') . ': '. $record->tx_completed_at;
-                        }),
-                    TextColumn::make('transfer_received_at')
-                        ->icon('heroicon-o-calendar-date-range')
-                        ->getStateUsing(function (Model $record){
-                            return __('sep06_lang.label.transfer_received_at') . ': '. $record->transfer_received_at;
-                        }),
-                ])
+                Stack::make($firstStackFields),
+                Stack::make(ResourceUtil::getTransactionsInfoTableFields())
             ])
         ])->collapsible();
         return $columns;
