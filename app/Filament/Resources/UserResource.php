@@ -7,7 +7,9 @@ use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -21,6 +23,8 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -32,13 +36,19 @@ class UserResource extends Resource
                     ->label(__('user_lang.label.email'))
                     ->email()
                     ->required(),
+                Toggle::make("reset_password")
+                    ->live()
+                    ->columnSpan(2)
+                    ->label(__("user_lang.label.reset_password")),
                 TextInput::make('password')
                     ->label(__('user_lang.label.password'))
                     ->password()
                     ->required()
+                    ->hidden(fn (Get $get): bool => ! $get("reset_password"))
                     ->confirmed(),
                 TextInput::make('password_confirmation')
                     ->label(__('user_lang.label.password_confirmation'))
+                    ->hidden(fn (Get $get): bool => ! $get("reset_password"))
                     ->password()
                     ->required(),
                 ResourceUtil::getModelTimestampFormControls(1)

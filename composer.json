@@ -14,7 +14,9 @@
     "require": {
         "php": "^8.1",
         "argonavis/php-anchor-sdk": "^0.7",
+        "bezhansalleh/filament-language-switch": "^3.1",
         "codeat3/blade-phosphor-icons": "^2.2",
+        "davidhsianturi/blade-bootstrap-icons": "^1.5",
         "doctrine/dbal": "^3.8",
         "filament/filament": "3.2",
         "guzzlehttp/guzzle": "^7.2",

@@ -23,6 +23,8 @@ class Sep08KycStatusResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-m-check-circle';
 
+    protected static ?int $navigationSort = 10;
+
     public static function form(Form $form): Form
     {
         return $form

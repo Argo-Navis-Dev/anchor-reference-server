@@ -34,6 +34,8 @@ class AnchorAssetResource extends Resource
 
     protected static ?string $navigationIcon = 'phosphor-money';
 
+    protected static ?int $navigationSort = 4;
+
     public static function form(Form $form): Form
     {
         $schema = [

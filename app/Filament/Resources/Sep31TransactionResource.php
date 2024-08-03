@@ -29,6 +29,8 @@ class Sep31TransactionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-s-circle-stack';
 
+    protected static ?int $navigationSort = 7;
+
     public static function form(Form $form): Form
     {
         return $form

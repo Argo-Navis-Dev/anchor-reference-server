@@ -17,4 +17,5 @@ return [
     'label.email' => 'Email',
     'label.password' => 'Password',
     'label.password_confirmation' => 'Password confirmation',
+    'label.reset_password' => 'Reset password',
 ];

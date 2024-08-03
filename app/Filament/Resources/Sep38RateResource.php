@@ -18,8 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class Sep38RateResource extends Resource
 {
     protected static ?string $model = Sep38Rate::class;
-
     protected static ?string $navigationIcon = 'heroicon-s-arrow-path-rounded-square';
+    protected static ?int $navigationSort = 9;
 
     public static function form(Form $form): Form
     {
@@ -114,4 +114,15 @@ class Sep38RateResource extends Resource
     {
         return __('sep38_lang.entity.rate.names');
     }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('sep38_lang.entity.rate.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('sep38_lang.navigation.group');
+    }
+
 }

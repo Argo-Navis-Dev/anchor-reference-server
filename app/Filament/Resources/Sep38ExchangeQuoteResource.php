@@ -28,6 +28,9 @@ class Sep38ExchangeQuoteResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-s-circle-stack';
 
+    protected static ?int $navigationSort = 8;
+
+
 
     public static function form(Form $form): Form
     {
@@ -166,4 +169,15 @@ class Sep38ExchangeQuoteResource extends Resource
     {
         return __('sep38_lang.entity.names');
     }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('sep38_lang.entity.navigation_label');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('sep38_lang.navigation.group');
+    }
+
 }

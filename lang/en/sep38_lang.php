@@ -12,8 +12,10 @@ return [
     */
     'entity.name' => 'SEP-38 exchange quote',
     'entity.names' => 'SEP-38 exchange quotes',
+    'entity.navigation_label' => 'Exchange quotes',
     'entity.rate.name' => 'SEP-38 rate',
     'entity.rate.names' => 'SEP-38 rates',
+    'entity.rate.navigation_label' => 'Rates',
     'label.context' => 'Context',
     'label.expires_at' => 'Expires at',
     'label.price' => 'Price',
@@ -34,6 +36,8 @@ return [
     'label.account_info' => 'Account info',
     'label.rate' => 'Rate',
     'label.fee_percent' => 'Fee percent',
+
+    'navigation.group' => 'SEP-38 settings'
 ];
 
 

@@ -46,6 +46,4 @@ class Sep38Rate extends Model
         'created_at',
         'updated_at'
     ];
-
-
 }
