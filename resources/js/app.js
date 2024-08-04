@@ -4,15 +4,3 @@
 
 import $ from "jquery";
 window.jQuery = window.$ = $
-
-import './customers_controller';
-import './users_controller';
-import './customer_controller';
-
-/**
- * This event is triggered when the app is ready.
- */
-$(function() {
-    const pageName = $('body').data('page-name');        
-    $(document).trigger('appReady', [pageName]);
-});

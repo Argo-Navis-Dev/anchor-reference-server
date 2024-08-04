@@ -19,6 +19,7 @@ class ResourceUtil
     public static function getModelTimestampFormControls(int $colspan): Section {
         return Section::make()
             ->columnSpan($colspan)
+            ->hidden(fn(?Model $record): ?bool => $record == null)
             ->schema([
                 Placeholder::make('created_at')
                     ->label(__('shared_lang.label.created_at'))

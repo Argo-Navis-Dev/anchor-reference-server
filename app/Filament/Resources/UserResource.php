@@ -15,7 +15,9 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Log;
 
 class UserResource extends Resource
 {
@@ -31,24 +33,49 @@ class UserResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label(__('user_lang.label.name'))
+                    ->maxLength(255)
                     ->required(),
                 TextInput::make('email')
                     ->label(__('user_lang.label.email'))
+                    ->unique(ignorable: $form->getRecord())
+                    ->maxLength(320)
                     ->email()
                     ->required(),
                 Toggle::make("reset_password")
+                    ->label(__("user_lang.label.reset_password"))
                     ->live()
-                    ->columnSpan(2)
-                    ->label(__("user_lang.label.reset_password")),
+                    ->hidden(function(?Model $record) use ($form){
+                        if($record == null) {
+                            return true;
+                        }
+                        return $form->getOperation() == 'view';
+                    })
+                    ->columnSpan(2),
                 TextInput::make('password')
                     ->label(__('user_lang.label.password'))
                     ->password()
+                    ->minLength(8)
+                    ->maxLength(255)
                     ->required()
-                    ->hidden(fn (Get $get): bool => ! $get("reset_password"))
+                    ->hidden(function(Get $get) use ($form): bool {
+                        $record = $form->getRecord();
+                        if($record == null) {
+                            return false;
+                        }
+                        return !$get("reset_password");
+                    })
                     ->confirmed(),
                 TextInput::make('password_confirmation')
                     ->label(__('user_lang.label.password_confirmation'))
-                    ->hidden(fn (Get $get): bool => ! $get("reset_password"))
+                    ->minLength(8)
+                    ->maxLength(255)
+                    ->hidden(function(Get $get) use ($form): bool {
+                        $record = $form->getRecord();
+                        if($record == null) {
+                            return false;
+                        }
+                        return !$get("reset_password");
+                    })
                     ->password()
                     ->required(),
                 ResourceUtil::getModelTimestampFormControls(1)
@@ -61,9 +88,11 @@ class UserResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->label(__('user_lang.label.name'))
+                    ->limit(35)
                     ->searchable(),
                 TextColumn::make('email')
                     ->label(__('user_lang.label.email'))
+                    ->limit(35)
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->label(__('shared_lang.label.created_at'))
@@ -79,6 +108,7 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

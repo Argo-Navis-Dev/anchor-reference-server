@@ -29,39 +29,4 @@ Route::get('/sep12demo', function () {
 })->name('sep12demo');
 
 //Renders the customer (binary) image field
-Route::get('/customer/{id}/binary-field/{fieldID}', [App\Http\Controllers\Admin\CustomerController::class, 'getBinaryField']);
-
-
-// Admin dashboard
-//Auth::routes(['register' => false]);
-
-/*View::composer('*', function($view){
-    View::share('view_name', $view->getName());
-});*/
-
-//Renders the home page of the dashboard
-/*Route::get('/home', [App\Http\Controllers\Admin\HomeController::class, 'index'])->name('home.index');
-//Renders the users page
-Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
-//Loads the users data as a JSON array
-Route::get('/load-users', [App\Http\Controllers\Admin\UserController::class, 'loadUsers']);
-//Renders one specific user
-Route::get('/user/{id}', [App\Http\Controllers\Admin\UserController::class, 'show'])->name('user.index');
-//Stores the user data
-Route::post('/user/${id}', [App\Http\Controllers\Admin\UserController::class, 'store'])->name('user.store');
-//Deletes the user
-Route::delete('/user', [App\Http\Controllers\Admin\UserController::class, 'destroy']);
-
-//Renders the customer (binary) image field
-Route::get('/customer/{id}/binary-field/{fieldID}', [App\Http\Controllers\Admin\CustomerController::class, 'getBinaryField']);
-//Renders the customers
-Route::get('/customers', [App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('customers.index');
-//Loads the customers data as a JSON array
-Route::get('/load-customers', [App\Http\Controllers\Admin\CustomerController::class, 'loadCustomers']);
-//Deletes the customer
-Route::delete('/customer', [App\Http\Controllers\Admin\CustomerController::class, 'destroy']);
-//Renders the customer
-Route::get('/customer/{id}', [App\Http\Controllers\Admin\CustomerController::class, 'show'])->name('customer.index');
-//Stores the customer data
-Route::post('/customer/${id}', [App\Http\Controllers\Admin\CustomerController::class, 'store'])->name('customer.store');
-*/
+Route::get('/customer/{id}/binary-field/{fieldID}', [App\Http\Controllers\StellarCustomerController::class, 'renderBinaryField']);
