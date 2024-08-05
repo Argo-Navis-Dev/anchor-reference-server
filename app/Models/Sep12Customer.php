@@ -89,8 +89,7 @@ class Sep12Customer extends Model
     }
     public function getIdTypeAttribute(): string {
         $value = $this->getProvidedFieldValue('id_type');
-
-        return __("sep12_lang.kyc.id_type.{$value}");
+        return __("sep12_lang.label.id_type.{$value}");
     }
 
     public function getIdTypeWithNumberAttribute(): string {

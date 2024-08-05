@@ -6,7 +6,9 @@ use App\Models\Sep12Customer;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -60,25 +62,29 @@ class ResourceUtil
             ->schema([
                 TextInput::make('amount_in')
                     ->label(__('shared_lang.label.amount_in'))
+                    ->minValue(0)
                     ->numeric(),
                 TextInput::make('amount_out')
                     ->label(__('shared_lang.label.amount_out'))
+                    ->minValue(0)
                     ->numeric(),
                 TextInput::make('amount_expected')
                     ->label(__('shared_lang.label.amount_expected'))
+                    ->minValue(0)
                     ->numeric(),
                 TextInput::make('amount_fee')
                     ->label(__('shared_lang.label.amount_fee'))
+                    ->minValue(0)
                     ->numeric(),
 
                 TextInput::make('amount_in_asset')
-                    ->columnSpan(4)
+                    ->columnSpan(1)
                     ->label(__('shared_lang.label.amount_in_asset')),
                 TextInput::make('amount_out_asset')
-                    ->columnSpan(4)
+                    ->columnSpan(1)
                     ->label(__('shared_lang.label.amount_out_asset')),
                 TextInput::make('amount_fee_asset')
-                    ->columnSpan(4)
+                    ->columnSpan(1)
                     ->label(__('shared_lang.label.amount_fee_asset')),
 
             ]);
@@ -150,5 +156,50 @@ class ResourceUtil
                     return __('shared_lang.label.transfer_received_at') . ': '. $record->transfer_received_at;
                 }),
         ];
+    }
+
+    public static function getMemoTypeFormControl(): Select {
+        $options = [
+            'text' => __('shared_lang.label.memo_type.text'),
+            'id' => __('shared_lang.label.memo_type.id'),
+            'hash' => __('shared_lang.label.memo_type.hash'),
+        ];
+        return Select::make('memo_type')
+            ->label(__('shared_lang.label.memo_type'))
+            ->options($options);
+    }
+
+    public static function getFeeDetailsFormControl(): Section {
+        $schema = [
+            TextInput::make('fee_details.total')
+                ->label(__("shared_lang.label.total"))
+                ->numeric()
+                ->minValue(0)
+                ->required(),
+            TextInput::make('fee_details.asset')
+                ->label(__("shared_lang.label.asset"))
+                ->maxLength(80)
+                ->required(),
+            Repeater::make('fee_details.details')
+                ->schema([
+                    TextInput::make('amount')
+                        ->label(__("shared_lang.label.amount"))
+                        ->minValue(0)
+                        ->numeric()
+                        ->required(),
+                    TextInput::make('name')
+                        ->label(__("shared_lang.label.name"))
+                        ->required(),
+                    TextArea::make('description')
+                        ->label(__("shared_lang.label.description"))
+                        ->required()
+                ])
+                ->columns(3)
+                ->columnSpan(2)
+        ];
+        return Section::make(__('shared_lang.label.fee_details'))
+            ->description(__('shared_lang.label.fee_details.description'))
+            ->columns(2)
+            ->schema($schema);
     }
 }

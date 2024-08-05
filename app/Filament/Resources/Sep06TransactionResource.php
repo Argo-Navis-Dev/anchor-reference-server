@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\Sep06TransactionResource\Actions\ViewSep06TransactionResource;
 use App\Filament\Resources\Sep06TransactionResource\Pages;
 use App\Filament\Resources\Sep06TransactionResource\RelationManagers;
 use App\Models\AnchorAsset;
@@ -56,7 +57,7 @@ class Sep06TransactionResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(),
+                ViewSep06TransactionResource::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -89,5 +90,10 @@ class Sep06TransactionResource extends Resource
     public static function getPluralLabel(): string
     {
         return __('sep06_lang.entity.names');
+    }
+
+    public static function canCreate(): bool
+    {
+        return false;
     }
 }

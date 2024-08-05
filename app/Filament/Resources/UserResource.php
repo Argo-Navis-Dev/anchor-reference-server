@@ -88,11 +88,11 @@ class UserResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->label(__('user_lang.label.name'))
-                    ->limit(35)
+                    ->limit(20)
                     ->searchable(),
                 TextColumn::make('email')
                     ->label(__('user_lang.label.email'))
-                    ->limit(35)
+                    ->limit(20)
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->label(__('shared_lang.label.created_at'))

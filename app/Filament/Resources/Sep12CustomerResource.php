@@ -2,10 +2,13 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\AnchorAssetResource\Actions\ViewAnchorAsset;
+use App\Filament\Resources\Sep12CustomerResource\Actions\ViewSep12Customer;
 use App\Filament\Resources\Sep12CustomerResource\Pages;
 use App\Models\Sep12Customer;
 use App\Models\Sep12Field;
 use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
+use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Placeholder;
@@ -26,81 +29,96 @@ class Sep12CustomerResource extends Resource
 {
     public const CUSTOM_FIELD_PREFIX = 'custom_';
     public const CUSTOM_STATUS_FIELD_SUFFIX = '_status';
-    private const KYC_FIELD_NO_STATUS = ['id_type' => true];
+    private const KYC_FIELD_WITHOUT_STATUS = ['id_type' => true];
+
     protected static ?string $model = Sep12Customer::class;
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
-
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
         $fields = Sep12Field::all();
-        $statusField = self::createStatusField('status');
+        $statusField = self::createCustomerStatusField('status');
         $statusField->columnSpan(2);
         $components = [
             TextInput::make('account_id')
                 ->label(__('shared_lang.label.account_id'))
                 ->minLength(56)
-                ->maxLength(56)
+                ->maxLength(69)
                 ->required(),
             TextInput::make('memo')
                 ->label(__('shared_lang.label.memo'))
-                ->numeric(),
+                ->maxLength(255),
             $statusField,
-            TextInput::make('callback_url'),
+            TextInput::make('callback_url')
+                ->url(true)
+                ->maxLength(2000)
+                ->label(__('sep12_lang.label.callback_url')),
             TextInput::make('lang')
-                ->required(),
+                ->minLength(2)
+                ->maxLength(2)
+                ->label(__('shared_lang.label.lang'))
         ];
         $customFieldPrefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
         $statusSuffix = Sep12CustomerResource::CUSTOM_STATUS_FIELD_SUFFIX;
 
-        $kycFields = [];
+        $providedFields = [];
         foreach ($fields as $field) {
             $fieldType = $field->type;
             $name = "{$customFieldPrefix}{$field->id}";
             //TODO Avoid hard coding different field types
-            $label = __("sep12_lang.kyc.{$field->key}");
-            $hasStatus = !isset(self::KYC_FIELD_NO_STATUS[$field->key]);
+            $label = __("sep12_lang.label.{$field->key}");
+            $hasStatus = !isset(self::KYC_FIELD_WITHOUT_STATUS[$field->key]);
             if ($fieldType == 'string') {
                 if ($field->choices != null) {
-                    $kycFields[] = self::createDynamicSelectField($field, $hasStatus);
+                    $providedFields[] = self::createDynamicSelectField($field, $hasStatus);
                 } else {
-                    $kycFields[] = TextInput::make(name: $name)
-                        ->label($label)
-                        ->required();
+                    $providedFields[] = TextInput::make(name: $name)
+                        ->label($label);
                 }
             }
             if ($fieldType == 'binary') {
-                $kycFields[] = self::getBinaryFieldComponent($field->id, $label);
+                $providedFields[] = self::getBinaryFieldComponent($field->id, $label);
             }
             $statusFieldName = "{$customFieldPrefix}{$field->id}{$statusSuffix}";
             if ($hasStatus) {
-                $statusField = self::createStatusField($statusFieldName);
-                $kycFields[] = $statusField;
+                $requiresVerification = $field->requires_verification;
+                $statusField = self::createProvidedFieldStatusComp($statusFieldName, $requiresVerification);
+                $providedFields[] = $statusField;
             }
         }
-        $components[] = Fieldset::make('KYC Fields')->schema($kycFields);
+        $components[] = Fieldset::make(__('sep12_lang.label.provided_fields'))->schema($providedFields);
         $components[] = ResourceUtil::getModelTimestampFormControls(1);
 
         return $form->schema($components);
     }
 
-    private static function createStatusField(
-        string $name,
-        ?string $label = null,
-    ): Field {
-        if ($label == null) {
-            $label = __("sep12_lang.kyc.status");
-        }
-
+    private static function createCustomerStatusField(string $name): Field {
         return Select::make($name)
-            ->label($label)
+            ->label(__('shared_lang.label.status'))
+            ->required()
+            ->default(CustomerStatus::PROCESSING)
             ->options([
-                CustomerStatus::ACCEPTED => __("sep12_lang.kyc.status.accepted"),
-                CustomerStatus::NEEDS_INFO => __("sep12_lang.kyc.status.needs_info"),
-                CustomerStatus::PROCESSING => __("sep12_lang.kyc.status.processing"),
-                CustomerStatus::REJECTED => __("sep12_lang.kyc.status.rejected"),
+                CustomerStatus::ACCEPTED => __("sep12_lang.label.customer.status.accepted"),
+                CustomerStatus::NEEDS_INFO => __("sep12_lang.label.customer.status.needs_info"),
+                CustomerStatus::PROCESSING => __("sep12_lang.label.customer.status.processing"),
+                CustomerStatus::REJECTED => __("sep12_lang.label.customer.status.rejected"),
             ]);
+    }
+
+    private static function createProvidedFieldStatusComp(string $name, bool $requiresVerification): Field {
+        $option = [
+            ProvidedCustomerFieldStatus::ACCEPTED => __('sep12_lang.label.field.status.accepted'),
+            ProvidedCustomerFieldStatus::PROCESSING => __('sep12_lang.label.field.status.processing'),
+            ProvidedCustomerFieldStatus::REJECTED => __('sep12_lang.label.field.status.rejected'),
+        ];
+        if($requiresVerification) {
+            $option[ProvidedCustomerFieldStatus::VERIFICATION_REQUIRED] = __('sep12_lang.label.field.status.verification_required');
+        }
+        return Select::make($name)
+            ->label(__('shared_lang.label.status'))
+            ->default(CustomerStatus::PROCESSING)
+            ->options($option);
     }
 
     private static function createDynamicSelectField(Sep12Field $field, bool $hasStatusField): Select
@@ -110,11 +128,11 @@ class Sep12CustomerResource extends Resource
         $choices = explode(",", $field->choices);
         $options = [];
         foreach ($choices as $choice) {
-            $options[$choice] = __("sep12_lang.kyc.{$field->key}.{$choice}");
+            $options[$choice] = __("sep12_lang.label.{$field->key}.{$choice}");
         }
         $component = Select::make($name)
-            ->label(__("sep12_lang.kyc.{$field->key}"))
-            ->columnSpan(2)
+            ->label(__("sep12_lang.label.{$field->key}"))
+            ->columnSpan(1)
             ->options($options);
         if (!$hasStatusField) {
             $component->columnSpan(2);
@@ -143,13 +161,14 @@ class Sep12CustomerResource extends Resource
                 TextColumn::make('name')
                     ->description(__('shared_lang.label.name')),
                 TextColumn::make('account_id')
+                    ->limit(20)
                     ->description(__('shared_lang.label.account_id')),
                 TextColumn::make('memo')
                     ->description(__('shared_lang.label.memo'))
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge()
-                    ->description(__('sep12_lang.kyc.status'))
+                    ->description(__('shared_lang.label.status'))
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->description(__('shared_lang.label.created_at'))
@@ -179,6 +198,7 @@ class Sep12CustomerResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                ViewSep12Customer::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -210,5 +230,10 @@ class Sep12CustomerResource extends Resource
     public static function getPluralLabel(): string
     {
         return __('sep12_lang.entity.names');
+    }
+
+    public static function canCreate(): bool
+    {
+        return false;
     }
 }

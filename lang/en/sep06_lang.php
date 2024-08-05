@@ -34,12 +34,18 @@ return [
     'label.status_eta' => 'Status ETA',
     'label.kind' => 'Kind',
 
-    'label.kind.deposit' => 'Kind',
+    'label.kind.deposit' => 'Deposit',
     'label.kind.deposit_exchange' => 'Deposit exchange',
-    'label.kind.withdrawal ' => 'Withdrawal',
-    'label.kind.withdrawal_exchange ' => 'Withdrawal exchange',
+    'label.kind.withdrawal' => 'Withdrawal',
+    'label.kind.withdrawal_exchange' => 'Withdrawal exchange',
 
     'label.type' => 'Type',
+    'label.type.crypto' => 'Crypto',
+    'label.type.bank_account' => 'Bank account',
+    'label.type.cash' => 'Cash',
+    'label.type.mobile' => 'Mobile',
+    'label.type.bill_payment' => 'Bill payment',
+
     'label.request_asset_code' => 'Request asset code',
     'label.request_asset_issuer' => 'Request asset issuer',
 
@@ -62,7 +68,6 @@ return [
     'label.required_customer_info_updates' => 'Required customer info updates',
     'label.client_domain' => 'Client domain',
     'label.client_name' => 'Client name',
-    'label.fee_details' => 'Fee details',
     'label.instructions' => 'Instructions',
     'label.instructions.description' => 'SEP-9 financial account fields that describe how to complete the off-chain deposit',
     'label.claimable_balance_id' => 'Claimable balance ID',

@@ -5,7 +5,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\AnchorAssetResource\Actions\ViewAnchorAsset;
 use App\Filament\Resources\AnchorAssetResource\Pages;
-use App\Filament\Resources\AnchorAssetResource\RelationManagers;
 use App\Models\AnchorAsset;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Radio;
@@ -44,12 +43,18 @@ class AnchorAssetResource extends Resource
                 ->schema([
                     TextInput::make('code')
                         ->label(__('asset_lang.label.code'))
+                        ->minLength(3)
+                        ->maxLength(12)
                         ->required(),
                     TextInput::make('issuer')
-                        ->label(__('asset_lang.label.issuer')),
+                        ->label(__('asset_lang.label.issuer'))
+                        ->required()
+                        ->minLength(56)
+                        ->maxLength(56),
                     Radio::make('schema')
                         ->label(__('asset_lang.label.schema'))
                         ->default('stellar')
+                        ->required()
                         ->options([
                             'stellar' => 'Stellar',
                             'iso4217' => 'iso4217',
@@ -58,6 +63,7 @@ class AnchorAssetResource extends Resource
                         ->label(__('asset_lang.label.significant_decimals'))
                         ->required()
                         ->numeric()
+                        ->maxLength(1)
                         ->default(2)
                 ])
         ];
@@ -78,23 +84,24 @@ class AnchorAssetResource extends Resource
         $schema = [
             TextInput::make("{$replacement}_fee_fixed")
                 ->label(__("asset_lang.label.{$replacement}_fee_fixed"))
-                ->hidden(fn (Get $get): bool => ! $get("{$replacement}_enabled"))
+                ->minValue(0)
                 ->numeric(),
             TextInput::make("{$replacement}_fee_percent")
                 ->label(__("asset_lang.label.{$replacement}_fee_percent"))
-                ->hidden(fn (Get $get): bool => ! $get("{$replacement}_enabled"))
+                ->minValue(0)
+                ->maxValue(100)
                 ->numeric(),
             TextInput::make("{$replacement}_fee_minimum")
                 ->label(__("asset_lang.label.{$replacement}_fee_minimum"))
-                ->hidden(fn (Get $get): bool => ! $get("{$replacement}_enabled"))
+                ->minValue(0)
                 ->numeric(),
             TextInput::make("{$replacement}_min_amount")
                 ->label(__("asset_lang.label.{$replacement}_min_amount"))
-                ->hidden(fn (Get $get): bool => ! $get("{$replacement}_enabled"))
+                ->minValue(0)
                 ->numeric(),
             TextInput::make("{$replacement}_max_amount")
                 ->label(__("asset_lang.label.{$replacement}_max_amount"))
-                ->hidden(fn (Get $get): bool => ! $get("{$replacement}_enabled"))
+                ->minValue(0)
                 ->numeric(),
         ];
         return Section::make([
@@ -104,9 +111,10 @@ class AnchorAssetResource extends Resource
             Fieldset::make(__("asset_lang.label.{$replacement}_settings"))
                 ->columns(1)
                 ->columnSpan(1)
+                ->hidden(fn (Get $get): bool => ! $get("{$replacement}_enabled"))
                 ->schema($schema)
         ])->columnSpan(1)
-            ->extraAttributes(['style' => 'background-color: transparent;']);
+            ->extraAttributes(['style' => 'background-color: transparent; box-shadow: none !important']);
     }
 
     private static function getSendConfigControls(): Fieldset
@@ -114,15 +122,20 @@ class AnchorAssetResource extends Resource
         $schema = [
             TextInput::make('send_fee_fixed')
                 ->label(__('asset_lang.label.send_fee_fixed'))
+                ->minValue(0)
                 ->numeric(),
             TextInput::make('send_fee_percent')
                 ->label(__('asset_lang.label.send_fee_percent'))
+                ->minValue(0)
+                ->maxValue(100)
                 ->numeric(),
             TextInput::make('send_min_amount')
                 ->label(__('asset_lang.label.send_min_amount'))
+                ->minValue(0)
                 ->numeric(),
             TextInput::make('send_max_amount')
                 ->label(__('asset_lang.label.send_max_amount'))
+                ->minValue(0)
                 ->numeric(),
         ];
         return Fieldset::make(__("asset_lang.label.send_configuration"))
@@ -227,10 +240,10 @@ class AnchorAssetResource extends Resource
         $schema = [];
         $schema[] = Toggle::make("sep31_cfg_quotes_supported")
             ->label(__("asset_lang.label.sep31_configuration.quotes_supported"))
-            ->required();
+            ->live();
         $schema[] = Toggle::make("sep31_cfg_quotes_required")
             ->label(__("asset_lang.label.sep31_configuration.quotes_required"))
-            ->required();
+            ->hidden(fn (Get $get): bool => ! $get("sep31_cfg_quotes_supported"));
 
         $schema[] = Repeater::make('sep31_cfg_sep12_sender_types')
             ->label(__("asset_lang.label.sep31_configuration.sep12_sender_types"))
@@ -284,8 +297,10 @@ class AnchorAssetResource extends Resource
             ->multiple()
             ->createOptionForm([
                 TextInput::make('name')
-                ->label(__("shared_lang.label.name"))
-                ->required()
+                    ->label(__("shared_lang.label.name"))
+                    ->maxLength(2)
+                    ->minLength(2)
+                    ->required()
             ]);
 
         $schema[] = Repeater::make('sep38_cfg_sell_delivery_methods')

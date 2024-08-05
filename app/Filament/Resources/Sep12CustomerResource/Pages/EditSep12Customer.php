@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Sep12CustomerResource\Pages;
 
 use App\Filament\Resources\Sep12CustomerResource;
+use App\Filament\Resources\Sep12CustomerResource\Util\Sep12CustomerResourceHelper;
 use App\Models\Sep12Customer;
 use App\Models\Sep12Field;
 use App\Models\Sep12ProvidedField;
+use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Log;
@@ -19,16 +21,7 @@ class EditSep12Customer extends EditRecord
          * @var Sep12Customer $customerModel
          */
         $customerModel = $this->getRecord();
-        $fields = Sep12Field::all();
-        $fieldIDToBean = $fields->keyBy('id')->all();
-        $prefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
-        $statusSuffix = Sep12CustomerResource::CUSTOM_STATUS_FIELD_SUFFIX;
-        Sep12ProvidedField::where('sep12_customer_id', $customerModel->id)->get()->each(function ($providedField) use (&$data, $fieldIDToBean, $prefix, $statusSuffix) {
-            $field = $fieldIDToBean[$providedField->id];
-            $name = "{$prefix}{$field->id}";
-            $data[$name] = $providedField->string_value;
-            $data["{$name}{$statusSuffix}"] = $providedField->status;
-        });
+        Sep12CustomerResourceHelper::populateCustomerFieldsBeforeFormLoad($data, $customerModel);
         return $data;
     }
 
@@ -59,8 +52,14 @@ class EditSep12Customer extends EditRecord
             if ($providedField) {
                 $providedField->string_value = $value;
                 $providedField->status = $status;
-                $providedField->save();
+            }else {
+                $providedField = new Sep12ProvidedField();
+                $providedField->sep12_customer_id = $customer->id;
+                $providedField->sep12_field_id = $fieldKey;
+                $providedField->string_value = $value;
+                $providedField->status = ProvidedCustomerFieldStatus::PROCESSING;
             }
+            $providedField->save();
         }
 
         Sep12Field::where('type', 'binary')->get()->each(function ($field) use (&$data, $customer, $prefix, $statusSuffix) {

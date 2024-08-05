@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\AnchorAssetResource\Actions;
+namespace App\Filament\Resources\Sep06TransactionResource\Actions;
 
 use App\Filament\Resources\AnchorAssetResource;
 use App\Filament\Resources\AnchorAssetResource\Util\AnchorAssetResourceHelper;
-use App\Stellar\Sep31CrossBorder\Sep31Helper;
-use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
+use App\Filament\Resources\Sep06And24ResourceUtil;
 use Filament\Tables\Actions\ViewAction;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 
-class ViewAnchorAsset extends ViewAction
+class ViewSep06TransactionResource extends ViewAction
 {
     protected static string $resource = AnchorAssetResource::class;
 
@@ -19,8 +17,7 @@ class ViewAnchorAsset extends ViewAction
     {
         parent::setUp();
         $this->mutateRecordDataUsing(function (Model $record, array $data): array {
-            AnchorAssetResourceHelper::populateSep31InfoBeforeFormLoad($data, $record);
-            AnchorAssetResourceHelper::populateSep38InfoBeforeFormLoad($data, $record);
+            Sep06And24ResourceUtil::populateDataBeforeFormLoad($data, $record);
             return $data;
         });
     }

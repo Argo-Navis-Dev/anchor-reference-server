@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\AnchorAsset;
 use ArgoNavis\PhpAnchorSdk\shared\Sep06TransactionStatus;
 use ArgoNavis\PhpAnchorSdk\shared\Sep24TransactionStatus;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -32,8 +34,12 @@ class Sep06And24ResourceUtil
             self::getStatusFormControl($isSep06),
 
             TextInput::make('from_account')
+                ->minLength(56)
+                ->maxLength(69)
                 ->label(__('sep06_lang.label.from_account')),
             TextInput::make('to_account')
+                ->minLength(56)
+                ->maxLength(69)
                 ->label(__('sep06_lang.label.to_account')),
 
             TextInput::make('stellar_transaction_id')
@@ -47,24 +53,28 @@ class Sep06And24ResourceUtil
             self::getKindFormControl(),
 
             TextInput::make('request_asset_code')
+                ->minLength(3)
+                ->maxLength(12)
                 ->label(__('sep06_lang.label.request_asset_code')),
             TextInput::make('request_asset_issuer')
+                ->minLength(56)
+                ->maxLength(69)
                 ->label(__('sep06_lang.label.request_asset_issuer')),
 
-            TextInput::make('type')
-                ->label(__('sep06_lang.label.type'))
-                ->hidden($isSep06 == false)
-                ->required(),
+            self::getTypeFormControl($isSep06),
             TextInput::make('more_info_url')
+                ->url(true)
                 ->label(__('sep06_lang.label.more_info_url')),
 
+            ResourceUtil::getMemoTypeFormControl(),
             TextInput::make('memo')
                 ->label(__('sep06_lang.label.memo')),
-            TextInput::make('memo_type')
-                ->label(__('sep06_lang.label.memo_type')),
+
 
             TextInput::make('withdraw_anchor_account')
-                ->label(__('sep06_lang.label.withdraw_anchor_account')),
+                ->label(__('sep06_lang.label.withdraw_anchor_account'))
+                ->minLength(56)
+                ->maxLength(69),
             TextInput::make('quote_id')
                 ->label(__('sep06_lang.label.quote_id')),
 
@@ -102,6 +112,8 @@ class Sep06And24ResourceUtil
                 ->columns(2)
                 ->schema([
                     TextInput::make('sep10_account')
+                        ->minLength(56)
+                        ->maxLength(69)
                         ->label(__('sep06_lang.label.sep10_account')),
                     TextInput::make('sep10_account_memo')
                         ->label(__('sep06_lang.label.sep10_account_memo')),
@@ -121,22 +133,8 @@ class Sep06And24ResourceUtil
                     Textarea::make('required_customer_info_updates')
                         ->label(__('sep06_lang.label.required_customer_info_updates'))
                 ]),
-
-            Section::make(__('sep06_lang.label.fee_details'))
-                ->hidden($isSep06 == false)
-                ->schema([
-                    Textarea::make('fee_details')
-                        ->hiddenLabel(true)
-                        ->columnSpanFull(),
-                ]),
-            Section::make(__('sep06_lang.label.instructions'))
-                ->description(__('sep06_lang.label.instructions.description'))
-                ->hidden($isSep06 == false)
-                ->schema([
-                    Textarea::make('instructions')
-                        ->hiddenLabel(true)
-                        ->columnSpanFull(),
-                ]),
+            ResourceUtil::getFeeDetailsFormControl(),
+            self::getInstructionsFormControl($isSep06),
             Textarea::make('message')
                 ->hidden($isSep06 == false)
                 ->label(__('sep06_lang.label.message'))
@@ -148,10 +146,54 @@ class Sep06And24ResourceUtil
         ];
     }
 
+    private static function getInstructionsFormControl(bool $isSep06): Section {
+        $schema = [];
+        $schema[] = Repeater::make('instructions')
+            ->schema([
+                TextInput::make('name')
+                    ->label(__("shared_lang.label.name"))
+                    ->required(),
+                TextInput::make('value')
+                    ->label(__("shared_lang.label.value"))
+                    ->required(),
+                Textarea::make('description')
+                    ->label(__("shared_lang.label.description"))
+                    ->rows(3)
+            ])
+            ->columns(3);
+
+        return Section::make(__('sep06_lang.label.instructions'))
+            ->description(__('sep06_lang.label.instructions.description'))
+            ->hidden($isSep06 == false)
+            ->schema($schema);
+    }
+
     private static function getStatusFormControl(bool $isSep06): Select {
         return Select::make('status')
             ->label(__('shared_lang.label.status'))
             ->options($isSep06 ? self::getSep06StatusOptions() : self::getSep24StatusOptions());
+    }
+
+    private static function getTypeFormControl(bool $isSep06): Select {
+        $options = [
+            'crypto' => __('sep06_lang.label.type.crypto'),
+            'bank_account' => __('sep06_lang.label.type.bank_account'),
+            'cash' => __('sep06_lang.label.type.cash'),
+            'mobile' => __('sep06_lang.label.type.mobile'),
+            'payment' => __('sep06_lang.label.type.bill_payment'),
+        ];
+        return Select::make('type')
+            ->label(__('sep06_lang.label.type'))
+            ->hidden($isSep06 == false)
+            ->options($options)
+            ->createOptionUsing(function (array $data) {
+                return $data['type'];
+            })
+            ->createOptionForm([
+                TextInput::make('type')
+                    ->label(__('sep06_lang.label.type'))
+                    ->required()
+            ]);
     }
 
     private static function getSep06StatusOptions(): array {
@@ -212,13 +254,16 @@ class Sep06And24ResourceUtil
                 TextColumn::make('from_account')
                     ->description(__('sep06_lang.label.from_account'))
                     ->default('-')
+                    ->limit(20)
                     ->searchable(),
                 TextColumn::make('to_account')
                     ->description(__('sep06_lang.label.to_account'))
+                    ->default('-')
+                    ->limit(20)
                     ->searchable(),
                 TextColumn::make('status')
                     ->badge()
-                    ->description(__('sep12_lang.kyc.status'))
+                    ->description(__('shared_lang.label.status'))
                     ->searchable(),
                 TextColumn::make('request_asset_code')
                     ->description(__('sep06_lang.label.request_asset_code'))
@@ -250,6 +295,20 @@ class Sep06And24ResourceUtil
         ])->collapsible();
         return $columns;
     }
+
+    public static function populateDataBeforeFormLoad(array &$data, Model $model): void {
+        $instructions = $data['instructions'];
+        if($instructions != null) {
+            $data['instructions'] = json_decode($instructions, true);
+        }
+
+        $feeDetails = $data['fee_details'];
+        if($feeDetails != null) {
+            $data['fee_details'] = json_decode($feeDetails, true);
+        }
+    }
+
+
 
 
 }
