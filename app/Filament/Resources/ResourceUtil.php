@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Get;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 
@@ -95,16 +96,47 @@ class ResourceUtil
         return Fieldset::make(__("shared_lang.label.refund_info"))
             ->columns($columns)
             ->schema([
-                TextInput::make('refund_memo')
-                    ->label(__('shared_lang.label.refund_memo')),
-                TextInput::make('refund_memo_type')
-                    ->label(__('shared_lang.label.refund_memo_type')),
                 Toggle::make('refunded')
                     ->label(__('shared_lang.label.refunded'))
+                    ->columnSpanFull()
                     ->required(),
-                Textarea::make('refunds')
-                    ->label(__('shared_lang.label.refunds'))
-                    ->columnSpanFull(),
+                self::getMemoTypeFormControl(true),
+                TextInput::make('refund_memo')
+                    ->required(fn (Get $get): bool => $get("refund_memo_type") != null)
+                    ->label(__('shared_lang.label.refund_memo')),
+                self::getRefundsFormControl(),
+            ]);
+    }
+
+    private static function getRefundsFormControl(): Section {
+        return Section::make()
+            ->schema([
+                TextInput::make('refunds.amount_refunded')
+                    ->label(__('shared_lang.label.refunds.amount_refunded'))
+                    ->numeric(),
+                TextInput::make('refunds.amount_fee')
+                    ->label(__('shared_lang.label.refunds.amount_fee'))
+                    ->numeric(),
+                Repeater::make('refunds.payments')
+                    ->schema([
+                        TextInput::make('id')
+                            ->label(__('shared_lang.label.id')),
+                        Select::make("id_type")
+                            ->label(__('shared_lang.label.id_type'))
+                            ->options([
+                                'stellar' => 'stellar',
+                                'external' => 'external'
+                            ]),
+                        TextInput::make('amount')
+                            ->numeric()
+                            ->minValue(0)
+                            ->label(__('shared_lang.label.amount')),
+                        TextInput::make('fee')
+                            ->numeric()
+                            ->minValue(0)
+                            ->label(__('shared_lang.label.fee'))
+                    ])
+                ->columns(4)
             ]);
     }
 
@@ -158,18 +190,20 @@ class ResourceUtil
         ];
     }
 
-    public static function getMemoTypeFormControl(): Select {
+    public static function getMemoTypeFormControl(bool $isRefund): Select {
         $options = [
             'text' => __('shared_lang.label.memo_type.text'),
             'id' => __('shared_lang.label.memo_type.id'),
             'hash' => __('shared_lang.label.memo_type.hash'),
         ];
-        return Select::make('memo_type')
-            ->label(__('shared_lang.label.memo_type'))
+        $name = $isRefund ? 'refund_memo_type' : 'memo_type';
+        return Select::make($name)
+            ->live()
+            ->label($isRefund ? __('shared_lang.label.refund_memo_type') :__('shared_lang.label.memo_type'))
             ->options($options);
     }
 
-    public static function getFeeDetailsFormControl(): Section {
+    public static function getFeeDetailsFormControl(bool $isSep06): Section {
         $schema = [
             TextInput::make('fee_details.total')
                 ->label(__("shared_lang.label.total"))
@@ -199,7 +233,21 @@ class ResourceUtil
         ];
         return Section::make(__('shared_lang.label.fee_details'))
             ->description(__('shared_lang.label.fee_details.description'))
+            ->hidden(!$isSep06)
             ->columns(2)
             ->schema($schema);
+    }
+
+    public static function elideTableColumnTextInMiddle(
+        string $cellValue,
+        ?int $maxLength = null): string {
+        if($maxLength == null) {
+            $maxLength = 20;
+        }
+        $halfLength = intdiv($maxLength, 2);
+        if (strlen($cellValue) > $maxLength) {
+            return substr($cellValue, 0, $halfLength) . '...' . substr($cellValue, -$halfLength);
+        }
+        return $cellValue;
     }
 }

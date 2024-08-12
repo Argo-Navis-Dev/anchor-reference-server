@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AnchorAssetResource\Actions\ViewAnchorAsset;
 use App\Filament\Resources\Sep12CustomerResource\Actions\ViewSep12Customer;
 use App\Filament\Resources\Sep12CustomerResource\Pages;
+use App\Filament\Resources\Sep12CustomerResource\Util\Sep12CustomerResourceHelper;
 use App\Models\Sep12Customer;
 use App\Models\Sep12Field;
 use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
@@ -16,20 +17,24 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
 use Filament\Tables\Columns\Layout\Panel;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 
 class Sep12CustomerResource extends Resource
 {
     public const CUSTOM_FIELD_PREFIX = 'custom_';
     public const CUSTOM_STATUS_FIELD_SUFFIX = '_status';
-    private const KYC_FIELD_WITHOUT_STATUS = ['id_type' => true];
+    public const KYC_FIELD_WITHOUT_STATUS = ['id_type' => true];
 
     protected static ?string $model = Sep12Customer::class;
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
@@ -81,6 +86,7 @@ class Sep12CustomerResource extends Resource
                 $providedFields[] = self::getBinaryFieldComponent($field->id, $label);
             }
             $statusFieldName = "{$customFieldPrefix}{$field->id}{$statusSuffix}";
+            LOG::debug('$statusFieldName: ' . $statusFieldName);
             if ($hasStatus) {
                 $requiresVerification = $field->requires_verification;
                 $statusField = self::createProvidedFieldStatusComp($statusFieldName, $requiresVerification);
@@ -96,6 +102,10 @@ class Sep12CustomerResource extends Resource
     private static function createCustomerStatusField(string $name): Field {
         return Select::make($name)
             ->label(__('shared_lang.label.status'))
+            ->live()
+            ->afterStateUpdated(function (Set $set, $state, Sep12Customer $customer) {
+                Sep12CustomerResourceHelper::onCustomerStatusChanged($state, $set, $customer);
+            })
             ->required()
             ->default(CustomerStatus::PROCESSING)
             ->options([
@@ -117,6 +127,10 @@ class Sep12CustomerResource extends Resource
         }
         return Select::make($name)
             ->label(__('shared_lang.label.status'))
+            ->afterStateUpdated(function (Set $set, Get $get, $state, Sep12Customer $customer) {
+                Sep12CustomerResourceHelper::onCustomerFieldStatusChanged($state, $set, $get, $customer);
+            })
+            ->live()
             ->default(CustomerStatus::PROCESSING)
             ->options($option);
     }
@@ -161,25 +175,30 @@ class Sep12CustomerResource extends Resource
                 TextColumn::make('name')
                     ->description(__('shared_lang.label.name')),
                 TextColumn::make('account_id')
-                    ->limit(20)
+                    ->copyable()
+                    ->icon('phosphor-copy')
+                    ->iconPosition(IconPosition::After)
+                    ->formatStateUsing(function ($state) {
+                        return ResourceUtil::elideTableColumnTextInMiddle($state);
+                    })
+                    ->searchable()
                     ->description(__('shared_lang.label.account_id')),
                 TextColumn::make('memo')
                     ->description(__('shared_lang.label.memo'))
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge()
+                    ->searchable()
                     ->description(__('shared_lang.label.status'))
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->description(__('shared_lang.label.created_at'))
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
                 TextColumn::make('updated_at')
                     ->description(__('shared_lang.label.updated_at'))
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
         ];
         $columns[] = Panel::make([
@@ -193,6 +212,8 @@ class Sep12CustomerResource extends Resource
 
         return $table
             ->columns($columns)
+            ->recordUrl(null)
+            ->recordAction(null)
             ->filters([
                 //
             ])

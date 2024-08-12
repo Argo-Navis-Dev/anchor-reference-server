@@ -81,9 +81,7 @@ class Sep31TransactionResource extends Resource
                 Textarea::make('stellar_transactions')
                     ->label(__('sep31_lang.label.stellar_transactions'))
                     ->columnSpanFull(),
-                Textarea::make('fee_details')
-                    ->label(__('sep31_lang.label.fee_details'))
-                    ->columnSpanFull(),
+                ResourceUtil::getFeeDetailsFormControl(true),
                 TextInput::make('required_info_message')
                     ->columnSpan(2)
                     ->label(__('sep31_lang.label.required_info_message')),

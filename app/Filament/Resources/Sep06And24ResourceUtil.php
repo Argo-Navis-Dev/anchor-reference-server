@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\AnchorAsset;
+use App\Stellar\Sep06Transfer\Sep06Helper;
 use ArgoNavis\PhpAnchorSdk\shared\Sep06TransactionStatus;
 use ArgoNavis\PhpAnchorSdk\shared\Sep24TransactionStatus;
 use Filament\Forms\Components\DateTimePicker;
@@ -21,6 +22,7 @@ use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Sep06And24ResourceUtil
 {
@@ -66,7 +68,7 @@ class Sep06And24ResourceUtil
                 ->url(true)
                 ->label(__('sep06_lang.label.more_info_url')),
 
-            ResourceUtil::getMemoTypeFormControl(),
+            ResourceUtil::getMemoTypeFormControl(false),
             TextInput::make('memo')
                 ->label(__('sep06_lang.label.memo')),
 
@@ -121,19 +123,18 @@ class Sep06And24ResourceUtil
 
             ResourceUtil::getRefundsInfoFormControls(!$isSep06),
             Fieldset::make(__("sep06_lang.label.missing_info_errors"))
-                ->columns(2)
+                ->columns(1)
                 ->hidden($isSep06 == false)
                 ->schema([
                     Textarea::make('required_info_message')
                         ->label(__('sep06_lang.label.required_info_message')),
-                    Textarea::make('required_info_updates')
-                        ->label(__('sep06_lang.label.required_info_updates')),
+                    self::getRequiredInfoUpdatesFormControl(),
                     Textarea::make('required_customer_info_message')
                         ->label(__('sep06_lang.label.required_customer_info_message')),
                     Textarea::make('required_customer_info_updates')
                         ->label(__('sep06_lang.label.required_customer_info_updates'))
                 ]),
-            ResourceUtil::getFeeDetailsFormControl(),
+            ResourceUtil::getFeeDetailsFormControl($isSep06),
             self::getInstructionsFormControl($isSep06),
             Textarea::make('message')
                 ->hidden($isSep06 == false)
@@ -306,8 +307,46 @@ class Sep06And24ResourceUtil
         if($feeDetails != null) {
             $data['fee_details'] = json_decode($feeDetails, true);
         }
+        $refunds = $data['refunds'];
+        if($refunds != null) {
+            $data['refunds'] = json_decode($refunds, true);
+        }
+
+        $requiredInfoUpdatesStr = $data['required_info_updates'];
+        if($requiredInfoUpdatesStr != null) {
+            $requiredInfoUpdates = Sep06Helper::parseRequiredInfoUpdates($requiredInfoUpdatesStr);
+            $requiredInfoUpdatesJson = [];
+            foreach ($requiredInfoUpdates as $info) {
+                $reqData = [];
+                $reqData['fieldName'] = $info->fieldName;
+                $reqData['description'] = $info->description;
+                $reqData['choices'] = $info->choices;
+                $reqData['optional'] = $info->optional;
+                $requiredInfoUpdatesJson[] = $reqData;
+            }
+            $data['required_info_updates'] = $requiredInfoUpdatesJson;
+        }
     }
 
+    private static function getRequiredInfoUpdatesFormControl(): Repeater {
+        return Repeater::make('required_info_updates')
+            ->schema([
+                TextInput::make('fieldName')
+                    ->label(__("sep06_lang.label.required_info_updates.name"))
+                    ->required(),
+                TextArea::make('description')
+                    ->label(__("sep06_lang.label.required_info_updates.description"))
+                    ->required(),
+                Toggle::make('optional')
+                    ->label(__("sep06_lang.label.required_info_updates.optional"))
+                    ->required(),
+                Select::make('choices')
+                    ->label(__('sep06_lang.label.required_info_updates.choices'))
+                    ->hidden(fn(Get $get): bool => $get("choices") == null)
+                    ->options(fn(Get $get): array => $get("choices") ? $get("choices") : [])
+            ])
+            ->columns(2);
+    }
 
 
 

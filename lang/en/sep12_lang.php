@@ -33,4 +33,5 @@ return [
     'label.photo_id_front' => 'Photo ID front',
     'label.callback_url' => 'Callback URL',
     'label.provided_fields' => 'Provided fields',
+
 ];

@@ -17,6 +17,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
@@ -174,7 +175,12 @@ class AnchorAssetResource extends Resource
                 ->searchable(),
             TextColumn::make('issuer')
                 ->description(__('asset_lang.label.issuer'))
-                ->limit(20)
+                ->copyable()
+                ->icon('phosphor-copy')
+                ->iconPosition(IconPosition::After)
+                ->formatStateUsing(function ($state) {
+                    return ResourceUtil::elideTableColumnTextInMiddle($state);
+                })
                 ->searchable(),
             Stack::make([
                 TextColumn::make('deposit_enabled')
@@ -216,6 +222,8 @@ class AnchorAssetResource extends Resource
             ->filters([
                 //
             ])
+            ->recordUrl(null)
+            ->recordAction(null)
             ->actions([
                 Tables\Actions\EditAction::make(),
                 ViewAnchorAsset::make(),

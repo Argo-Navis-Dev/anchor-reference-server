@@ -64,6 +64,11 @@ return [
 
     'label.required_info_message' => 'Required info message',
     'label.required_info_updates' => 'Required info updates',
+    'label.required_info_updates.optional' => 'Optional',
+    'label.required_info_updates.description' => 'Description',
+    'label.required_info_updates.name' => 'Field name',
+    'label.required_info_updates.choices' => 'Choices',
+
     'label.required_customer_info_message' => 'Required customer info message',
     'label.required_customer_info_updates' => 'Required customer info updates',
     'label.client_domain' => 'Client domain',
@@ -74,6 +79,8 @@ return [
     'label.claimable_balance_supported' => 'Claimable balance supported',
     'label.stellar_transactions' => 'Stellar transactions',
     'label.missing_info_errors' => 'Missing information errors',
+
+
 
 
 ];

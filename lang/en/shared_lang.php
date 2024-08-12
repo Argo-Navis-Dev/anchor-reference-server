@@ -19,6 +19,7 @@ return [
     'label.description' => 'Description',
     'label.decimals' => 'Decimals',
     'label.id' => 'ID',
+    'label.id_type' => 'ID type',
     'label.status' => 'Status',
     'label.errors' => 'Errors',
     'label.tx_started_at' => 'Transaction started at',
@@ -50,4 +51,7 @@ return [
     'label.amount' => 'Amount',
     'label.fee_details' => 'Fee details',
     'label.fee_details.description' => 'Description of fee charged',
+    'label.refunds.amount_refunded' => 'Amount refunded',
+    'label.refunds.amount_fee' => 'Amount fee',
+    'label.fee' => 'Fee',
 ];

@@ -18,6 +18,7 @@ class EditSep06Transaction extends EditRecord
     {
         $model = $this->getRecord();
         Sep06And24ResourceUtil::populateDataBeforeFormLoad($data, $model);
+        //LOG::debug("data " . json_encode($data));
         return $data;
     }
 

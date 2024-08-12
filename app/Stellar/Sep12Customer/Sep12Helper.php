@@ -460,7 +460,7 @@ class Sep12Helper
      * @return ?array<string, array<Sep12Field> containing the found Sep12Fields.
      * keys: 'required', 'optional' and 'requires_verification'. null if nothing found.
      */
-    private static function getSep12FieldsForCustomerType(string $type, ?Collection $allSep12Fields = null) : ?array {
+    public static function getSep12FieldsForCustomerType(string $type, ?Collection $allSep12Fields = null) : ?array {
 
         $typeFields = Sep12TypeToFields::where('type', $type)->first();
 
