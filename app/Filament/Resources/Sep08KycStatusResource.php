@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\Sep06TransactionResource\Actions\EditSep08KycStatusResource;
 use App\Filament\Resources\Sep08KycStatusResource\Pages;
+use App\Filament\Resources\Sep08KycStatusResource\Pages\EditSep08KycStatus;
 use App\Filament\Resources\Sep08KycStatusResource\RelationManagers;
 use App\Models\Sep08KycStatus;
 use Filament\Forms;
@@ -10,11 +12,13 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class Sep08KycStatusResource extends Resource
@@ -31,15 +35,19 @@ class Sep08KycStatusResource extends Resource
             ->schema([
                 TextInput::make('stellar_address')
                     ->columnSpan(3)
+                    ->disabled()
                     ->label(__('sep08_lang.label.stellar_address'))
                     ->required(),
                 Toggle::make('approved')
+                    ->disabled()
                     ->label(__('sep08_lang.label.approved'))
                     ->required(),
                 Toggle::make('rejected')
+                    ->disabled()
                     ->label(__('sep08_lang.label.rejected'))
                     ->required(),
                 Toggle::make('pending')
+                    ->disabled()
                     ->label(__('sep08_lang.label.pending'))
                     ->required(),
                 ResourceUtil::getModelTimestampFormControls(1)
@@ -53,6 +61,13 @@ class Sep08KycStatusResource extends Resource
             ->columns([
                 TextColumn::make('stellar_address')
                     ->label(__('sep08_lang.label.stellar_address'))
+                    ->copyable()
+                    ->icon('phosphor-copy')
+                    ->iconPosition(IconPosition::After)
+                    ->searchable()
+                    ->formatStateUsing(function ($state) {
+                        return ResourceUtil::elideTableColumnTextInMiddle($state);
+                    })
                     ->searchable(),
                 IconColumn::make('approved')
                     ->label(__('sep08_lang.label.approved'))
@@ -74,11 +89,13 @@ class Sep08KycStatusResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->recordAction(null)
+            ->recordUrl(null)
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditSep08KycStatusResource::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -111,5 +128,15 @@ class Sep08KycStatusResource extends Resource
     public static function getPluralLabel(): string
     {
         return __('sep08_lang.entity.names');
+    }
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return false;
     }
 }

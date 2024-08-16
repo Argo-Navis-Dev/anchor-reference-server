@@ -10,6 +10,7 @@ use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Section as FormSection;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -23,10 +24,6 @@ use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Forms\Components\Section as FormSection;
-
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 
 class AnchorAssetResource extends Resource
 {
@@ -107,12 +104,10 @@ class AnchorAssetResource extends Resource
         ];
         return Section::make([
             Section::make([Toggle::make("{$replacement}_enabled")
-                ->live()
                 ->label(__("asset_lang.label.{$replacement}_enabled"))]),
             Fieldset::make(__("asset_lang.label.{$replacement}_settings"))
                 ->columns(1)
                 ->columnSpan(1)
-                ->hidden(fn (Get $get): bool => ! $get("{$replacement}_enabled"))
                 ->schema($schema)
         ])->columnSpan(1)
             ->extraAttributes(['style' => 'background-color: transparent; box-shadow: none !important']);
@@ -141,6 +136,7 @@ class AnchorAssetResource extends Resource
         ];
         return Fieldset::make(__("asset_lang.label.send_configuration"))
             ->columns(1)
+            ->extraAttributes(['style' => 'margin-top: 120px;'])
             ->columnSpan(1)
             ->schema($schema);
     }
@@ -153,17 +149,14 @@ class AnchorAssetResource extends Resource
             Toggle::make("sep24_enabled")
                 ->label(__("asset_lang.label.sep24_enabled")),
             Toggle::make("sep31_enabled")
-                ->live()
                 ->label(__("asset_lang.label.sep31_enabled")),
             self::getSep31ConfigControls(),
             Toggle::make("sep38_enabled")
-                ->live()
                 ->label(__("asset_lang.label.sep38_enabled")),
             self::getSep38ConfigControls()
         ];
         return Fieldset::make(__("asset_lang.label.sep_configuration"))
             ->columns(1)
-            //->columnSpan(3)
             ->schema($schema);
     }
 
@@ -184,34 +177,34 @@ class AnchorAssetResource extends Resource
                 ->searchable(),
             Stack::make([
                 TextColumn::make('deposit_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->deposit_enabled ? 'heroicon-m-check-circle' : 'heroicon-s-x-circle')
+                    ->icon(fn(AnchorAsset $record): ?string => $record->deposit_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
                     ->getStateUsing(function (){
                         return __('asset_lang.label.deposit_enabled');
                     }),
                 TextColumn::make('withdrawal_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-m-check-circle' : 'heroicon-s-x-circle')
+                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
                     ->getStateUsing(function (){
                         return __('asset_lang.label.withdrawal_enabled');
                     })
             ]),
             Stack::make([
                 TextColumn::make('sep06_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->sep06_enabled ? 'heroicon-m-check-circle' : 'heroicon-s-x-circle')
+                    ->icon(fn(AnchorAsset $record): ?string => $record->sep06_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
                     ->getStateUsing(function (){
                         return __('asset_lang.label.sep06_enabled');
                     }),
                 TextColumn::make('sep24_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-m-check-circle' : 'heroicon-s-x-circle')
+                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
                     ->getStateUsing(function (){
                         return __('asset_lang.label.sep24_enabled');
                     }),
                 TextColumn::make('sep31_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-m-check-circle' : 'heroicon-s-x-circle')
+                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
                     ->getStateUsing(function (){
                         return __('asset_lang.label.sep31_enabled');
                     }),
                 TextColumn::make('sep38_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-m-check-circle' : 'heroicon-s-x-circle')
+                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
                     ->getStateUsing(function (){
                         return __('asset_lang.label.sep38_enabled');
                     })
@@ -247,8 +240,7 @@ class AnchorAssetResource extends Resource
     {
         $schema = [];
         $schema[] = Toggle::make("sep31_cfg_quotes_supported")
-            ->label(__("asset_lang.label.sep31_configuration.quotes_supported"))
-            ->live();
+            ->label(__("asset_lang.label.sep31_configuration.quotes_supported"));
         $schema[] = Toggle::make("sep31_cfg_quotes_required")
             ->label(__("asset_lang.label.sep31_configuration.quotes_required"))
             ->hidden(fn (Get $get): bool => ! $get("sep31_cfg_quotes_supported"));
@@ -282,7 +274,7 @@ class AnchorAssetResource extends Resource
         return Fieldset::make(__("asset_lang.label.sep31_configuration"))
             ->columns(1)
             ->columnSpan(1)
-            ->hidden(fn (Get $get): bool => ! $get("sep31_enabled"))
+            //->hidden(fn (Get $get): bool => ! $get("sep31_enabled"))
             ->schema($schema);
     }
 

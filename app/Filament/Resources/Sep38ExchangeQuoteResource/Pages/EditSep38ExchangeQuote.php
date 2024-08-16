@@ -12,10 +12,10 @@ class EditSep38ExchangeQuote extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        /*$feeDetails = $data['fee_details'] _ ??;
+        $feeDetails = $data['fee'] ?? null;
         if($feeDetails != null) {
             $data['fee_details'] = json_decode($feeDetails, true);
-        }*/
+        }
         return $data;
     }
 
@@ -23,6 +23,13 @@ class EditSep38ExchangeQuote extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
+        ];
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCancelFormAction(),
         ];
     }
 }

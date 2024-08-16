@@ -2,37 +2,15 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\Sep06TransactionResource\Actions\ViewSep06TransactionResource;
+use App\Filament\Resources\Sep06TransactionResource\Actions\EditSep06TransactionResource;
 use App\Filament\Resources\Sep06TransactionResource\Pages;
 use App\Filament\Resources\Sep06TransactionResource\RelationManagers;
-use App\Models\AnchorAsset;
 use App\Models\Sep06Transaction;
-use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
-use ArgoNavis\PhpAnchorSdk\shared\Sep06TransactionStatus;
-use Filament\Forms;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Field;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
-use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\Layout\Panel;
-use Filament\Tables\Columns\Layout\Split;
-use Filament\Tables\Columns\Layout\Stack;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-
-use function Filament\Support\get_model_label;
 
 class Sep06TransactionResource extends Resource
 {
@@ -51,17 +29,17 @@ class Sep06TransactionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns(Sep06And24ResourceUtil::getTableColumns(true))
+            ->columns(Sep06And24ResourceUtil::getTableColumns($table, true))
             ->filters([
                 //
             ])
+            ->recordUrl(null)
+            ->recordAction(null)
             ->actions([
-                Tables\Actions\EditAction::make(),
-                ViewSep06TransactionResource::make()
+                EditSep06TransactionResource::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -93,6 +71,11 @@ class Sep06TransactionResource extends Resource
     }
 
     public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canDelete(Model $record): bool
     {
         return false;
     }

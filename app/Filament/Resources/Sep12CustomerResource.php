@@ -69,21 +69,28 @@ class Sep12CustomerResource extends Resource
 
         $providedFields = [];
         foreach ($fields as $field) {
+            $fieldDescription = $field->desc;
+            $label = __("sep12_lang.label.{$field->key}");
+            $descriptionKey = "sep12_lang.label.{$field->key}.description";
+            $description =  __($descriptionKey);
+            if($description == $descriptionKey) {
+                $description = $field->desc;
+            }
             $fieldType = $field->type;
             $name = "{$customFieldPrefix}{$field->id}";
-            //TODO Avoid hard coding different field types
-            $label = __("sep12_lang.label.{$field->key}");
+
             $hasStatus = !isset(self::KYC_FIELD_WITHOUT_STATUS[$field->key]);
             if ($fieldType == 'string') {
                 if ($field->choices != null) {
-                    $providedFields[] = self::createDynamicSelectField($field, $hasStatus);
+                    $providedFields[] = self::createDynamicSelectField($field, $hasStatus, $description);
                 } else {
                     $providedFields[] = TextInput::make(name: $name)
+                        ->helperText($description)
                         ->label($label);
                 }
             }
             if ($fieldType == 'binary') {
-                $providedFields[] = self::getBinaryFieldComponent($field->id, $label);
+                $providedFields[] = self::getBinaryFieldComponent($field->id, $label, $description);
             }
             $statusFieldName = "{$customFieldPrefix}{$field->id}{$statusSuffix}";
             LOG::debug('$statusFieldName: ' . $statusFieldName);
@@ -135,7 +142,7 @@ class Sep12CustomerResource extends Resource
             ->options($option);
     }
 
-    private static function createDynamicSelectField(Sep12Field $field, bool $hasStatusField): Select
+    private static function createDynamicSelectField(Sep12Field $field, bool $hasStatusField, string $description): Select
     {
         $customFieldPrefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
         $name = "{$customFieldPrefix}{$field->id}";
@@ -146,6 +153,7 @@ class Sep12CustomerResource extends Resource
         }
         $component = Select::make($name)
             ->label(__("sep12_lang.label.{$field->key}"))
+            ->helperText($description)
             ->columnSpan(1)
             ->options($options);
         if (!$hasStatusField) {
@@ -157,10 +165,12 @@ class Sep12CustomerResource extends Resource
     private static function getBinaryFieldComponent(
         string $fieldID,
         string $label,
+        string $description
     ): Placeholder {
         return Placeholder::make('Image')
             ->hidden(fn($record) => $record == null)
             ->label($label)
+            ->helperText($description)
             ->content(function ($record) use ($fieldID): HtmlString {
                 $id = $record != null ? $record->id : null;
                 $src = '/customer/' . $id . '/binary-field/' . $fieldID;

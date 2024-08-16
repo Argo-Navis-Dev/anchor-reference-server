@@ -54,4 +54,5 @@ return [
     'label.refunds.amount_refunded' => 'Amount refunded',
     'label.refunds.amount_fee' => 'Amount fee',
     'label.fee' => 'Fee',
+    'label.view' => 'View',
 ];

@@ -2,13 +2,20 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\Sep12CustomerResource\Util\Sep12CustomerResourceHelper;
 use App\Filament\Resources\Sep38RateResource\Pages;
 use App\Filament\Resources\Sep38RateResource\RelationManagers;
+use App\Models\Sep12Customer;
 use App\Models\Sep38Rate;
+use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -25,12 +32,14 @@ class Sep38RateResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('sell_asset')
+                Select::make('sell_asset')
+                    ->required()
                     ->label(__('sep38_lang.label.sell_asset'))
-                    ->required(),
-                TextInput::make('buy_asset')
+                    ->options(ResourceUtil::getAnchorAssetsDataSourceForSelect()),
+                Select::make('buy_asset')
+                    ->required()
                     ->label(__('sep38_lang.label.buy_asset'))
-                    ->required(),
+                    ->options(ResourceUtil::getAnchorAssetsDataSourceForSelect()),
                 TextInput::make('rate')
                     ->label(__('sep38_lang.label.rate'))
                     ->required()
@@ -49,10 +58,22 @@ class Sep38RateResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('sell_asset')
+                    ->copyable()
+                    ->icon('phosphor-copy')
+                    ->iconPosition(IconPosition::After)
+                    ->formatStateUsing(function ($state) {
+                        return ResourceUtil::elideTableColumnTextInMiddle($state);
+                    })
                     ->label(__('sep38_lang.label.sell_asset'))
                     ->limit(20)
                     ->searchable(),
                 TextColumn::make('buy_asset')
+                    ->copyable()
+                    ->icon('phosphor-copy')
+                    ->iconPosition(IconPosition::After)
+                    ->formatStateUsing(function ($state) {
+                        return ResourceUtil::elideTableColumnTextInMiddle($state);
+                    })
                     ->label(__('sep38_lang.label.buy_asset'))
                     ->limit(20)
                     ->searchable(),
@@ -65,12 +86,12 @@ class Sep38RateResource extends Resource
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('created_at')
-                    ->label(__('sep38_lang.label.created_at'))
+                    ->label(__('shared_lang.label.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
-                    ->label(__('sep38_lang.label.updated_at'))
+                    ->label(__('shared_lang.label.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -78,6 +99,8 @@ class Sep38RateResource extends Resource
             ->filters([
                 //
             ])
+            ->recordUrl(null)
+            ->recordAction(null)
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\ViewAction::make(),
@@ -124,5 +147,4 @@ class Sep38RateResource extends Resource
     {
         return __('sep38_lang.navigation.group');
     }
-
 }

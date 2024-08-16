@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\Sep38ExchangeQuoteResource\Actions\EditSep38EExchangeQuoteResource;
 use App\Filament\Resources\Sep38ExchangeQuoteResource\Pages;
 use App\Filament\Resources\Sep38ExchangeQuoteResource\RelationManagers;
 use App\Models\Sep38ExchangeQuote;
@@ -13,13 +14,14 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
-use Filament\Tables\Columns\Layout\Panel;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class Sep38ExchangeQuoteResource extends Resource
@@ -36,20 +38,20 @@ class Sep38ExchangeQuoteResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('id')
-                    ->label(__('shared_lang.label.id'))
-                    ->readOnly()
-                    ->required(),
                 TextInput::make('transaction_id')
+                    ->disabled()
                     ->label(__('sep38_lang.label.transaction_id')),
                 TextInput::make('context')
+                    ->disabled()
                     ->label(__('sep38_lang.label.context'))
                     ->required(),
                 DateTimePicker::make('expires_at')
+                    ->disabled()
                     ->label(__('sep38_lang.label.expires_at'))
                     ->required(),
 
                 Section::make(__('sep38_lang.label.price_info'))
+                    ->disabled()
                     ->schema([
                         TextInput::make('price')
                             ->label(__('sep38_lang.label.price'))
@@ -60,6 +62,7 @@ class Sep38ExchangeQuoteResource extends Resource
                     ])
                     ->columnSpan(1),
                 Fieldset::make(__('sep38_lang.label.account_info'))
+                    ->disabled()
                     ->schema([
                         TextInput::make('account_id')
                         ->label(__('sep38_lang.label.account_id'))
@@ -67,10 +70,11 @@ class Sep38ExchangeQuoteResource extends Resource
                         ->columnSpan(2),
                         TextInput::make('account_memo')
                             ->label(__('sep38_lang.label.account_memo'))])
-                    ->columnSpan(3)
+                    ->columnSpan(2)
                     ->columns(3),
 
                 Section::make(__('sep38_lang.label.sell'))
+                    ->disabled()
                     ->columns(3)
                     ->schema([
                         TextInput::make('sell_asset')
@@ -84,6 +88,7 @@ class Sep38ExchangeQuoteResource extends Resource
                     ]),
 
                 Section::make(__('sep38_lang.label.buy'))
+                    ->disabled()
                     ->columns(3)
                     ->schema([
                         TextInput::make('buy_asset')
@@ -95,29 +100,36 @@ class Sep38ExchangeQuoteResource extends Resource
                         TextInput::make('buy_delivery_method')
                             ->label(__('sep38_lang.label.buy_delivery_method')),
                     ]),
-
-                Textarea::make('fee')
-                    ->label(__('sep38_lang.label.fee'))
-                    ->required()
-                    ->columnSpanFull(),
+                ResourceUtil::getFeeDetailsFormControl(true),
                 ResourceUtil::getModelTimestampFormControls(1)
             ])
-            ->columns(4);
+            ->columns(3);
     }
 
     public static function table(Table $table): Table
     {
+        $tmp = [];
         $columns = [
             Split::make([
                 TextColumn::make('sell_asset')
-                    ->limit(20)
                     ->description(__('sep38_lang.label.sell_asset'))
+                    ->copyable()
+                    ->icon('phosphor-copy')
+                    ->iconPosition(IconPosition::After)
+                    ->formatStateUsing(function ($state) {
+                        return ResourceUtil::elideTableColumnTextInMiddle($state);
+                    })
                     ->searchable(),
                 TextColumn::make('sell_amount')
                     ->description(__('sep38_lang.label.sell_amount'))
                     ->searchable(),
                 TextColumn::make('buy_asset')
-                    ->limit(20)
+                    ->copyable()
+                    ->icon('phosphor-copy')
+                    ->iconPosition(IconPosition::After)
+                    ->formatStateUsing(function ($state) {
+                        return ResourceUtil::elideTableColumnTextInMiddle($state);
+                    })
                     ->description(__('sep38_lang.label.buy_asset'))
                     ->searchable(),
                 TextColumn::make('buy_amount')
@@ -126,16 +138,35 @@ class Sep38ExchangeQuoteResource extends Resource
                 TextColumn::make('context')
                     ->description(__('sep38_lang.label.context'))
                     ->searchable(),
+                TextColumn::make('created_at')
+                    ->description(__('shared_lang.label.created_at'))
+                    ->dateTime()
+                    ->sortable()
+                    ->hidden(function()  use ($table) {
+                        $createdAt = $table->getColumn('created_at');
+                        return $createdAt->isToggledHidden();
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('updated_at')
+                    ->description(__('shared_lang.label.updated_at'))
+                    ->dateTime()
+                    ->sortable()
+                    ->hidden(function()  use ($table) {
+                        $updatedAt = $table->getColumn('updated_at');
+                        return $updatedAt->isToggledHidden();
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
         ];
         return $table
             ->columns($columns)
+            ->recordUrl(null)
+            ->recordAction(null)
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(),
+                EditSep38EExchangeQuoteResource::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -180,4 +211,13 @@ class Sep38ExchangeQuoteResource extends Resource
         return __('sep38_lang.navigation.group');
     }
 
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return false;
+    }
 }

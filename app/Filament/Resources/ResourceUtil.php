@@ -2,7 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\AnchorAsset;
 use App\Models\Sep12Customer;
+use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
+use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Placeholder;
@@ -15,6 +18,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Get;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class ResourceUtil
 {
@@ -40,16 +44,20 @@ class ResourceUtil
             ->columns(3)
             ->schema([
                 DateTimePicker::make('tx_started_at')
+                    ->disabled()
                     ->label(__('shared_lang.label.tx_started_at'))
                     ->required(),
                 DateTimePicker::make('tx_updated_at')
+                    ->disabled()
                     ->label(__('shared_lang.label.tx_updated_at')),
                 DateTimePicker::make('tx_completed_at')
+                    ->disabled()
                     ->label(__('shared_lang.label.tx_completed_at')),
                 Section::make(__('shared_lang.label.transfer_received_at'))
                     ->columns(3)
                     ->schema([
                         DateTimePicker::make('transfer_received_at')
+                            ->disabled()
                             ->columnStart(2)
                             ->columnSpan(1)
                             ->hiddenLabel(true)
@@ -62,29 +70,36 @@ class ResourceUtil
             ->columns(4)
             ->schema([
                 TextInput::make('amount_in')
+                    ->disabled()
                     ->label(__('shared_lang.label.amount_in'))
                     ->minValue(0)
                     ->numeric(),
                 TextInput::make('amount_out')
+                    ->disabled()
                     ->label(__('shared_lang.label.amount_out'))
                     ->minValue(0)
                     ->numeric(),
                 TextInput::make('amount_expected')
+                    ->disabled()
                     ->label(__('shared_lang.label.amount_expected'))
                     ->minValue(0)
                     ->numeric(),
                 TextInput::make('amount_fee')
+                    ->disabled()
                     ->label(__('shared_lang.label.amount_fee'))
                     ->minValue(0)
                     ->numeric(),
 
                 TextInput::make('amount_in_asset')
+                    ->disabled()
                     ->columnSpan(1)
                     ->label(__('shared_lang.label.amount_in_asset')),
                 TextInput::make('amount_out_asset')
+                    ->disabled()
                     ->columnSpan(1)
                     ->label(__('shared_lang.label.amount_out_asset')),
                 TextInput::make('amount_fee_asset')
+                    ->disabled()
                     ->columnSpan(1)
                     ->label(__('shared_lang.label.amount_fee_asset')),
 
@@ -95,13 +110,16 @@ class ResourceUtil
         $columns = $hasRefunded ? 3 : 2;
         return Fieldset::make(__("shared_lang.label.refund_info"))
             ->columns($columns)
+            ->disabled()
             ->schema([
                 Toggle::make('refunded')
                     ->label(__('shared_lang.label.refunded'))
                     ->columnSpanFull()
+                    ->disabled()
                     ->required(),
                 self::getMemoTypeFormControl(true),
                 TextInput::make('refund_memo')
+                    ->disabled()
                     ->required(fn (Get $get): bool => $get("refund_memo_type") != null)
                     ->label(__('shared_lang.label.refund_memo')),
                 self::getRefundsFormControl(),
@@ -110,14 +128,18 @@ class ResourceUtil
 
     private static function getRefundsFormControl(): Section {
         return Section::make()
+            ->disabled()
             ->schema([
                 TextInput::make('refunds.amount_refunded')
+                    ->disabled(true)
                     ->label(__('shared_lang.label.refunds.amount_refunded'))
                     ->numeric(),
                 TextInput::make('refunds.amount_fee')
+                    ->disabled(true)
                     ->label(__('shared_lang.label.refunds.amount_fee'))
                     ->numeric(),
                 Repeater::make('refunds.payments')
+                    ->disabled(true)
                     ->schema([
                         TextInput::make('id')
                             ->label(__('shared_lang.label.id')),
@@ -199,6 +221,7 @@ class ResourceUtil
         $name = $isRefund ? 'refund_memo_type' : 'memo_type';
         return Select::make($name)
             ->live()
+            ->disabled()
             ->label($isRefund ? __('shared_lang.label.refund_memo_type') :__('shared_lang.label.memo_type'))
             ->options($options);
     }
@@ -208,30 +231,36 @@ class ResourceUtil
             TextInput::make('fee_details.total')
                 ->label(__("shared_lang.label.total"))
                 ->numeric()
+                ->disabled()
                 ->minValue(0)
                 ->required(),
             TextInput::make('fee_details.asset')
                 ->label(__("shared_lang.label.asset"))
+                ->disabled()
                 ->maxLength(80)
                 ->required(),
             Repeater::make('fee_details.details')
+                ->disabled()
                 ->schema([
                     TextInput::make('amount')
                         ->label(__("shared_lang.label.amount"))
+                        ->disabled()
                         ->minValue(0)
                         ->numeric()
                         ->required(),
                     TextInput::make('name')
+                        ->disabled()
                         ->label(__("shared_lang.label.name"))
                         ->required(),
                     TextArea::make('description')
+                        ->disabled()
                         ->label(__("shared_lang.label.description"))
-                        ->required()
                 ])
                 ->columns(3)
                 ->columnSpan(2)
         ];
         return Section::make(__('shared_lang.label.fee_details'))
+            ->disabled()
             ->description(__('shared_lang.label.fee_details.description'))
             ->hidden(!$isSep06)
             ->columns(2)
@@ -249,5 +278,23 @@ class ResourceUtil
             return substr($cellValue, 0, $halfLength) . '...' . substr($cellValue, -$halfLength);
         }
         return $cellValue;
+    }
+
+    public static function getAnchorAssetsDataSourceForSelect(): array {
+        $allAssets = AnchorAsset::all();
+        $allAssetsAsString = [];
+        foreach ($allAssets as $asset) {
+            try {
+                $identificationFormatAsset = new IdentificationFormatAsset(
+                    $asset->schema,
+                    $asset->code,
+                    $asset->issuer
+                );
+                LOG::debug($identificationFormatAsset->getStringRepresentation());
+                $allAssetsAsString[$identificationFormatAsset->getStringRepresentation()] = $identificationFormatAsset->getStringRepresentation();
+            } catch (InvalidAsset $e) {
+            }
+        }
+        return $allAssetsAsString;
     }
 }

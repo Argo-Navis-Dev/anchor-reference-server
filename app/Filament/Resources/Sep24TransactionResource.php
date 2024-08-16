@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\Sep06TransactionResource\Actions\EditSep31TransactionResource;
 use App\Filament\Resources\Sep24TransactionResource\Pages;
 use App\Filament\Resources\Sep24TransactionResource\RelationManagers;
 use App\Models\Sep24Transaction;
@@ -11,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class Sep24TransactionResource extends Resource
@@ -30,13 +32,12 @@ class Sep24TransactionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns(Sep06And24ResourceUtil::getTableColumns(false))
+            ->columns(Sep06And24ResourceUtil::getTableColumns($table, false))
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(),
+                EditSep31TransactionResource::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -69,5 +70,15 @@ class Sep24TransactionResource extends Resource
     public static function getPluralLabel(): string
     {
         return __('sep24_lang.entity.names');
+    }
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return false;
     }
 }
