@@ -3,8 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\Sep06TransactionResource\Actions\EditSep31TransactionResource;
+use App\Filament\Resources\Sep24TransactionResource\Actions\EditSep24TransactionResource;
 use App\Filament\Resources\Sep24TransactionResource\Pages;
-use App\Filament\Resources\Sep24TransactionResource\RelationManagers;
 use App\Models\Sep24Transaction;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -37,7 +37,7 @@ class Sep24TransactionResource extends Resource
                 //
             ])
             ->actions([
-                EditSep31TransactionResource::make()
+                EditSep24TransactionResource::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -88,18 +88,24 @@ class UserResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->label(__('user_lang.label.name'))
-                    ->limit(20)
+                    ->sortable()
+                    ->limit(35)
                     ->searchable(),
                 TextColumn::make('email')
                     ->label(__('user_lang.label.email'))
-                    ->limit(20)
+                    ->sortable()
+                    ->limit(35)
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->label(__('shared_lang.label.created_at'))
                     ->dateTime()
+                    ->toggleable()
+                    ->sortable()
                     ->sortable(),
                 TextColumn::make('updated_at')
                     ->label(__('shared_lang.label.updated_at'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->dateTime()
                     ->sortable()
             ])

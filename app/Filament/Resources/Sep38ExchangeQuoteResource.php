@@ -32,8 +32,6 @@ class Sep38ExchangeQuoteResource extends Resource
 
     protected static ?int $navigationSort = 8;
 
-
-
     public static function form(Form $form): Form
     {
         return $form
@@ -116,16 +114,21 @@ class Sep38ExchangeQuoteResource extends Resource
                     ->copyable()
                     ->icon('phosphor-copy')
                     ->iconPosition(IconPosition::After)
+                    ->searchable()
+                    ->sortable()
                     ->formatStateUsing(function ($state) {
                         return ResourceUtil::elideTableColumnTextInMiddle($state);
                     })
                     ->searchable(),
                 TextColumn::make('sell_amount')
                     ->description(__('sep38_lang.label.sell_amount'))
+                    ->searchable()
                     ->searchable(),
                 TextColumn::make('buy_asset')
                     ->copyable()
                     ->icon('phosphor-copy')
+                    ->searchable()
+                    ->sortable()
                     ->iconPosition(IconPosition::After)
                     ->formatStateUsing(function ($state) {
                         return ResourceUtil::elideTableColumnTextInMiddle($state);
@@ -134,9 +137,11 @@ class Sep38ExchangeQuoteResource extends Resource
                     ->searchable(),
                 TextColumn::make('buy_amount')
                     ->description(__('sep38_lang.label.buy_amount'))
+                    ->searchable()
                     ->searchable(),
                 TextColumn::make('context')
                     ->description(__('sep38_lang.label.context'))
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->description(__('shared_lang.label.created_at'))

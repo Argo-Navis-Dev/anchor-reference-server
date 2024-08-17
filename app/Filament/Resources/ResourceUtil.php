@@ -26,13 +26,16 @@ class ResourceUtil
     public static function getModelTimestampFormControls(int $colspan): Section {
         return Section::make()
             ->columnSpan($colspan)
-            ->hidden(fn(?Model $record): ?bool => $record == null)
+            ->hidden(fn(?Model $record, Get $get): ?bool => $record == null
+                || ($get('created_at') == null && $get('updated_at') == null))
             ->schema([
                 Placeholder::make('created_at')
+                    ->hidden(fn(Get $get): ?bool => $get('created_at') == null)
                     ->label(__('shared_lang.label.created_at'))
                     ->columns(1)
                     ->content(fn(Model $record): ?string => $record->created_at?->diffForHumans()),
                 Placeholder::make('updated_at')
+                    ->hidden(fn(Get $get): ?bool => $get('updated_at') == null)
                     ->label(__('shared_lang.label.updated_at'))
                     ->columns(1)
                     ->content(fn(Model $record): ?string => $record->updated_at?->diffForHumans())
@@ -296,5 +299,61 @@ class ResourceUtil
             }
         }
         return $allAssetsAsString;
+    }
+
+    public static function getStellarTransactionsFormControl(): Repeater
+    {
+        $schema = [
+            TextInput::make('id')
+                ->label(__("shared_lang.label.id"))
+                ->columnSpanFull()
+                ->disabled(),
+            TextInput::make('memo')
+                ->disabled()
+                ->label(__("shared_lang.label.memo")),
+            TextInput::make('memo_type')
+                ->disabled()
+                ->label(__("shared_lang.label.memo_type")),
+            TextInput::make('envelope')
+                ->disabled()
+                ->label(__("shared_lang.label.envelope")),
+            DateTimePicker::make('created_at')
+               ->disabled()
+               ->label(__('shared_lang.label.created_at')),
+            Repeater::make('payments')
+                ->columns(2)
+                ->columnSpanFull()
+                ->schema([
+                    TextInput::make('id')
+                        ->label(__("shared_lang.label.id"))
+                        ->disabled(),
+                    TextInput::make('payment_type')
+                        ->label(__("shared_lang.label.payment_type"))
+                        ->disabled(),
+                    TextInput::make('source_account')
+                        ->label(__("shared_lang.label.source_account"))
+                        ->disabled(),
+                    TextInput::make('destination_account')
+                        ->label(__("shared_lang.label.destination_account"))
+                        ->disabled(),
+
+                    TextInput::make('amount.amount')
+                        ->label(__("shared_lang.label.amount"))
+                        ->disabled(),
+                    TextInput::make('amount.asset')
+                        ->label(__("shared_lang.label.asset"))
+                        ->disabled(),
+                ])
+
+        ];
+        return Repeater::make('stellar_transactions')
+            ->disabled()
+            ->hidden(function(Get $get): bool {
+                $stellarTransactions = $get('stellar_transactions');
+                return empty($stellarTransactions);
+            })
+            ->columns(2)
+            ->columnSpanFull()
+            ->schema($schema);
     }
 }

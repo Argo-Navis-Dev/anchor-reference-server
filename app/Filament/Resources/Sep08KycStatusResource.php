@@ -65,18 +65,25 @@ class Sep08KycStatusResource extends Resource
                     ->icon('phosphor-copy')
                     ->iconPosition(IconPosition::After)
                     ->searchable()
+                    ->sortable()
                     ->formatStateUsing(function ($state) {
                         return ResourceUtil::elideTableColumnTextInMiddle($state);
                     })
                     ->searchable(),
                 IconColumn::make('approved')
                     ->label(__('sep08_lang.label.approved'))
+                    ->searchable()
+                    ->sortable()
                     ->boolean(),
                 IconColumn::make('rejected')
                     ->label(__('sep08_lang.label.rejected'))
+                    ->searchable()
+                    ->sortable()
                     ->boolean(),
                 IconColumn::make('pending')
                     ->label(__('sep08_lang.label.pending'))
+                    ->searchable()
+                    ->sortable()
                     ->boolean(),
                 TextColumn::make('created_at')
                     ->label(__('shared_lang.label.created_at'))

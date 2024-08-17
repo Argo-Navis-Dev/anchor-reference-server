@@ -81,6 +81,4 @@ return [
     'label.missing_info_errors' => 'Missing information errors',
 
 
-
-
 ];

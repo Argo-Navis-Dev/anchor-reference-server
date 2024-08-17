@@ -65,7 +65,7 @@ class Sep38RateResource extends Resource
                         return ResourceUtil::elideTableColumnTextInMiddle($state);
                     })
                     ->label(__('sep38_lang.label.sell_asset'))
-                    ->limit(20)
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('buy_asset')
                     ->copyable()
@@ -75,7 +75,7 @@ class Sep38RateResource extends Resource
                         return ResourceUtil::elideTableColumnTextInMiddle($state);
                     })
                     ->label(__('sep38_lang.label.buy_asset'))
-                    ->limit(20)
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('rate')
                     ->label(__('sep38_lang.label.rate'))

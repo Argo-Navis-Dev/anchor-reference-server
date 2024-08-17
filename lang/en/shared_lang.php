@@ -55,4 +55,11 @@ return [
     'label.refunds.amount_fee' => 'Amount fee',
     'label.fee' => 'Fee',
     'label.view' => 'View',
+    'label.add_entity' => 'Add :entity',
+    'label.field_name' => 'Field name',
+    'label.destination_account' => 'Destination account',
+    'label.source_account' => 'Source account',
+    'label.payment_type' => 'Payment type',
+    'label.envelope' => 'Envelope',
+    'error.invalid_account_id' => 'The provided account ID is invalid!'
 ];

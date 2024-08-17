@@ -183,30 +183,48 @@ class Sep12CustomerResource extends Resource
         $columns = [
             Split::make([
                 TextColumn::make('name')
+                    ->searchable()
+                    ->limit(35)
+                    ->sortable()
                     ->description(__('shared_lang.label.name')),
                 TextColumn::make('account_id')
                     ->copyable()
                     ->icon('phosphor-copy')
                     ->iconPosition(IconPosition::After)
+                    ->sortable()
                     ->formatStateUsing(function ($state) {
                         return ResourceUtil::elideTableColumnTextInMiddle($state);
                     })
                     ->searchable()
                     ->description(__('shared_lang.label.account_id')),
                 TextColumn::make('memo')
-                    ->description(__('shared_lang.label.memo'))
-                    ->sortable(),
+                    ->searchable()
+                    ->limit(35)
+                    ->description(__('shared_lang.label.memo')),
                 TextColumn::make('status')
                     ->badge()
                     ->searchable()
                     ->description(__('shared_lang.label.status'))
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->description(__('shared_lang.label.created_at'))
                     ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->hidden(function()  use ($table) {
+                        $updatedAt = $table->getColumn('created_at');
+                        return $updatedAt->isToggledHidden();
+                    })
                     ->sortable(),
                 TextColumn::make('updated_at')
                     ->description(__('shared_lang.label.updated_at'))
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->sortable()
+                    ->hidden(function()  use ($table) {
+                        $updatedAt = $table->getColumn('updated_at');
+                        return $updatedAt->isToggledHidden();
+                    })
                     ->dateTime()
                     ->sortable()
             ])

@@ -149,9 +149,10 @@ class Sep06And24ResourceUtil
                     Textarea::make('required_customer_info_message')
                         ->disabled(true)
                         ->label(__('sep06_lang.label.required_customer_info_message')),
-                    Textarea::make('required_customer_info_updates')
-                        ->disabled(true)
-                        ->label(__('sep06_lang.label.required_customer_info_updates'))
+
+                    Select::make('required_customer_info_updates')
+                        ->multiple(true)
+                        ->label(__("sep06_lang.label.required_customer_info_updates"))
                 ]),
             ResourceUtil::getFeeDetailsFormControl($isSep06),
             self::getInstructionsFormControl($isSep06),
@@ -160,10 +161,7 @@ class Sep06And24ResourceUtil
                 ->disabled(true)
                 ->label(__('sep06_lang.label.message'))
                 ->columnSpanFull(),
-            Textarea::make('stellar_transactions')
-                ->label(__('sep06_lang.label.stellar_transactions'))
-                ->disabled(true)
-                ->columnSpanFull(),
+            ResourceUtil::getStellarTransactionsFormControl(),
             ResourceUtil::getModelTimestampFormControls(1)
         ];
     }
@@ -305,10 +303,13 @@ class Sep06And24ResourceUtil
                     ->searchable(),
                 TextColumn::make('status')
                     ->badge()
+                    ->searchable()
+                    ->sortable()
                     ->description(__('shared_lang.label.status'))
                     ->searchable(),
                 TextColumn::make('request_asset_code')
                     ->description(__('sep06_lang.label.request_asset_code'))
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('type')
                     ->description(__('sep06_lang.label.type'))
@@ -354,21 +355,21 @@ class Sep06And24ResourceUtil
     }
 
     public static function populateDataBeforeFormLoad(array &$data, Model $model): void {
-        $instructions = $data['instructions'];
+        $instructions = $data['instructions'] ?? null;
         if($instructions != null) {
             $data['instructions'] = json_decode($instructions, true);
         }
 
-        $feeDetails = $data['fee_details'];
+        $feeDetails = $data['fee_details'] ?? null;
         if($feeDetails != null) {
             $data['fee_details'] = json_decode($feeDetails, true);
         }
-        $refunds = $data['refunds'];
+        $refunds = $data['refunds'] ?? null;
         if($refunds != null) {
             $data['refunds'] = json_decode($refunds, true);
         }
 
-        $requiredInfoUpdatesStr = $data['required_info_updates'];
+        $requiredInfoUpdatesStr = $data['required_info_updates'] ?? null;
         if($requiredInfoUpdatesStr != null) {
             $requiredInfoUpdates = Sep06Helper::parseRequiredInfoUpdates($requiredInfoUpdatesStr);
             $requiredInfoUpdatesJson = [];
@@ -381,6 +382,15 @@ class Sep06And24ResourceUtil
                 $requiredInfoUpdatesJson[] = $reqData;
             }
             $data['required_info_updates'] = $requiredInfoUpdatesJson;
+        }
+
+        $requiredCustomerInfoUpdates = $data['required_customer_info_updates'] ?? null;
+        if($requiredCustomerInfoUpdates != null) {
+            $data['required_customer_info_updates'] = json_decode($requiredCustomerInfoUpdates, true);
+        }
+        $stellarTransactions = $data['stellar_transactions'] ?? null;
+        if($stellarTransactions != null) {
+            $data['stellar_transactions'] = json_decode($stellarTransactions, true);
         }
     }
 
@@ -408,4 +418,5 @@ class Sep06And24ResourceUtil
             ])
             ->columns(2);
     }
+
 }

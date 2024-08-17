@@ -6,6 +6,7 @@ use App\Filament\Resources\Sep06And24ResourceUtil;
 use App\Filament\Resources\Sep31TransactionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Log;
 
 class EditSep31Transaction extends EditRecord
 {
@@ -13,10 +14,26 @@ class EditSep31Transaction extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        $feeDetails = $data['fee_details'];
+        $feeDetails = $data['fee_details'] ?? null;
         if($feeDetails != null) {
             $data['fee_details'] = json_decode($feeDetails, true);
         }
+        $refunds = $data['refunds'] ?? null;
+        if($refunds != null) {
+            $data['refunds'] = json_decode($refunds, true);
+            LOG::debug('Refunds: ' . json_encode( $data['refunds'] ));
+        }
+
+        $requiredCustomerInfoUpdates = $data['required_customer_info_updates'] ?? null;
+        if($requiredCustomerInfoUpdates != null) {
+            $data['required_customer_info_updates'] = json_decode($requiredCustomerInfoUpdates, true);
+        }
+
+        $stellarTransactions = $data['stellar_transactions'] ?? null;
+        if($stellarTransactions != null) {
+            $data['stellar_transactions'] = json_decode($stellarTransactions, true);
+        }
+
         return $data;
     }
 

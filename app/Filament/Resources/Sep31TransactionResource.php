@@ -89,16 +89,14 @@ class Sep31TransactionResource extends Resource
                 ResourceUtil::getAmountInfoFormControls(),
                 ResourceUtil::getTransactionTimestampFormControls(),
                 ResourceUtil::getRefundsInfoFormControls(false),
-                Textarea::make('stellar_transactions')
-                    ->disabled()
-                    ->label(__('sep31_lang.label.stellar_transactions'))
-                    ->columnSpanFull(),
+                ResourceUtil::getStellarTransactionsFormControl(),
                 ResourceUtil::getFeeDetailsFormControl(true),
-                TextInput::make('required_info_message')
+                TextArea::make('required_info_message')
                     ->disabled()
                     ->columnSpan(2)
                     ->label(__('sep31_lang.label.required_info_message')),
-                Textarea::make('required_customer_info_updates')
+                Select::make('required_customer_info_updates')
+                    ->multiple(true)
                     ->disabled()
                     ->label(__('sep31_lang.label.required_customer_info_updates'))
                     ->columnSpanFull(),
@@ -123,6 +121,7 @@ class Sep31TransactionResource extends Resource
                     ->searchable(),
                 TextColumn::make('receiver_id')
                     ->description(__('sep31_lang.label.receiver_id'))
+                    ->searchable()
                     ->formatStateUsing(function ($state) {
                         return ResourceUtil::elideTableColumnTextInMiddle($state);
                     })
@@ -130,6 +129,8 @@ class Sep31TransactionResource extends Resource
                 TextColumn::make('amount_in_asset')
                     ->copyable()
                     ->iconPosition(IconPosition::After)
+                    ->searchable()
+                    ->sortable()
                     ->icon(function(Model $model)  {
                         $fromAccount = $model['amount_in_asset'];
                         return !empty($fromAccount) ? 'phosphor-copy' : null;
@@ -143,6 +144,8 @@ class Sep31TransactionResource extends Resource
                 TextColumn::make('amount_out_asset')
                     ->copyable()
                     ->iconPosition(IconPosition::After)
+                    ->searchable()
+                    ->sortable()
                     ->icon(function(Model $model)  {
                         $fromAccount = $model['amount_out_asset'];
                         return !empty($fromAccount) ? 'phosphor-copy' : null;
@@ -155,6 +158,7 @@ class Sep31TransactionResource extends Resource
                 TextColumn::make('status')
                     ->badge()
                     ->description(__('sep31_lang.label.status'))
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->description(__('shared_lang.label.created_at'))

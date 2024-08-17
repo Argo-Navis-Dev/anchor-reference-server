@@ -6,6 +6,10 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AnchorAssetResource\Actions\ViewAnchorAsset;
 use App\Filament\Resources\AnchorAssetResource\Pages;
 use App\Models\AnchorAsset;
+use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
+use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
+use Closure;
+use Exception;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
@@ -24,6 +28,9 @@ use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Log;
+use Soneso\StellarSDK\Crypto\KeyPair;
+use Soneso\StellarSDK\StellarSDK;
 
 class AnchorAssetResource extends Resource
 {
@@ -38,25 +45,42 @@ class AnchorAssetResource extends Resource
         $schema = [
             Fieldset::make(__("asset_lang.label.sep_configuration"))
                 ->columnSpan(3)
+                ->columns(3)
                 ->schema([
-                    TextInput::make('code')
-                        ->label(__('asset_lang.label.code'))
-                        ->minLength(3)
-                        ->maxLength(12)
-                        ->required(),
                     TextInput::make('issuer')
                         ->label(__('asset_lang.label.issuer'))
-                        ->required()
+                        ->columnSpanFull()
+                        ->live()
+                        ->required(fn (Get $get): bool => $get('schema') == 'stellar')
+                        ->rules([fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                            $code = $get('code');
+                            $schema = $get('schema');
+                            $issuer = $get('issuer');
+                            try {
+                                new IdentificationFormatAsset($schema, $code, $issuer);
+                            }catch (InvalidAsset $ex) {
+                                LOG::error($ex->getMessage());
+                                $fail(__('asset_lang.error.incorrect_asset_format',
+                                    ['exception' => $ex->getMessage()]));
+                            }
+                        }])
                         ->minLength(56)
                         ->maxLength(56),
                     Radio::make('schema')
                         ->label(__('asset_lang.label.schema'))
                         ->default('stellar')
                         ->required()
+                        ->live()
                         ->options([
                             'stellar' => 'Stellar',
                             'iso4217' => 'iso4217',
                         ]),
+                    TextInput::make('code')
+                        ->label(__('asset_lang.label.code'))
+                        ->minLength(3)
+                        ->maxLength(12)
+                        ->columnSpan(1)
+                        ->required(),
                     TextInput::make('significant_decimals')
                         ->label(__('asset_lang.label.significant_decimals'))
                         ->required()
@@ -146,6 +170,7 @@ class AnchorAssetResource extends Resource
         $schema = [
             Toggle::make("sep06_enabled")
                 ->label(__("asset_lang.label.sep06_enabled")),
+            self::getSep06ConfigControls(),
             Toggle::make("sep24_enabled")
                 ->label(__("asset_lang.label.sep24_enabled")),
             Toggle::make("sep31_enabled")
@@ -165,12 +190,15 @@ class AnchorAssetResource extends Resource
         $columns = [Split::make([
             TextColumn::make('code')
                 ->description(__('asset_lang.label.code'))
+                ->sortable()
                 ->searchable(),
             TextColumn::make('issuer')
                 ->description(__('asset_lang.label.issuer'))
                 ->copyable()
                 ->icon('phosphor-copy')
                 ->iconPosition(IconPosition::After)
+                ->searchable()
+                ->sortable()
                 ->formatStateUsing(function ($state) {
                     return ResourceUtil::elideTableColumnTextInMiddle($state);
                 })
@@ -246,7 +274,10 @@ class AnchorAssetResource extends Resource
             ->hidden(fn (Get $get): bool => ! $get("sep31_cfg_quotes_supported"));
 
         $schema[] = Repeater::make('sep31_cfg_sep12_sender_types')
+            ->defaultItems(0)
             ->label(__("asset_lang.label.sep31_configuration.sep12_sender_types"))
+            ->addActionLabel(__('shared_lang.label.add_entity',
+                ['entity' => __('asset_lang.label.sep31_configuration.sep12_sender_types')]))
             ->schema([
                 TextInput::make('name')
                     ->label(__("shared_lang.label.name"))
@@ -259,7 +290,11 @@ class AnchorAssetResource extends Resource
             ->columns(2);
 
         $schema[] = Repeater::make('sep31_cfg_sep12_receiver_types')
+            ->defaultItems(0)
             ->label(__("asset_lang.label.sep31_configuration.sep12_receiver_types"))
+            ->addActionLabel(__('shared_lang.label.add_entity',
+                ['entity' => __('asset_lang.label.sep31_configuration.sep12_receiver_types')]))
+
             ->schema([
                 TextInput::make('name')
                     ->label(__("shared_lang.label.name"))
@@ -274,7 +309,6 @@ class AnchorAssetResource extends Resource
         return Fieldset::make(__("asset_lang.label.sep31_configuration"))
             ->columns(1)
             ->columnSpan(1)
-            //->hidden(fn (Get $get): bool => ! $get("sep31_enabled"))
             ->schema($schema);
     }
 
@@ -287,7 +321,6 @@ class AnchorAssetResource extends Resource
             ->required()
             ->numeric()
             ->default(2);*/
-        //TODO validate country_codes
         $schema[] = Select::make('sep38_cfg_country_codes')
             ->label(__("asset_lang.label.sep38_configuration.country_codes"))
             ->createOptionUsing(function (array $data) {
@@ -304,6 +337,7 @@ class AnchorAssetResource extends Resource
             ]);
 
         $schema[] = Repeater::make('sep38_cfg_sell_delivery_methods')
+            ->defaultItems(0)
             ->label(__("asset_lang.label.sep38_configuration.sell_delivery_methods"))
             ->schema([
                 TextInput::make('name')
@@ -317,6 +351,7 @@ class AnchorAssetResource extends Resource
             ->columns(2);
 
         $schema[] = Repeater::make('sep38_cfg_buy_delivery_methods')
+            ->defaultItems(0)
             ->label(__("asset_lang.label.sep38_configuration.buy_delivery_methods"))
             ->schema([
                 TextInput::make('name')
@@ -329,14 +364,12 @@ class AnchorAssetResource extends Resource
             ])
             ->columns(2);
 
-
-
         return Fieldset::make(__("asset_lang.label.sep38_configuration"))
             ->columns(1)
             ->columnSpan(1)
-            ->hidden(fn (Get $get): bool => ! $get("sep38_enabled"))
             ->schema($schema);
     }
+
     public static function getPages(): array
     {
         return [
@@ -344,6 +377,53 @@ class AnchorAssetResource extends Resource
             'create' => Pages\CreateAnchorAsset::route('/create'),
             'edit' => Pages\EditAnchorAsset::route('/{record}/edit')
         ];
+    }
+
+    private static function getSep06ConfigControls(): Fieldset
+    {
+        $schema = [
+            Toggle::make("sep06_deposit_exchange_enabled")
+                ->label(__("asset_lang.label.sep06_deposit_exchange_enabled")),
+            Select::make('sep06_deposit_methods')
+                ->label(__("asset_lang.label.sep06_deposit_methods"))
+                ->multiple()
+                ->createOptionForm([
+                    TextInput::make('name')
+                        ->label(__("shared_lang.label.name"))
+                        ->required()
+                ])
+                ->createOptionUsing(function (array $data) {
+                    return $data['name'];
+                })
+                ->options([
+                    'wire' => __('asset_lang.label.sep06_deposit_method.wire'),
+                    'cash' => __('asset_lang.label.sep06_deposit_method.cash'),
+                    'mobile' => __('asset_lang.label.sep06_deposit_method.mobile')
+                ]),
+
+            Toggle::make("sep06_withdraw_exchange_enabled")
+                ->label(__("asset_lang.label.sep06_withdraw_exchange_enabled")),
+            Select::make('sep06_withdraw_methods')
+                ->label(__("asset_lang.label.sep06_withdraw_methods"))
+                ->multiple()
+                ->createOptionForm([
+                    TextInput::make('name')
+                        ->label(__("shared_lang.label.name"))
+                        ->required()
+                ])
+                ->createOptionUsing(function (array $data) {
+                    return $data['name'];
+                })
+                ->options([
+                    'wire' => __('asset_lang.label.sep06_withdraw_methods.wire'),
+                    'cash' => __('asset_lang.label.sep06_withdraw_methods.cash'),
+                    'mobile' => __('asset_lang.label.sep06_withdraw_methods.mobile')
+                ])
+        ];
+        return Fieldset::make(__("asset_lang.label.sep06_configuration"))
+            ->columns(2)
+            ->columnSpan(1)
+            ->schema($schema);
     }
 
     public static function getModelLabel(): string
