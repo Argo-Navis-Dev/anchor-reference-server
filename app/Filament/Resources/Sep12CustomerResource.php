@@ -8,6 +8,9 @@ use App\Filament\Resources\Sep12CustomerResource\Pages;
 use App\Filament\Resources\Sep12CustomerResource\Util\Sep12CustomerResourceHelper;
 use App\Models\Sep12Customer;
 use App\Models\Sep12Field;
+use App\Models\Sep12TypeToFields;
+use App\Stellar\Sep12Customer\Sep12CustomerType;
+use App\Stellar\Sep12Customer\Sep12Helper;
 use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
 use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
 use Filament\Forms\Components\Field;
@@ -42,7 +45,16 @@ class Sep12CustomerResource extends Resource
 
     public static function form(Form $form): Form
     {
-        $fields = Sep12Field::all();
+        $type = Sep12CustomerType::DEFAULT;
+//        if ($customer !== null) {
+//            $type = $customer->type;
+//        }
+        $sep12FieldsForType = Sep12Helper::getSep12FieldsForCustomerType($type);
+
+        $requiredFildsList = $sep12FieldsForType['required'] ?? [];
+        $optionalFildsList = $sep12FieldsForType['optional'] ?? [];
+
+
         $statusField = self::createCustomerStatusField('status');
         $statusField->columnSpan(2);
         $components = [
@@ -64,42 +76,11 @@ class Sep12CustomerResource extends Resource
                 ->maxLength(2)
                 ->label(__('shared_lang.label.lang'))
         ];
-        $customFieldPrefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
-        $statusSuffix = Sep12CustomerResource::CUSTOM_STATUS_FIELD_SUFFIX;
 
-        $providedFields = [];
-        foreach ($fields as $field) {
-            $fieldDescription = $field->desc;
-            $label = __("sep12_lang.label.{$field->key}");
-            $descriptionKey = "sep12_lang.label.{$field->key}.description";
-            $description =  __($descriptionKey);
-            if($description == $descriptionKey) {
-                $description = $field->desc;
-            }
-            $fieldType = $field->type;
-            $name = "{$customFieldPrefix}{$field->id}";
+        $providedFields = Sep12CustomerResourceHelper::getCustomerCustomFormFields($requiredFildsList, true);
+        $optionalFormControls = Sep12CustomerResourceHelper::getCustomerCustomFormFields($optionalFildsList, false);
+        $providedFields = array_merge($providedFields, $optionalFormControls);
 
-            $hasStatus = !isset(self::KYC_FIELD_WITHOUT_STATUS[$field->key]);
-            if ($fieldType == 'string') {
-                if ($field->choices != null) {
-                    $providedFields[] = self::createDynamicSelectField($field, $hasStatus, $description);
-                } else {
-                    $providedFields[] = TextInput::make(name: $name)
-                        ->helperText($description)
-                        ->label($label);
-                }
-            }
-            if ($fieldType == 'binary') {
-                $providedFields[] = self::getBinaryFieldComponent($field->id, $label, $description);
-            }
-            $statusFieldName = "{$customFieldPrefix}{$field->id}{$statusSuffix}";
-            LOG::debug('$statusFieldName: ' . $statusFieldName);
-            if ($hasStatus) {
-                $requiresVerification = $field->requires_verification;
-                $statusField = self::createProvidedFieldStatusComp($statusFieldName, $requiresVerification);
-                $providedFields[] = $statusField;
-            }
-        }
         $components[] = Fieldset::make(__('sep12_lang.label.provided_fields'))->schema($providedFields);
         $components[] = ResourceUtil::getModelTimestampFormControls(1);
 
@@ -123,60 +104,8 @@ class Sep12CustomerResource extends Resource
             ]);
     }
 
-    private static function createProvidedFieldStatusComp(string $name, bool $requiresVerification): Field {
-        $option = [
-            ProvidedCustomerFieldStatus::ACCEPTED => __('sep12_lang.label.field.status.accepted'),
-            ProvidedCustomerFieldStatus::PROCESSING => __('sep12_lang.label.field.status.processing'),
-            ProvidedCustomerFieldStatus::REJECTED => __('sep12_lang.label.field.status.rejected'),
-        ];
-        if($requiresVerification) {
-            $option[ProvidedCustomerFieldStatus::VERIFICATION_REQUIRED] = __('sep12_lang.label.field.status.verification_required');
-        }
-        return Select::make($name)
-            ->label(__('shared_lang.label.status'))
-            ->afterStateUpdated(function (Set $set, Get $get, $state, Sep12Customer $customer) {
-                Sep12CustomerResourceHelper::onCustomerFieldStatusChanged($state, $set, $get, $customer);
-            })
-            ->live()
-            ->default(CustomerStatus::PROCESSING)
-            ->options($option);
-    }
 
-    private static function createDynamicSelectField(Sep12Field $field, bool $hasStatusField, string $description): Select
-    {
-        $customFieldPrefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
-        $name = "{$customFieldPrefix}{$field->id}";
-        $choices = explode(",", $field->choices);
-        $options = [];
-        foreach ($choices as $choice) {
-            $options[$choice] = __("sep12_lang.label.{$field->key}.{$choice}");
-        }
-        $component = Select::make($name)
-            ->label(__("sep12_lang.label.{$field->key}"))
-            ->helperText($description)
-            ->columnSpan(1)
-            ->options($options);
-        if (!$hasStatusField) {
-            $component->columnSpan(2);
-        }
-        return $component;
-    }
 
-    private static function getBinaryFieldComponent(
-        string $fieldID,
-        string $label,
-        string $description
-    ): Placeholder {
-        return Placeholder::make('Image')
-            ->hidden(fn($record) => $record == null)
-            ->label($label)
-            ->helperText($description)
-            ->content(function ($record) use ($fieldID): HtmlString {
-                $id = $record != null ? $record->id : null;
-                $src = '/customer/' . $id . '/binary-field/' . $fieldID;
-                return new HtmlString("<img src= '" . $src . "')>");
-            });
-    }
 
     public static function table(Table $table): Table
     {
@@ -270,11 +199,10 @@ class Sep12CustomerResource extends Resource
             'create' => Pages\CreateSep12Customer::route('/create'),
             'edit' => Pages\EditSep12Customer::route('/{record}/edit'),
         ];
-    }
-    public static function getModelLabel(): string
-    {
-        return __('sep12_lang.entity.name');
-    }
+    }   public static function getModelLabel(): string
+{
+    return __('sep12_lang.entity.name');
+}
 
     public static function getPluralLabel(): string
     {
@@ -285,4 +213,5 @@ class Sep12CustomerResource extends Resource
     {
         return false;
     }
+
 }

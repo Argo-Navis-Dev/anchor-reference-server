@@ -23,26 +23,28 @@ use Illuminate\Support\Facades\Log;
 class ResourceUtil
 {
 
-    public static function getModelTimestampFormControls(int $colspan): Section {
+    public static function getModelTimestampFormControls(int $colspan): Section
+    {
         return Section::make()
             ->columnSpan($colspan)
-            ->hidden(fn(?Model $record, Get $get): ?bool => $record == null
+            ->hidden(fn (?Model $record, Get $get): ?bool => $record == null
                 || ($get('created_at') == null && $get('updated_at') == null))
             ->schema([
                 Placeholder::make('created_at')
-                    ->hidden(fn(Get $get): ?bool => $get('created_at') == null)
+                    ->hidden(fn (Get $get): ?bool => $get('created_at') == null)
                     ->label(__('shared_lang.label.created_at'))
                     ->columns(1)
-                    ->content(fn(Model $record): ?string => $record->created_at?->diffForHumans()),
+                    ->content(fn (Model $record): ?string => $record->created_at?->diffForHumans()),
                 Placeholder::make('updated_at')
-                    ->hidden(fn(Get $get): ?bool => $get('updated_at') == null)
+                    ->hidden(fn (Get $get): ?bool => $get('updated_at') == null)
                     ->label(__('shared_lang.label.updated_at'))
                     ->columns(1)
-                    ->content(fn(Model $record): ?string => $record->updated_at?->diffForHumans())
+                    ->content(fn (Model $record): ?string => $record->updated_at?->diffForHumans())
             ]);
     }
 
-    public static function getTransactionTimestampFormControls(): Fieldset {
+    public static function getTransactionTimestampFormControls(): Fieldset
+    {
         return Fieldset::make(__("shared_lang.label.tx_dates"))
             ->columns(3)
             ->schema([
@@ -68,7 +70,8 @@ class ResourceUtil
             ]);
     }
 
-    public static function getAmountInfoFormControls(): Fieldset {
+    public static function getAmountInfoFormControls(): Fieldset
+    {
         return Fieldset::make(__("shared_lang.label.amount_info"))
             ->columns(4)
             ->schema([
@@ -109,7 +112,8 @@ class ResourceUtil
             ]);
     }
     
-    public static function getRefundsInfoFormControls(bool $hasRefunded): Fieldset {
+    public static function getRefundsInfoFormControls(bool $hasRefunded): Fieldset
+    {
         $columns = $hasRefunded ? 3 : 2;
         return Fieldset::make(__("shared_lang.label.refund_info"))
             ->columns($columns)
@@ -129,7 +133,8 @@ class ResourceUtil
             ]);
     }
 
-    private static function getRefundsFormControl(): Section {
+    private static function getRefundsFormControl(): Section
+    {
         return Section::make()
             ->disabled()
             ->schema([
@@ -165,57 +170,60 @@ class ResourceUtil
             ]);
     }
 
-    public static function getAmountInfoTableFields(): array {
+    public static function getAmountInfoTableFields(): array
+    {
         return [
             TextColumn::make('amount_in')
                 ->icon('phosphor-money')
-                ->getStateUsing(function (Model $record){
+                ->getStateUsing(function (Model $record) {
                     return __('shared_lang.label.amount_in') . ': '. $record->amount_in;
                 }),
             TextColumn::make('amount_out')
                 ->icon('phosphor-money')
-                ->getStateUsing(function (Model $record){
+                ->getStateUsing(function (Model $record) {
                     return __('shared_lang.label.amount_out') . ': '. $record->amount_out;
                 }),
             TextColumn::make('amount_expected')
                 ->icon('phosphor-money')
-                ->getStateUsing(function (Model $record){
+                ->getStateUsing(function (Model $record) {
                     return __('shared_lang.label.amount_expected') . ': '. $record->amount_expected;
                 }),
             TextColumn::make('amount_fee')
                 ->icon('phosphor-money')
-                ->getStateUsing(function (Model $record){
+                ->getStateUsing(function (Model $record) {
                     return __('shared_lang.label.amount_fee') . ': '. $record->amount_fee;
                 }),
         ];
     }
 
-    public static function getTransactionsInfoTableFields(): array {
+    public static function getTransactionsInfoTableFields(): array
+    {
         return [
             TextColumn::make('tx_started_at')
                 ->icon('heroicon-o-calendar-date-range')
-                ->getStateUsing(function (Model $record){
+                ->getStateUsing(function (Model $record) {
                     return __('shared_lang.label.tx_started_at') . ': '. $record->tx_started_at;
                 }),
             TextColumn::make('tx_updated_at')
                 ->icon('heroicon-o-calendar-date-range')
-                ->getStateUsing(function (Model $record){
+                ->getStateUsing(function (Model $record) {
                     return __('shared_lang.label.tx_updated_at') . ': '. $record->tx_updated_at;
                 }),
             TextColumn::make('tx_completed_at')
                 ->icon('heroicon-o-calendar-date-range')
-                ->getStateUsing(function (Model $record){
+                ->getStateUsing(function (Model $record) {
                     return __('shared_lang.label.tx_completed_at') . ': '. $record->tx_completed_at;
                 }),
             TextColumn::make('transfer_received_at')
                 ->icon('heroicon-o-calendar-date-range')
-                ->getStateUsing(function (Model $record){
+                ->getStateUsing(function (Model $record) {
                     return __('shared_lang.label.transfer_received_at') . ': '. $record->transfer_received_at;
                 }),
         ];
     }
 
-    public static function getMemoTypeFormControl(bool $isRefund): Select {
+    public static function getMemoTypeFormControl(bool $isRefund): Select
+    {
         $options = [
             'text' => __('shared_lang.label.memo_type.text'),
             'id' => __('shared_lang.label.memo_type.id'),
@@ -229,7 +237,8 @@ class ResourceUtil
             ->options($options);
     }
 
-    public static function getFeeDetailsFormControl(bool $isSep06): Section {
+    public static function getFeeDetailsFormControl(bool $isSep06): Section
+    {
         $schema = [
             TextInput::make('fee_details.total')
                 ->label(__("shared_lang.label.total"))
@@ -272,7 +281,8 @@ class ResourceUtil
 
     public static function elideTableColumnTextInMiddle(
         string $cellValue,
-        ?int $maxLength = null): string {
+        ?int $maxLength = null
+    ): string {
         if($maxLength == null) {
             $maxLength = 20;
         }
@@ -283,7 +293,8 @@ class ResourceUtil
         return $cellValue;
     }
 
-    public static function getAnchorAssetsDataSourceForSelect(): array {
+    public static function getAnchorAssetsDataSourceForSelect(): array
+    {
         $allAssets = AnchorAsset::all();
         $allAssetsAsString = [];
         foreach ($allAssets as $asset) {
@@ -294,7 +305,8 @@ class ResourceUtil
                     $asset->issuer
                 );
                 LOG::debug($identificationFormatAsset->getStringRepresentation());
-                $allAssetsAsString[$identificationFormatAsset->getStringRepresentation()] = $identificationFormatAsset->getStringRepresentation();
+                $allAssetsAsString[$identificationFormatAsset->getStringRepresentation()] =
+                    $identificationFormatAsset->getStringRepresentation();
             } catch (InvalidAsset $e) {
             }
         }
@@ -348,12 +360,23 @@ class ResourceUtil
         ];
         return Repeater::make('stellar_transactions')
             ->disabled()
-            ->hidden(function(Get $get): bool {
+            ->hidden(function (Get $get): bool {
                 $stellarTransactions = $get('stellar_transactions');
                 return empty($stellarTransactions);
             })
             ->columns(2)
             ->columnSpanFull()
             ->schema($schema);
+    }
+
+
+
+    public static function convertJsonArrayToCommaSeparatedString(array $data, string $fieldName): ?string
+    {
+        $fields = $data[$fieldName] ?? null;
+        if ($fields != null) {
+            return implode(",", $fields);
+        }
+        return null;
     }
 }

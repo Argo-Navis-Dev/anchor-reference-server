@@ -9,7 +9,6 @@ use App\Models\AnchorAsset;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
 use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
 use Closure;
-use Exception;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
@@ -29,8 +28,6 @@ use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Log;
-use Soneso\StellarSDK\Crypto\KeyPair;
-use Soneso\StellarSDK\StellarSDK;
 
 class AnchorAssetResource extends Resource
 {
@@ -38,7 +35,7 @@ class AnchorAssetResource extends Resource
 
     protected static ?string $navigationIcon = 'phosphor-money';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {
@@ -52,18 +49,22 @@ class AnchorAssetResource extends Resource
                         ->columnSpanFull()
                         ->live()
                         ->required(fn (Get $get): bool => $get('schema') == 'stellar')
-                        ->rules([fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
-                            $code = $get('code');
-                            $schema = $get('schema');
-                            $issuer = $get('issuer');
-                            try {
-                                new IdentificationFormatAsset($schema, $code, $issuer);
-                            }catch (InvalidAsset $ex) {
-                                LOG::error($ex->getMessage());
-                                $fail(__('asset_lang.error.incorrect_asset_format',
-                                    ['exception' => $ex->getMessage()]));
+                        ->rules([
+                            fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
+                                $code = $get('code');
+                                $schema = $get('schema');
+                                $issuer = $get('issuer');
+                                try {
+                                    new IdentificationFormatAsset($schema, $code, $issuer);
+                                } catch (InvalidAsset $ex) {
+                                    LOG::error($ex->getMessage());
+                                    $fail(__(
+                                        'asset_lang.error.incorrect_asset_format',
+                                        ['exception' => $ex->getMessage()]
+                                    ));
+                                }
                             }
-                        }])
+                        ])
                         ->minLength(56)
                         ->maxLength(56),
                     Radio::make('schema')
@@ -100,43 +101,6 @@ class AnchorAssetResource extends Resource
             ->schema($schema);
     }
 
-    private static function getDepositOrWithdrawalConfigControls(bool $isDeposit): FormSection
-    {
-        $replacement = $isDeposit ? "deposit" : "withdrawal";
-        $schema = [
-            TextInput::make("{$replacement}_fee_fixed")
-                ->label(__("asset_lang.label.{$replacement}_fee_fixed"))
-                ->minValue(0)
-                ->numeric(),
-            TextInput::make("{$replacement}_fee_percent")
-                ->label(__("asset_lang.label.{$replacement}_fee_percent"))
-                ->minValue(0)
-                ->maxValue(100)
-                ->numeric(),
-            TextInput::make("{$replacement}_fee_minimum")
-                ->label(__("asset_lang.label.{$replacement}_fee_minimum"))
-                ->minValue(0)
-                ->numeric(),
-            TextInput::make("{$replacement}_min_amount")
-                ->label(__("asset_lang.label.{$replacement}_min_amount"))
-                ->minValue(0)
-                ->numeric(),
-            TextInput::make("{$replacement}_max_amount")
-                ->label(__("asset_lang.label.{$replacement}_max_amount"))
-                ->minValue(0)
-                ->numeric(),
-        ];
-        return Section::make([
-            Section::make([Toggle::make("{$replacement}_enabled")
-                ->label(__("asset_lang.label.{$replacement}_enabled"))]),
-            Fieldset::make(__("asset_lang.label.{$replacement}_settings"))
-                ->columns(1)
-                ->columnSpan(1)
-                ->schema($schema)
-        ])->columnSpan(1)
-            ->extraAttributes(['style' => 'background-color: transparent; box-shadow: none !important']);
-    }
-
     private static function getSendConfigControls(): Fieldset
     {
         $schema = [
@@ -165,6 +129,45 @@ class AnchorAssetResource extends Resource
             ->schema($schema);
     }
 
+    private static function getDepositOrWithdrawalConfigControls(bool $isDeposit): FormSection
+    {
+        $replacement = $isDeposit ? "deposit" : "withdrawal";
+        $schema = [
+            TextInput::make("{$replacement}_fee_fixed")
+                ->label(__("asset_lang.label.{$replacement}_fee_fixed"))
+                ->minValue(0)
+                ->numeric(),
+            TextInput::make("{$replacement}_fee_percent")
+                ->label(__("asset_lang.label.{$replacement}_fee_percent"))
+                ->minValue(0)
+                ->maxValue(100)
+                ->numeric(),
+            TextInput::make("{$replacement}_fee_minimum")
+                ->label(__("asset_lang.label.{$replacement}_fee_minimum"))
+                ->minValue(0)
+                ->numeric(),
+            TextInput::make("{$replacement}_min_amount")
+                ->label(__("asset_lang.label.{$replacement}_min_amount"))
+                ->minValue(0)
+                ->numeric(),
+            TextInput::make("{$replacement}_max_amount")
+                ->label(__("asset_lang.label.{$replacement}_max_amount"))
+                ->minValue(0)
+                ->numeric(),
+        ];
+        return Section::make([
+            Section::make([
+                Toggle::make("{$replacement}_enabled")
+                    ->label(__("asset_lang.label.{$replacement}_enabled"))
+            ]),
+            Fieldset::make(__("asset_lang.label.{$replacement}_settings"))
+                ->columns(1)
+                ->columnSpan(1)
+                ->schema($schema)
+        ])->columnSpan(1)
+            ->extraAttributes(['style' => 'background-color: transparent; box-shadow: none !important']);
+    }
+
     private static function getSepConfigControls(): Fieldset
     {
         $schema = [
@@ -185,83 +188,51 @@ class AnchorAssetResource extends Resource
             ->schema($schema);
     }
 
-    public static function table(Table $table): Table
+    private static function getSep06ConfigControls(): Fieldset
     {
-        $columns = [Split::make([
-            TextColumn::make('code')
-                ->description(__('asset_lang.label.code'))
-                ->sortable()
-                ->searchable(),
-            TextColumn::make('issuer')
-                ->description(__('asset_lang.label.issuer'))
-                ->copyable()
-                ->icon('phosphor-copy')
-                ->iconPosition(IconPosition::After)
-                ->searchable()
-                ->sortable()
-                ->formatStateUsing(function ($state) {
-                    return ResourceUtil::elideTableColumnTextInMiddle($state);
+        $schema = [
+            Toggle::make("sep06_deposit_exchange_enabled")
+                ->label(__("asset_lang.label.sep06_deposit_exchange_enabled")),
+            Select::make('sep06_deposit_methods')
+                ->label(__("asset_lang.label.sep06_deposit_methods"))
+                ->multiple()
+                ->createOptionForm([
+                    TextInput::make('name')
+                        ->label(__("shared_lang.label.name"))
+                        ->required()
+                ])
+                ->createOptionUsing(function (array $data) {
+                    return $data['name'];
                 })
-                ->searchable(),
-            Stack::make([
-                TextColumn::make('deposit_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->deposit_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
-                    ->getStateUsing(function (){
-                        return __('asset_lang.label.deposit_enabled');
-                    }),
-                TextColumn::make('withdrawal_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
-                    ->getStateUsing(function (){
-                        return __('asset_lang.label.withdrawal_enabled');
-                    })
-            ]),
-            Stack::make([
-                TextColumn::make('sep06_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->sep06_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
-                    ->getStateUsing(function (){
-                        return __('asset_lang.label.sep06_enabled');
-                    }),
-                TextColumn::make('sep24_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
-                    ->getStateUsing(function (){
-                        return __('asset_lang.label.sep24_enabled');
-                    }),
-                TextColumn::make('sep31_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
-                    ->getStateUsing(function (){
-                        return __('asset_lang.label.sep31_enabled');
-                    }),
-                TextColumn::make('sep38_enabled')
-                    ->icon(fn(AnchorAsset $record): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
-                    ->getStateUsing(function (){
-                        return __('asset_lang.label.sep38_enabled');
-                    })
-            ])
-        ])];
-        return $table
-            ->columns($columns)
-            ->filters([
-                //
-            ])
-            ->recordUrl(null)
-            ->recordAction(null)
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                ViewAnchorAsset::make(),
-            ])
-            ->searchable()
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                ->options([
+                    'wire' => __('asset_lang.label.sep06_deposit_method.wire'),
+                    'cash' => __('asset_lang.label.sep06_deposit_method.cash'),
+                    'mobile' => __('asset_lang.label.sep06_deposit_method.mobile')
                 ]),
-            ]);
-    }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
+            Toggle::make("sep06_withdraw_exchange_enabled")
+                ->label(__("asset_lang.label.sep06_withdraw_exchange_enabled")),
+            Select::make('sep06_withdraw_methods')
+                ->label(__("asset_lang.label.sep06_withdraw_methods"))
+                ->multiple()
+                ->createOptionForm([
+                    TextInput::make('name')
+                        ->label(__("shared_lang.label.name"))
+                        ->required()
+                ])
+                ->createOptionUsing(function (array $data) {
+                    return $data['name'];
+                })
+                ->options([
+                    'wire' => __('asset_lang.label.sep06_withdraw_methods.wire'),
+                    'cash' => __('asset_lang.label.sep06_withdraw_methods.cash'),
+                    'mobile' => __('asset_lang.label.sep06_withdraw_methods.mobile')
+                ])
         ];
+        return Fieldset::make(__("asset_lang.label.sep06_configuration"))
+            ->columns(2)
+            ->columnSpan(1)
+            ->schema($schema);
     }
 
     private static function getSep31ConfigControls(): Fieldset
@@ -271,13 +242,15 @@ class AnchorAssetResource extends Resource
             ->label(__("asset_lang.label.sep31_configuration.quotes_supported"));
         $schema[] = Toggle::make("sep31_cfg_quotes_required")
             ->label(__("asset_lang.label.sep31_configuration.quotes_required"))
-            ->hidden(fn (Get $get): bool => ! $get("sep31_cfg_quotes_supported"));
+            ->hidden(fn (Get $get): bool => !$get("sep31_cfg_quotes_supported"));
 
         $schema[] = Repeater::make('sep31_cfg_sep12_sender_types')
             ->defaultItems(0)
             ->label(__("asset_lang.label.sep31_configuration.sep12_sender_types"))
-            ->addActionLabel(__('shared_lang.label.add_entity',
-                ['entity' => __('asset_lang.label.sep31_configuration.sep12_sender_types')]))
+            ->addActionLabel(__(
+                'shared_lang.label.add_entity',
+                ['entity' => __('asset_lang.label.sep31_configuration.sep12_sender_types')]
+            ))
             ->schema([
                 TextInput::make('name')
                     ->label(__("shared_lang.label.name"))
@@ -292,9 +265,10 @@ class AnchorAssetResource extends Resource
         $schema[] = Repeater::make('sep31_cfg_sep12_receiver_types')
             ->defaultItems(0)
             ->label(__("asset_lang.label.sep31_configuration.sep12_receiver_types"))
-            ->addActionLabel(__('shared_lang.label.add_entity',
-                ['entity' => __('asset_lang.label.sep31_configuration.sep12_receiver_types')]))
-
+            ->addActionLabel(__(
+                'shared_lang.label.add_entity',
+                ['entity' => __('asset_lang.label.sep31_configuration.sep12_receiver_types')]
+            ))
             ->schema([
                 TextInput::make('name')
                     ->label(__("shared_lang.label.name"))
@@ -315,12 +289,6 @@ class AnchorAssetResource extends Resource
     private static function getSep38ConfigControls(): Fieldset
     {
         $schema = [];
-        //TODO Do we need decimals as SEP-38 config
-        /*$schema[] = TextInput::make('sep38_cfg_decimals')
-            ->label(__('shared_lang.label.decimals'))
-            ->required()
-            ->numeric()
-            ->default(2);*/
         $schema[] = Select::make('sep38_cfg_country_codes')
             ->label(__("asset_lang.label.sep38_configuration.country_codes"))
             ->createOptionUsing(function (array $data) {
@@ -370,6 +338,99 @@ class AnchorAssetResource extends Resource
             ->schema($schema);
     }
 
+    public static function table(Table $table): Table
+    {
+        $columns = [
+            Split::make([
+                TextColumn::make('code')
+                    ->description(__('asset_lang.label.code'))
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('issuer')
+                    ->description(__('asset_lang.label.issuer'))
+                    ->copyable()
+                    ->icon('phosphor-copy')
+                    ->iconPosition(IconPosition::After)
+                    ->searchable()
+                    ->sortable()
+                    ->formatStateUsing(function ($state) {
+                        return ResourceUtil::elideTableColumnTextInMiddle($state);
+                    })
+                    ->searchable(),
+                Stack::make([
+                    TextColumn::make('deposit_enabled')
+                        ->icon(fn (
+                            AnchorAsset $record
+                        ): ?string => $record->deposit_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
+                        ->getStateUsing(function () {
+                            return __('asset_lang.label.deposit_enabled');
+                        }),
+                    TextColumn::make('withdrawal_enabled')
+                        ->icon(fn (
+                            AnchorAsset $record
+                        ): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
+                        ->getStateUsing(function () {
+                            return __('asset_lang.label.withdrawal_enabled');
+                        })
+                ]),
+                Stack::make([
+                    TextColumn::make('sep06_enabled')
+                        ->icon(fn (
+                            AnchorAsset $record
+                        ): ?string => $record->sep06_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
+                        ->getStateUsing(function () {
+                            return __('asset_lang.label.sep06_enabled');
+                        }),
+                    TextColumn::make('sep24_enabled')
+                        ->icon(fn (
+                            AnchorAsset $record
+                        ): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
+                        ->getStateUsing(function () {
+                            return __('asset_lang.label.sep24_enabled');
+                        }),
+                    TextColumn::make('sep31_enabled')
+                        ->icon(fn (
+                            AnchorAsset $record
+                        ): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
+                        ->getStateUsing(function () {
+                            return __('asset_lang.label.sep31_enabled');
+                        }),
+                    TextColumn::make('sep38_enabled')
+                        ->icon(fn (
+                            AnchorAsset $record
+                        ): ?string => $record->withdrawal_enabled ? 'heroicon-c-check' : 'heroicon-o-x-mark')
+                        ->getStateUsing(function () {
+                            return __('asset_lang.label.sep38_enabled');
+                        })
+                ])
+            ])
+        ];
+        return $table
+            ->columns($columns)
+            ->filters([
+                //
+            ])
+            ->recordUrl(null)
+            ->recordAction(null)
+            ->actions([
+                Tables\Actions\EditAction::make(),
+                ViewAnchorAsset::make(),
+            ])
+            ->searchable()
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
     public static function getPages(): array
     {
         return [
@@ -377,53 +438,6 @@ class AnchorAssetResource extends Resource
             'create' => Pages\CreateAnchorAsset::route('/create'),
             'edit' => Pages\EditAnchorAsset::route('/{record}/edit')
         ];
-    }
-
-    private static function getSep06ConfigControls(): Fieldset
-    {
-        $schema = [
-            Toggle::make("sep06_deposit_exchange_enabled")
-                ->label(__("asset_lang.label.sep06_deposit_exchange_enabled")),
-            Select::make('sep06_deposit_methods')
-                ->label(__("asset_lang.label.sep06_deposit_methods"))
-                ->multiple()
-                ->createOptionForm([
-                    TextInput::make('name')
-                        ->label(__("shared_lang.label.name"))
-                        ->required()
-                ])
-                ->createOptionUsing(function (array $data) {
-                    return $data['name'];
-                })
-                ->options([
-                    'wire' => __('asset_lang.label.sep06_deposit_method.wire'),
-                    'cash' => __('asset_lang.label.sep06_deposit_method.cash'),
-                    'mobile' => __('asset_lang.label.sep06_deposit_method.mobile')
-                ]),
-
-            Toggle::make("sep06_withdraw_exchange_enabled")
-                ->label(__("asset_lang.label.sep06_withdraw_exchange_enabled")),
-            Select::make('sep06_withdraw_methods')
-                ->label(__("asset_lang.label.sep06_withdraw_methods"))
-                ->multiple()
-                ->createOptionForm([
-                    TextInput::make('name')
-                        ->label(__("shared_lang.label.name"))
-                        ->required()
-                ])
-                ->createOptionUsing(function (array $data) {
-                    return $data['name'];
-                })
-                ->options([
-                    'wire' => __('asset_lang.label.sep06_withdraw_methods.wire'),
-                    'cash' => __('asset_lang.label.sep06_withdraw_methods.cash'),
-                    'mobile' => __('asset_lang.label.sep06_withdraw_methods.mobile')
-                ])
-        ];
-        return Fieldset::make(__("asset_lang.label.sep06_configuration"))
-            ->columns(2)
-            ->columnSpan(1)
-            ->schema($schema);
     }
 
     public static function getModelLabel(): string

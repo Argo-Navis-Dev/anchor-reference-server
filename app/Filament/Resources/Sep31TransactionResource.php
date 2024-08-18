@@ -31,7 +31,7 @@ class Sep31TransactionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-s-circle-stack';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 8;
 
     public static function form(Form $form): Form
     {
@@ -63,9 +63,9 @@ class Sep31TransactionResource extends Resource
                 TextInput::make('stellar_memo')
                     ->disabled()
                     ->label(__('sep31_lang.label.stellar_memo')),
-                TextInput::make('stellar_memo_typ')
+                TextInput::make('stellar_memo_type')
                     ->disabled()
-                    ->label(__('sep31_lang.label.stellar_memo_typ')),
+                    ->label(__('sep31_lang.label.stellar_memo_type')),
 
                 TextInput::make('sep10_account')
                     ->disabled()

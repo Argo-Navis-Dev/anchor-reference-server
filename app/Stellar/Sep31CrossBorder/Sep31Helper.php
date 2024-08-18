@@ -129,7 +129,7 @@ class Sep31Helper
         }
 
         $sep31Transaction->stellar_memo = strval(rand(5000000, 150000000));
-        $sep31Transaction->stellar_memo_typ = 'id';
+        $sep31Transaction->stellar_memo_type = 'id';
         if ($request->asset->asset->getCode() === 'USDC') {
             $sep31Transaction->stellar_account_id = 'GAKRN7SCC7KVT52XLMOFFWOOM4LTI2TQALFKKJ6NKU3XWPNCLD5CFRY2';
         } else if ($request->asset->asset->getCode() === 'JPYC') {
@@ -228,7 +228,7 @@ class Sep31Helper
             amountOutAsset: $amountOutAsset,
             quoteId: $tx->quote_id,
             stellarAccountId: $tx->stellar_account_id,
-            stellarMemoType: $tx->stellar_memo_typ,
+            stellarMemoType: $tx->stellar_memo_type,
             stellarMemo: $tx->stellar_memo,
             startedAt: DateTime::createFromFormat(DATE_ATOM, $tx->tx_started_at),
             updatedAt: $tx->tx_updated_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_updated_at),

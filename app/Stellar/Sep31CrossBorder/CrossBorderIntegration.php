@@ -35,7 +35,7 @@ class CrossBorderIntegration implements ICrossBorderIntegration
             return new Sep31PostTransactionResponse(
                 id: $sep31Transaction->id,
                 stellarAccountId: $sep31Transaction->stellar_account_id,
-                stellarMemoType: $sep31Transaction->stellar_memo_typ,
+                stellarMemoType: $sep31Transaction->stellar_memo_type,
                 stellarMemo: $sep31Transaction->stellar_memo,
             );
         } catch (Throwable $t) {

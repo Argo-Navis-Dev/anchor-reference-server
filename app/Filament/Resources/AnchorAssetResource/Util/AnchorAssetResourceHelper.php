@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Log;
 
 class AnchorAssetResourceHelper
 {
-
     public static function mutateFormDataBeforeSave(array $data): array
     {
         try {
@@ -28,18 +27,18 @@ class AnchorAssetResourceHelper
             $data['sep38_info'] = $sep38InfoJson;
 
             $sep06WithdrawMethods = $data['sep06_withdraw_methods'] ?? null;
-            if($sep06WithdrawMethods != null) {
+            if ($sep06WithdrawMethods != null) {
                 $sep06WithdrawMethodsStr = implode(",", $sep06WithdrawMethods);
                 $data['sep06_withdraw_methods'] = $sep06WithdrawMethodsStr;
-            }else {
+            } else {
                 $data['sep06_withdraw_methods'] = null;
             }
 
             $sep06DepositMethods = $data['sep06_deposit_methods'] ?? null;
-            if($sep06DepositMethods != null) {
+            if ($sep06DepositMethods != null) {
                 $sep06DepositMethodsStr = implode(",", $sep06DepositMethods);
                 $data['sep06_deposit_methods'] = $sep06DepositMethodsStr;
-            }else {
+            } else {
                 $data['sep06_deposit_methods'] = null;
             }
         } catch (InvalidAsset $e) {
@@ -49,65 +48,10 @@ class AnchorAssetResourceHelper
         unset($data['sep31_cfg_sep12_sender_types']);
         unset($data['sep31_cfg_sep12_receiver_types']);
         unset($data['sep38_cfg_country_codes']);
+        unset($data['sep38_cfg_decimals']);
         unset($data['sep38_cfg_sell_delivery_methods']);
         unset($data['sep38_cfg_buy_delivery_methods']);
         return $data;
-    }
-
-    public static function populateSep31InfoBeforeFormLoad(array &$data, AnchorAsset $anchorAsset): void {
-        try {
-            //TODO check this conversion
-            if($anchorAsset->sep31_info != null) {
-                $sep31AssetInfo = Sep31Helper::sep31AssetInfoFromAnchorAsset($anchorAsset);
-                $senderTypes = array();
-                foreach ($sep31AssetInfo->sep12SenderTypes as $value) {
-                    $type = array("name" => $value->name, "description" => $value->description);
-                    $senderTypes[] = $type;
-                }
-                $data['sep31_cfg_sep12_sender_types'] = $senderTypes;
-
-                $receiverTypes = array();
-                foreach ($sep31AssetInfo->sep12ReceiverTypes as $value) {
-                    $type = array("name" => $value->name, "description" => $value->description);
-                    $receiverTypes[] = $type;
-                }
-                $data['sep31_cfg_sep12_receiver_types'] = $receiverTypes;
-
-                $data['sep31_cfg_quotes_supported'] = $sep31AssetInfo->quotesSupported;
-                $data['sep31_cfg_quotes_required'] = $sep31AssetInfo->quotesRequired;
-            }
-        } catch (InvalidAsset $e) {
-            LOG::error($e);
-        }
-    }
-
-    public static function populateSep38InfoBeforeFormLoad(array &$data, AnchorAsset $anchorAsset): void {
-        try {
-            $sep38AssetInfo = Sep38Helper::sep38AssetInfoFromAnchorAsset($anchorAsset);
-
-            $sellDeliveryMethods = array();
-            if($sep38AssetInfo->sellDeliveryMethods != null) {
-                foreach ($sep38AssetInfo->sellDeliveryMethods as $value) {
-                    $method = array("name" => $value->name, "description" => $value->description);
-                    $sellDeliveryMethods[] = $method;
-                }
-            }
-            $data['sep38_cfg_sell_delivery_methods'] = $sellDeliveryMethods;
-
-            $buyDeliveryMethods = array();
-            if($sep38AssetInfo->buyDeliveryMethods != null) {
-                foreach ($sep38AssetInfo->buyDeliveryMethods as $value) {
-                    $method = array("name" => $value->name, "description" => $value->description);
-                    $buyDeliveryMethods[] = $method;
-                }
-            }
-            $data['sep38_cfg_buy_delivery_methods'] = $buyDeliveryMethods;
-            $data['sep38_cfg_country_codes'] = $sep38AssetInfo->countryCodes;
-
-
-        } catch (InvalidAsset $e) {
-            LOG::error($e);
-        }
     }
 
     /**
@@ -135,7 +79,7 @@ class AnchorAssetResourceHelper
 
         $sep31CfgSep12ReceiverTypes = $data['sep31_cfg_sep12_receiver_types'] ?? null;
         $receiverTypes = [];
-        if($sep31CfgSep12ReceiverTypes != null) {
+        if ($sep31CfgSep12ReceiverTypes != null) {
             foreach ($sep31CfgSep12ReceiverTypes as $type) {
                 $receiverTypes[] = new Sep12Type(
                     name: $type['name'],
@@ -167,7 +111,7 @@ class AnchorAssetResourceHelper
 
         $sellDeliveryMethods = $data['sep38_cfg_sell_delivery_methods'] ?? null;
         $sellMethodsByType = [];
-        if($sellDeliveryMethods != null) {
+        if ($sellDeliveryMethods != null) {
             foreach ($sellDeliveryMethods as $method) {
                 $sellMethodsByType[] = new Sep38DeliveryMethod(
                     name: $method['name'],
@@ -178,7 +122,7 @@ class AnchorAssetResourceHelper
 
         $buyDeliveryMethods = $data['sep38_cfg_buy_delivery_methods'] ?? null;
         $buyMethodsByType = [];
-        if($buyDeliveryMethods != null) {
+        if ($buyDeliveryMethods != null) {
             foreach ($buyDeliveryMethods as $method) {
                 $buyMethodsByType[] = new Sep38DeliveryMethod(
                     name: $method['name'],
@@ -202,5 +146,63 @@ class AnchorAssetResourceHelper
             'country_codes' => $sep38AssetInfoJson['country_codes'] ?? []
         );
         return json_encode($result);
+    }
+
+    public static function populateSep31InfoBeforeFormLoad(array &$data, AnchorAsset $anchorAsset): void
+    {
+        try {
+            //TODO check this conversion
+            if ($anchorAsset->sep31_info != null) {
+                $sep31AssetInfo = Sep31Helper::sep31AssetInfoFromAnchorAsset($anchorAsset);
+                $senderTypes = array();
+                foreach ($sep31AssetInfo->sep12SenderTypes as $value) {
+                    $type = array("name" => $value->name, "description" => $value->description);
+                    $senderTypes[] = $type;
+                }
+                $data['sep31_cfg_sep12_sender_types'] = $senderTypes;
+
+                $receiverTypes = array();
+                foreach ($sep31AssetInfo->sep12ReceiverTypes as $value) {
+                    $type = array("name" => $value->name, "description" => $value->description);
+                    $receiverTypes[] = $type;
+                }
+                $data['sep31_cfg_sep12_receiver_types'] = $receiverTypes;
+
+                $data['sep31_cfg_quotes_supported'] = $sep31AssetInfo->quotesSupported;
+                $data['sep31_cfg_quotes_required'] = $sep31AssetInfo->quotesRequired;
+            }
+        } catch (InvalidAsset $e) {
+            LOG::error($e);
+        }
+    }
+
+    public static function populateSep38InfoBeforeFormLoad(array &$data, AnchorAsset $anchorAsset): void
+    {
+        try {
+            $sep38AssetInfo = Sep38Helper::sep38AssetInfoFromAnchorAsset($anchorAsset);
+            $sellDeliveryMethods = array();
+            if ($sep38AssetInfo->sellDeliveryMethods != null) {
+                /**
+                 * @param array<Sep38DeliveryMethod> $sep38AssetInfo ->sellDeliveryMethods
+                 */
+                foreach ($sep38AssetInfo->sellDeliveryMethods as $value) {
+                    $method = array("name" => $value->name, "description" => $value->description);
+                    $sellDeliveryMethods[] = $method;
+                }
+            }
+            $data['sep38_cfg_sell_delivery_methods'] = $sellDeliveryMethods;
+
+            $buyDeliveryMethods = array();
+            if ($sep38AssetInfo->buyDeliveryMethods != null) {
+                foreach ($sep38AssetInfo->buyDeliveryMethods as $value) {
+                    $method = array("name" => $value->name, "description" => $value->description);
+                    $buyDeliveryMethods[] = $method;
+                }
+            }
+            $data['sep38_cfg_buy_delivery_methods'] = $buyDeliveryMethods;
+            $data['sep38_cfg_country_codes'] = $sep38AssetInfo->countryCodes;
+        } catch (InvalidAsset $e) {
+            LOG::error($e);
+        }
     }
 }

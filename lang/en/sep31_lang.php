@@ -25,7 +25,7 @@ return [
     'label.amount_fee_asset' => 'Amount fee asset',
     'label.stellar_account_id' => 'Stellar account id',
     'label.stellar_memo' => 'Stellar memo',
-    'label.stellar_memo_typ' => 'Stellar memo type',
+    'label.stellar_memo_type' => 'Stellar memo type',
     'label.client_domain' => 'Client domain',
     'label.tx_started_at' => 'Transaction started at',
     'label.tx_completed_at' => 'Transaction completed at',

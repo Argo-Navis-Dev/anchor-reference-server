@@ -30,7 +30,7 @@ class Sep38ExchangeQuoteResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-s-circle-stack';
 
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 9;
 
     public static function form(Form $form): Form
     {

@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $amount_fee_asset
  * @property string|null $stellar_account_id
  * @property string|null $stellar_memo
- * @property string|null $stellar_memo_typ
+ * @property string|null $stellar_memo_type
  * @property string|null $client_domain
  * @property string $tx_started_at
  * @property string|null $tx_completed_at
@@ -111,7 +111,7 @@ class Sep31Transaction extends Model
         'amount_fee_asset',
         'stellar_account_id',
         'stellar_memo',
-        'stellar_memo_typ',
+        'stellar_memo_type',
         'client_domain',
         'tx_started_at',
         'tx_completed_at',

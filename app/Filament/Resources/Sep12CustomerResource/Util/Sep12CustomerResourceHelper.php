@@ -11,7 +11,14 @@ use App\Stellar\Sep12Customer\Sep12CustomerType;
 use App\Stellar\Sep12Customer\Sep12Helper;
 use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
 use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
+use Filament\Forms\Components\Field;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\HtmlString;
 
 class Sep12CustomerResourceHelper
 {
@@ -104,4 +111,103 @@ class Sep12CustomerResourceHelper
         }
         return $fieldNames;
     }
+
+    public static function getCustomerCustomFormFields(array $fields, bool $required): array
+    {
+        $customFieldPrefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
+        $statusSuffix = Sep12CustomerResource::CUSTOM_STATUS_FIELD_SUFFIX;
+        $providedFields = [];
+        foreach ($fields as $field) {
+            $label = __("sep12_lang.label.{$field->key}");
+            $descriptionKey = "sep12_lang.label.{$field->key}.description";
+            $description =  __($descriptionKey);
+            if($description == $descriptionKey) {
+                $description = $field->desc;
+            }
+            $fieldType = $field->type;
+            $name = "{$customFieldPrefix}{$field->id}";
+
+            $hasStatus = !isset(Sep12CustomerResource::KYC_FIELD_WITHOUT_STATUS[$field->key]);
+            if ($fieldType == 'string') {
+                if ($field->choices != null) {
+                    $providedFields[] = self::createDynamicSelectField($field, $hasStatus, $description, $required);
+                } else {
+                    $providedFields[] = TextInput::make(name: $name)
+                        ->required($required)
+                        ->helperText($description)
+                        ->label($label);
+                }
+            }
+            if ($fieldType == 'binary') {
+                $providedFields[] = self::getBinaryFieldComponent($field->id, $label, $description);
+            }
+            $statusFieldName = "{$customFieldPrefix}{$field->id}{$statusSuffix}";
+            if ($hasStatus) {
+                $requiresVerification = $field->requires_verification;
+                $statusField = self::createProvidedFieldStatusComp($statusFieldName, $requiresVerification);
+                $providedFields[] = $statusField;
+            }
+        }
+        return $providedFields;
+    }
+
+    private static function createDynamicSelectField(Sep12Field $field,
+        bool $hasStatusField,
+        string $description,
+        bool $required): Select
+    {
+        $customFieldPrefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
+        $name = "{$customFieldPrefix}{$field->id}";
+        $choices = explode(",", $field->choices);
+        $options = [];
+        foreach ($choices as $choice) {
+            $options[$choice] = __("sep12_lang.label.{$field->key}.{$choice}");
+        }
+        $component = Select::make($name)
+            ->label(__("sep12_lang.label.{$field->key}"))
+            ->helperText($description)
+            ->columnSpan(1)
+            ->required($required)
+            ->options($options);
+        if (!$hasStatusField) {
+            $component->columnSpan(2);
+        }
+        return $component;
+    }
+
+    private static function getBinaryFieldComponent(
+        string $fieldID,
+        string $label,
+        string $description
+    ): Placeholder {
+        return Placeholder::make('Image')
+            ->hidden(fn($record) => $record == null)
+            ->label($label)
+            ->helperText($description)
+            ->content(function ($record) use ($fieldID): HtmlString {
+                $id = $record != null ? $record->id : null;
+                $src = '/customer/' . $id . '/binary-field/' . $fieldID;
+                return new HtmlString("<img src= '" . $src . "')>");
+            });
+    }
+
+    private static function createProvidedFieldStatusComp(string $name, bool $requiresVerification): Field {
+        $option = [
+            ProvidedCustomerFieldStatus::ACCEPTED => __('sep12_lang.label.field.status.accepted'),
+            ProvidedCustomerFieldStatus::PROCESSING => __('sep12_lang.label.field.status.processing'),
+            ProvidedCustomerFieldStatus::REJECTED => __('sep12_lang.label.field.status.rejected'),
+        ];
+        if($requiresVerification) {
+            $option[ProvidedCustomerFieldStatus::VERIFICATION_REQUIRED] = __('sep12_lang.label.field.status.verification_required');
+        }
+        return Select::make($name)
+            ->label(__('shared_lang.label.status'))
+            ->afterStateUpdated(function (Set $set, Get $get, $state, Sep12Customer $customer) {
+                Sep12CustomerResourceHelper::onCustomerFieldStatusChanged($state, $set, $get, $customer);
+            })
+            ->live()
+            ->default(CustomerStatus::PROCESSING)
+            ->options($option);
+    }
+
 }

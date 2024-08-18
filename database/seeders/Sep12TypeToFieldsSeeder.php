@@ -17,6 +17,7 @@ class Sep12TypeToFieldsSeeder extends Seeder
             'type' => 'default',
             'required_fields' => 'first_name, last_name, email_address, id_number, id_type, photo_id_front',
             'optional_fields' => 'photo_id_back',
+            'created_at' => now(),
         ]);
     }
 }

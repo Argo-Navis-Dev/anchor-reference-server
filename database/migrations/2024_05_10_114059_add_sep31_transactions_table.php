@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('amount_fee_asset')->nullable();
             $table->string('stellar_account_id')->nullable();
             $table->string('stellar_memo')->nullable();
-            $table->string('stellar_memo_typ')->nullable();
+            $table->string('stellar_memo_type')->nullable();
             $table->string('client_domain')->nullable();
             $table->dateTime('tx_started_at');
             $table->dateTime('tx_completed_at')->nullable();
