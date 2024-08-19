@@ -1,24 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\Sep12TypeToFieldsResource\Pages;
-use App\Filament\Resources\Sep12TypeToFieldsResource\RelationManagers;
 use App\Models\Sep12Field;
 use App\Models\Sep12TypeToFields;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TagsColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Log;
 
+/**
+ *  The UI. controls definitions for a SEP-12 customer type to field record from the database.
+ */
 class Sep12TypeToFieldsResource extends Resource
 {
     protected static ?string $model = Sep12TypeToFields::class;
@@ -59,10 +65,19 @@ class Sep12TypeToFieldsResource extends Resource
                     ->label(__('sep12_lang.label.fields.type'))
                     ->searchable(),
                 TextColumn::make('required_fields')
+                    ->listWithLineBreaks()
+                    ->html()
+                    ->formatStateUsing(function ($state) {
+                        return self::formatTableFieldsAsHtml($state);
+                    })
                     ->label(__('sep12_lang.label.fields.required'))
                     ->searchable(),
                 TextColumn::make('optional_fields')
                     ->label(__('sep12_lang.label.fields.optional'))
+                    ->html()
+                    ->formatStateUsing(function ($state) {
+                        return self::formatTableFieldsAsHtml($state);
+                    })
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->label(__('shared_lang.label.created_at'))
@@ -131,5 +146,21 @@ class Sep12TypeToFieldsResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    /**
+     * Formats the required and optional fields to be shown in table.
+     * @param $state
+     * @return string
+     */
+    private static function formatTableFieldsAsHtml($state): string
+    {
+        $values = array_map('trim', explode(',', $state));
+        $html = '';
+        foreach ($values as $value) {
+            $html = $html . __("sep12_lang.label.${value}") . '<br>';
+        }
+
+        return $html;
     }
 }

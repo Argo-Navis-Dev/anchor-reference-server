@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
-use Filament\Forms;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
@@ -14,11 +18,11 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Log;
 
+/**
+ *   The UI. controls definitions for a user record from the database.
+ */
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;

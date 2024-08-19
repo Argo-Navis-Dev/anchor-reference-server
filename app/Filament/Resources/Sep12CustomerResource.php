@@ -1,38 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AnchorAssetResource\Actions\ViewAnchorAsset;
 use App\Filament\Resources\Sep12CustomerResource\Actions\ViewSep12Customer;
 use App\Filament\Resources\Sep12CustomerResource\Pages;
 use App\Filament\Resources\Sep12CustomerResource\Util\Sep12CustomerResourceHelper;
 use App\Models\Sep12Customer;
-use App\Models\Sep12Field;
-use App\Models\Sep12TypeToFields;
 use App\Stellar\Sep12Customer\Sep12CustomerType;
 use App\Stellar\Sep12Customer\Sep12Helper;
 use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
-use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
-use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\Layout\Panel;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\HtmlString;
 
+/**
+ *  The UI. controls definitions for a SEP-12 customer record from the database.
+ */
 class Sep12CustomerResource extends Resource
 {
     public const CUSTOM_FIELD_PREFIX = 'custom_';
@@ -45,15 +47,18 @@ class Sep12CustomerResource extends Resource
 
     public static function form(Form $form): Form
     {
+        /**
+         * @var Sep12Customer $customer
+         */
+        $customer = $form->getRecord();
         $type = Sep12CustomerType::DEFAULT;
-//        if ($customer !== null) {
-//            $type = $customer->type;
-//        }
+        if ($customer !== null) {
+            $type = $customer->type;
+        }
         $sep12FieldsForType = Sep12Helper::getSep12FieldsForCustomerType($type);
 
-        $requiredFildsList = $sep12FieldsForType['required'] ?? [];
-        $optionalFildsList = $sep12FieldsForType['optional'] ?? [];
-
+        $requiredFieldsList = $sep12FieldsForType['required'] ?? [];
+        $optionalFieldsList = $sep12FieldsForType['optional'] ?? [];
 
         $statusField = self::createCustomerStatusField('status');
         $statusField->columnSpan(2);
@@ -77,8 +82,8 @@ class Sep12CustomerResource extends Resource
                 ->label(__('shared_lang.label.lang'))
         ];
 
-        $providedFields = Sep12CustomerResourceHelper::getCustomerCustomFormFields($requiredFildsList, true);
-        $optionalFormControls = Sep12CustomerResourceHelper::getCustomerCustomFormFields($optionalFildsList, false);
+        $providedFields = Sep12CustomerResourceHelper::getCustomerCustomFormFields($requiredFieldsList, true);
+        $optionalFormControls = Sep12CustomerResourceHelper::getCustomerCustomFormFields($optionalFieldsList, false);
         $providedFields = array_merge($providedFields, $optionalFormControls);
 
         $components[] = Fieldset::make(__('sep12_lang.label.provided_fields'))->schema($providedFields);
@@ -103,9 +108,6 @@ class Sep12CustomerResource extends Resource
                 CustomerStatus::REJECTED => __("sep12_lang.label.customer.status.rejected"),
             ]);
     }
-
-
-
 
     public static function table(Table $table): Table
     {
@@ -213,5 +215,4 @@ class Sep12CustomerResource extends Resource
     {
         return false;
     }
-
 }

@@ -29,7 +29,7 @@ return [
     'label.id_type' => 'ID type',
     'label.id_type.passport' => 'Passport',
     'label.id_type.id_card' => 'ID card',
-    'label.id_type.driving_license' => 'Driving license',
+    'label.id_type.drivers_licence' => 'Driving license',
     'label.id_number' => 'ID number',
     'label.photo_id_back' => 'Photo ID back',
     'label.photo_id_front' => 'Photo ID front',

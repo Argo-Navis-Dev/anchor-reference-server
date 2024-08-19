@@ -1,29 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\Sep38ExchangeQuoteResource\Actions\EditSep38EExchangeQuoteResource;
 use App\Filament\Resources\Sep38ExchangeQuoteResource\Pages;
 use App\Filament\Resources\Sep38ExchangeQuoteResource\RelationManagers;
 use App\Models\Sep38ExchangeQuote;
-use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
 use Filament\Tables\Columns\Layout\Split;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
+/**
+ *  The UI. controls definitions for a SEP-38 exchange quote transaction record from the database.
+ */
 class Sep38ExchangeQuoteResource extends Resource
 {
     protected static ?string $model = Sep38ExchangeQuote::class;
@@ -98,7 +102,7 @@ class Sep38ExchangeQuoteResource extends Resource
                         TextInput::make('buy_delivery_method')
                             ->label(__('sep38_lang.label.buy_delivery_method')),
                     ]),
-                ResourceUtil::getFeeDetailsFormControl(true),
+                ResourceUtil::getFeeDetailsFormControl(),
                 ResourceUtil::getModelTimestampFormControls(1)
             ])
             ->columns(3);

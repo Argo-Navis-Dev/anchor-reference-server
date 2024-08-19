@@ -1,20 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\Sep06TransactionResource\Actions\EditSep31TransactionResource;
 use App\Filament\Resources\Sep24TransactionResource\Actions\EditSep24TransactionResource;
 use App\Filament\Resources\Sep24TransactionResource\Pages;
 use App\Models\Sep24Transaction;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
+/**
+ *  The UI. controls definitions for a SEP-24 transaction record from the database.
+ */
 class Sep24TransactionResource extends Resource
 {
     protected static ?string $model = Sep24Transaction::class;

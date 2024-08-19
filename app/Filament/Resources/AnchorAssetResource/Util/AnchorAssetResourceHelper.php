@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources\AnchorAssetResource\Util;
 
 // Copyright 2024 Argo Navis Dev. All rights reserved.
@@ -18,6 +24,13 @@ use Illuminate\Support\Facades\Log;
 
 class AnchorAssetResourceHelper
 {
+    /**
+     * Processes the form data model before saving.
+     *
+     * @param array<array-key, mixed> $data The form data model.
+     * @return array<array-key, mixed> The processed form data model.
+     * @throws \JsonException
+     */
     public static function mutateFormDataBeforeSave(array $data): array
     {
         try {
@@ -51,18 +64,28 @@ class AnchorAssetResourceHelper
         unset($data['sep38_cfg_decimals']);
         unset($data['sep38_cfg_sell_delivery_methods']);
         unset($data['sep38_cfg_buy_delivery_methods']);
+
         return $data;
     }
 
     /**
+     * Processed the SPE-31 info JSON before saving in DB.
+     *
+     * @param array<array-key, mixed | string> $data
+     * @return string
      * @throws InvalidAsset
+     * @throws \JsonException
      */
     private static function processSep31InfoBeforeSave(array $data): string
     {
+
+        $schema = (string)$data['schema'] ?? '';
+        $code = $data['code'] ?? '';
+        $issuer = $data['issuer'] ?? null;
         $asset = new IdentificationFormatAsset(
-            schema: $data['schema'],
-            code: $data['code'],
-            issuer: $data['issuer'],
+            schema: $schema,
+            code: $code,
+            issuer: $issuer
         );
 
         $sep31CfgSep12SenderTypes = $data['sep31_cfg_sep12_sender_types'] ?? null;
@@ -95,10 +118,13 @@ class AnchorAssetResourceHelper
             quotesRequired: $data['sep31_cfg_quotes_required'] ?? null,
         );
 
-        return json_encode($sep31Asset->toJson());
+        return json_encode($sep31Asset->toJson(), JSON_THROW_ON_ERROR);
     }
 
     /**
+     *  Processed SEP-38 info before save.
+     *
+     * @param array<array-key, mixed> $data The form data model.
      * @throws InvalidAsset
      */
     private static function processSep38InfoBeforeSave(array $data): string
@@ -109,6 +135,9 @@ class AnchorAssetResourceHelper
             issuer: $data['issuer'],
         );
 
+        /**
+         * @param array $sellDeliveryMethods
+         */
         $sellDeliveryMethods = $data['sep38_cfg_sell_delivery_methods'] ?? null;
         $sellMethodsByType = [];
         if ($sellDeliveryMethods != null) {
@@ -145,9 +174,17 @@ class AnchorAssetResourceHelper
             'buy_delivery_methods' => $sep38AssetInfoJson['buy_delivery_methods'] ?? [],
             'country_codes' => $sep38AssetInfoJson['country_codes'] ?? []
         );
+
         return json_encode($result);
     }
 
+    /**
+     * Populates the SEP-31 info before loading the form.
+     *
+     * @param array<array-key, mixed> $data The form data model.
+     * @param AnchorAsset $anchorAsset The DB entity to be loaded.
+     * @return void
+     */
     public static function populateSep31InfoBeforeFormLoad(array &$data, AnchorAsset $anchorAsset): void
     {
         try {
@@ -176,6 +213,13 @@ class AnchorAssetResourceHelper
         }
     }
 
+    /**
+     * Populates the SEP-38 info before loading the form.
+     *
+     * @param array<array-key, string> $data
+     * @param AnchorAsset $anchorAsset The DB entity to be loaded.
+     * @return void
+     */
     public static function populateSep38InfoBeforeFormLoad(array &$data, AnchorAsset $anchorAsset): void
     {
         try {

@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\Sep06TransactionResource\Actions\EditSep31TransactionResource;
 use App\Filament\Resources\Sep31TransactionResource\Pages;
-use App\Filament\Resources\Sep31TransactionResource\RelationManagers;
 use App\Models\Sep31Transaction;
 use ArgoNavis\PhpAnchorSdk\shared\Sep31TransactionStatus;
-use Filament\Forms;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -21,10 +24,11 @@ use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
+/**
+ *  The UI. controls definitions for a SEP-31 transaction record from the database.
+ */
 class Sep31TransactionResource extends Resource
 {
     protected static ?string $model = Sep31Transaction::class;
@@ -90,7 +94,7 @@ class Sep31TransactionResource extends Resource
                 ResourceUtil::getTransactionTimestampFormControls(),
                 ResourceUtil::getRefundsInfoFormControls(false),
                 ResourceUtil::getStellarTransactionsFormControl(),
-                ResourceUtil::getFeeDetailsFormControl(true),
+                ResourceUtil::getFeeDetailsFormControl(),
                 TextArea::make('required_info_message')
                     ->disabled()
                     ->columnSpan(2)

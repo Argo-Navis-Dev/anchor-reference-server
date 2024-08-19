@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources;
 
-use App\Models\AnchorAsset;
 use App\Stellar\Sep06Transfer\Sep06Helper;
 use ArgoNavis\PhpAnchorSdk\shared\Sep06TransactionStatus;
 use ArgoNavis\PhpAnchorSdk\shared\Sep24TransactionStatus;
-use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
@@ -16,7 +19,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Get;
-use Filament\Resources\Resource;
 use Filament\Support\Enums\IconPosition;
 use Filament\Tables\Columns\Layout\Panel;
 use Filament\Tables\Columns\Layout\Split;
@@ -24,14 +26,15 @@ use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 
+/**
+ *  The UI. controls definition utility common part for SEP-06 and SEP-24 transactions.
+ */
 class Sep06And24ResourceUtil
 {
-
     public static function getFormControls(bool $isSep06): array
     {
-        return [
+        $schema = [
             self::getStatusFormControl($isSep06),
             TextInput::make('from_account')
                 ->minLength(56)
@@ -154,19 +157,141 @@ class Sep06And24ResourceUtil
                         ->multiple(true)
                         ->label(__("sep06_lang.label.required_customer_info_updates"))
                 ]),
-            ResourceUtil::getFeeDetailsFormControl($isSep06),
-            self::getInstructionsFormControl($isSep06),
-            Textarea::make('message')
-                ->hidden($isSep06 == false)
-                ->disabled(true)
-                ->label(__('sep06_lang.label.message'))
-                ->columnSpanFull(),
-            ResourceUtil::getStellarTransactionsFormControl(),
-            ResourceUtil::getModelTimestampFormControls(1)
+        ];
+
+        if ($isSep06) {
+            $schema[] = ResourceUtil::getFeeDetailsFormControl();
+        }
+
+        $schema[] = self::getInstructionsFormControl($isSep06);
+        $schema[] = Textarea::make('message')
+            ->hidden($isSep06 == false)
+            ->disabled(true)
+            ->label(__('sep06_lang.label.message'))
+            ->columnSpanFull();
+        $schema[] = ResourceUtil::getStellarTransactionsFormControl();
+        $schema[] = ResourceUtil::getModelTimestampFormControls(1);
+
+        return $schema;
+    }
+
+    private static function getStatusFormControl(bool $isSep06): Select
+    {
+        return Select::make('status')
+            ->label(__('shared_lang.label.status'))
+            ->columnSpanFull()
+            ->options($isSep06 ? self::getSep06StatusOptions() : self::getSep24StatusOptions());
+    }
+
+    private static function getSep06StatusOptions(): array
+    {
+        return [
+            Sep06TransactionStatus::COMPLETED => __('sep06_lang.label.status.completed'),
+            Sep06TransactionStatus::PENDING_EXTERNAL => __('sep06_lang.label.status.pending_external'),
+            Sep06TransactionStatus::PENDING_ANCHOR => __('sep06_lang.label.status.pending_external'),
+            Sep06TransactionStatus::PENDING_STELLAR => __('sep06_lang.label.status.pending_external'),
+            Sep06TransactionStatus::PENDING_TRUST => __('sep06_lang.label.status.pending_trust'),
+            Sep06TransactionStatus::PENDING_USER => __('sep06_lang.label.status.pending_user'),
+            Sep06TransactionStatus::PENDING_USER_TRANSFER_START => __('sep06_lang.label.status.pending_user_transfer_start'),
+            Sep06TransactionStatus::PENDING_USER_TRANSFER_COMPLETE => __('sep06_lang.label.status.pending_user_transfer_complete'),
+            Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE => __('sep06_lang.label.status.pending_customer_info_update'),
+            Sep06TransactionStatus::PENDING_TRANSACTION_INFO_UPDATE => __('sep06_lang.label.status.pending_transaction_info_update'),
+            Sep06TransactionStatus::INCOMPLETE => __('sep06_lang.label.status.incomplete'),
+            Sep06TransactionStatus::EXPIRED => __('sep06_lang.label.status.expired'),
+            Sep06TransactionStatus::NO_MARKET => __('sep06_lang.label.status.no_market'),
+            Sep06TransactionStatus::TOO_SMALL => __('sep06_lang.label.status.too_small'),
+            Sep06TransactionStatus::TOO_LARGE => __('sep06_lang.label.status.too_large'),
+            Sep06TransactionStatus::ERROR => __('sep06_lang.label.status.error'),
+            Sep06TransactionStatus::REFUNDED => __('sep06_lang.label.status.refunded')
         ];
     }
 
-    private static function getInstructionsFormControl(bool $isSep06): Section {
+    private static function getSep24StatusOptions(): array
+    {
+        return [
+            Sep24TransactionStatus::INCOMPLETE => __('sep24_lang.label.status.incomplete'),
+            Sep24TransactionStatus::PENDING_USER_TRANSFER_START => __('sep24_lang.label.status.pending_user_transfer_start'),
+            Sep24TransactionStatus::PENDING_USER_TRANSFER_COMPLETE => __('sep24_lang.label.status.pending_user_transfer_complete'),
+            Sep24TransactionStatus::PENDING_EXTERNAL => __('sep24_lang.label.status.pending_external'),
+            Sep24TransactionStatus::PENDING_ANCHOR => __('sep24_lang.label.status.pending_anchor'),
+            Sep24TransactionStatus::PENDING_STELLAR => __('sep24_lang.label.status.pending_stellar'),
+            Sep24TransactionStatus::PENDING_TRUST => __('sep24_lang.label.status.pending_trust'),
+            Sep24TransactionStatus::PENDING_USER => __('sep24_lang.label.status.pending_user'),
+            Sep24TransactionStatus::COMPLETED => __('sep24_lang.label.status.completed'),
+            Sep24TransactionStatus::REFUNDED => __('sep24_lang.label.status.refunded'),
+            Sep24TransactionStatus::EXPIRED => __('sep24_lang.label.status.expired'),
+            Sep24TransactionStatus::NO_MARKET => __('sep24_lang.label.status.no_market'),
+            Sep24TransactionStatus::TOO_SMALL => __('sep24_lang.label.status.too_small'),
+            Sep24TransactionStatus::TOO_LARGE => __('sep24_lang.label.status.too_large'),
+            Sep24TransactionStatus::ERROR => __('sep24_lang.label.status.error'),
+        ];
+    }
+
+    private static function getKindFormControl(): Select
+    {
+        return Select::make('kind')
+            ->disabled(true)
+            ->label(__('sep06_lang.label.kind'))
+            ->options([
+                'deposit' => __('sep06_lang.label.kind.deposit'),
+                'deposit-exchange' => __('sep06_lang.label.kind.deposit_exchange'),
+                'withdrawal' => __('sep06_lang.label.kind.withdrawal'),
+                'withdrawal-exchange' => __('sep06_lang.label.kind.withdrawal_exchange')
+            ]);
+    }
+
+    private static function getTypeFormControl(bool $isSep06): Select
+    {
+        $options = [
+            'crypto' => __('sep06_lang.label.type.crypto'),
+            'bank_account' => __('sep06_lang.label.type.bank_account'),
+            'cash' => __('sep06_lang.label.type.cash'),
+            'mobile' => __('sep06_lang.label.type.mobile'),
+            'payment' => __('sep06_lang.label.type.bill_payment'),
+        ];
+        return Select::make('type')
+            ->label(__('sep06_lang.label.type'))
+            ->disabled(true)
+            ->hidden($isSep06 == false)
+            ->options($options)
+            ->createOptionUsing(function (array $data) {
+                return $data['type'];
+            })
+            ->createOptionForm([
+                TextInput::make('type')
+                    ->label(__('sep06_lang.label.type'))
+                    ->required()
+            ]);
+    }
+
+    private static function getRequiredInfoUpdatesFormControl(): Repeater
+    {
+        return Repeater::make('required_info_updates')
+            ->disabled()
+            ->schema([
+                TextInput::make('fieldName')
+                    ->disabled(true)
+                    ->label(__("sep06_lang.label.required_info_updates.name"))
+                    ->required(),
+                TextArea::make('description')
+                    ->disabled(true)
+                    ->label(__("sep06_lang.label.required_info_updates.description"))
+                    ->required(),
+                Toggle::make('optional')
+                    ->disabled(true)
+                    ->label(__("sep06_lang.label.required_info_updates.optional"))
+                    ->required(),
+                Select::make('choices')
+                    ->disabled(true)
+                    ->label(__('sep06_lang.label.required_info_updates.choices'))
+                    ->hidden(fn(Get $get): bool => $get("choices") == null)
+                    ->options(fn(Get $get): array => $get("choices") ? $get("choices") : [])
+            ])
+            ->columns(2);
+    }
+
+    private static function getInstructionsFormControl(bool $isSep06): Section
+    {
         $schema = [];
         $schema[] = Repeater::make('instructions')
             ->disabled()
@@ -192,88 +317,6 @@ class Sep06And24ResourceUtil
             ->schema($schema);
     }
 
-    private static function getStatusFormControl(bool $isSep06): Select {
-        return Select::make('status')
-            ->label(__('shared_lang.label.status'))
-            ->columnSpanFull()
-            ->options($isSep06 ? self::getSep06StatusOptions() : self::getSep24StatusOptions());
-    }
-
-    private static function getTypeFormControl(bool $isSep06): Select {
-        $options = [
-            'crypto' => __('sep06_lang.label.type.crypto'),
-            'bank_account' => __('sep06_lang.label.type.bank_account'),
-            'cash' => __('sep06_lang.label.type.cash'),
-            'mobile' => __('sep06_lang.label.type.mobile'),
-            'payment' => __('sep06_lang.label.type.bill_payment'),
-        ];
-        return Select::make('type')
-            ->label(__('sep06_lang.label.type'))
-            ->disabled(true)
-            ->hidden($isSep06 == false)
-            ->options($options)
-            ->createOptionUsing(function (array $data) {
-                return $data['type'];
-            })
-            ->createOptionForm([
-                TextInput::make('type')
-                    ->label(__('sep06_lang.label.type'))
-                    ->required()
-            ]);
-    }
-
-    private static function getSep06StatusOptions(): array {
-        return [
-            Sep06TransactionStatus::COMPLETED => __('sep06_lang.label.status.completed'),
-            Sep06TransactionStatus::PENDING_EXTERNAL => __('sep06_lang.label.status.pending_external'),
-            Sep06TransactionStatus::PENDING_ANCHOR => __('sep06_lang.label.status.pending_external'),
-            Sep06TransactionStatus::PENDING_STELLAR => __('sep06_lang.label.status.pending_external'),
-            Sep06TransactionStatus::PENDING_TRUST => __('sep06_lang.label.status.pending_trust'),
-            Sep06TransactionStatus::PENDING_USER  => __('sep06_lang.label.status.pending_user'),
-            Sep06TransactionStatus::PENDING_USER_TRANSFER_START  => __('sep06_lang.label.status.pending_user_transfer_start'),
-            Sep06TransactionStatus::PENDING_USER_TRANSFER_COMPLETE  => __('sep06_lang.label.status.pending_user_transfer_complete'),
-            Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE  => __('sep06_lang.label.status.pending_customer_info_update'),
-            Sep06TransactionStatus::PENDING_TRANSACTION_INFO_UPDATE  => __('sep06_lang.label.status.pending_transaction_info_update'),
-            Sep06TransactionStatus::INCOMPLETE  => __('sep06_lang.label.status.incomplete'),
-            Sep06TransactionStatus::EXPIRED  => __('sep06_lang.label.status.expired'),
-            Sep06TransactionStatus::NO_MARKET  => __('sep06_lang.label.status.no_market'),
-            Sep06TransactionStatus::TOO_SMALL  => __('sep06_lang.label.status.too_small'),
-            Sep06TransactionStatus::TOO_LARGE  => __('sep06_lang.label.status.too_large'),
-            Sep06TransactionStatus::ERROR  => __('sep06_lang.label.status.error'),
-            Sep06TransactionStatus::REFUNDED => __('sep06_lang.label.status.refunded')
-        ];
-    }
-    private static function getSep24StatusOptions(): array {
-        return [
-            Sep24TransactionStatus::INCOMPLETE => __('sep24_lang.label.status.incomplete'),
-            Sep24TransactionStatus::PENDING_USER_TRANSFER_START => __('sep24_lang.label.status.pending_user_transfer_start'),
-            Sep24TransactionStatus::PENDING_USER_TRANSFER_COMPLETE => __('sep24_lang.label.status.pending_user_transfer_complete'),
-            Sep24TransactionStatus::PENDING_EXTERNAL => __('sep24_lang.label.status.pending_external'),
-            Sep24TransactionStatus::PENDING_ANCHOR => __('sep24_lang.label.status.pending_anchor'),
-            Sep24TransactionStatus::PENDING_STELLAR => __('sep24_lang.label.status.pending_stellar'),
-            Sep24TransactionStatus::PENDING_TRUST => __('sep24_lang.label.status.pending_trust'),
-            Sep24TransactionStatus::PENDING_USER => __('sep24_lang.label.status.pending_user'),
-            Sep24TransactionStatus::COMPLETED => __('sep24_lang.label.status.completed'),
-            Sep24TransactionStatus::REFUNDED => __('sep24_lang.label.status.refunded'),
-            Sep24TransactionStatus::EXPIRED => __('sep24_lang.label.status.expired'),
-            Sep24TransactionStatus::NO_MARKET => __('sep24_lang.label.status.no_market'),
-            Sep24TransactionStatus::TOO_SMALL => __('sep24_lang.label.status.too_small'),
-            Sep24TransactionStatus::TOO_LARGE => __('sep24_lang.label.status.too_large'),
-            Sep24TransactionStatus::ERROR => __('sep24_lang.label.status.error'),
-        ];
-    }
-    private static function getKindFormControl(): Select {
-        return Select::make('kind')
-            ->disabled(true)
-            ->label(__('sep06_lang.label.kind'))
-            ->options([
-                'deposit' => __('sep06_lang.label.kind.deposit'),
-                'deposit-exchange' => __('sep06_lang.label.kind.deposit_exchange'),
-                'withdrawal' => __('sep06_lang.label.kind.withdrawal'),
-                'withdrawal-exchange' => __('sep06_lang.label.kind.withdrawal_exchange')
-            ]);
-    }
-
     public static function getTableColumns(Table $table, bool $isSep06): array
     {
         $columns = [
@@ -285,7 +328,7 @@ class Sep06And24ResourceUtil
                         return ResourceUtil::elideTableColumnTextInMiddle($state);
                     })
                     ->copyable()
-                    ->icon(function(Model $model)  {
+                    ->icon(function (Model $model) {
                         $fromAccount = $model['from_account'];
                         return !empty($fromAccount) ? 'phosphor-copy' : null;
                     })
@@ -322,7 +365,7 @@ class Sep06And24ResourceUtil
                     ->description(__('shared_lang.label.created_at'))
                     ->dateTime()
                     ->sortable()
-                    ->hidden(function()  use ($table) {
+                    ->hidden(function () use ($table) {
                         $createdAt = $table->getColumn('created_at');
                         return $createdAt->isToggledHidden();
                     })
@@ -331,7 +374,7 @@ class Sep06And24ResourceUtil
                     ->description(__('shared_lang.label.updated_at'))
                     ->dateTime()
                     ->sortable()
-                    ->hidden(function()  use ($table) {
+                    ->hidden(function () use ($table) {
                         $updatedAt = $table->getColumn('updated_at');
                         return $updatedAt->isToggledHidden();
                     })
@@ -341,36 +384,39 @@ class Sep06And24ResourceUtil
 
         $firstStackFields = ResourceUtil::getAmountInfoTableFields();
         $firstStackFields[] = TextColumn::make('claimable_balance_supported')
-              ->icon(fn(Model $record): ?string => $record->claimable_balance_supported ? 'heroicon-c-check' : 'heroicon-o-x-mark')
-              ->getStateUsing(function (){
-                  return __('sep06_lang.label.claimable_balance_supported');
-              });
+            ->icon(fn(Model $record
+            ): ?string => $record->claimable_balance_supported ? 'heroicon-c-check' : 'heroicon-o-x-mark')
+            ->getStateUsing(function () {
+                return __('sep06_lang.label.claimable_balance_supported');
+            });
         $columns[] = Panel::make([
             Split::make([
                 Stack::make($firstStackFields),
                 Stack::make(ResourceUtil::getTransactionsInfoTableFields())
             ])
         ])->collapsible();
+
         return $columns;
     }
 
-    public static function populateDataBeforeFormLoad(array &$data, Model $model): void {
+    public static function populateDataBeforeFormLoad(array &$data, Model $model): void
+    {
         $instructions = $data['instructions'] ?? null;
-        if($instructions != null) {
+        if ($instructions != null) {
             $data['instructions'] = json_decode($instructions, true);
         }
 
         $feeDetails = $data['fee_details'] ?? null;
-        if($feeDetails != null) {
+        if ($feeDetails != null) {
             $data['fee_details'] = json_decode($feeDetails, true);
         }
         $refunds = $data['refunds'] ?? null;
-        if($refunds != null) {
+        if ($refunds != null) {
             $data['refunds'] = json_decode($refunds, true);
         }
 
         $requiredInfoUpdatesStr = $data['required_info_updates'] ?? null;
-        if($requiredInfoUpdatesStr != null) {
+        if ($requiredInfoUpdatesStr != null) {
             $requiredInfoUpdates = Sep06Helper::parseRequiredInfoUpdates($requiredInfoUpdatesStr);
             $requiredInfoUpdatesJson = [];
             foreach ($requiredInfoUpdates as $info) {
@@ -385,38 +431,13 @@ class Sep06And24ResourceUtil
         }
 
         $requiredCustomerInfoUpdates = $data['required_customer_info_updates'] ?? null;
-        if($requiredCustomerInfoUpdates != null) {
+        if ($requiredCustomerInfoUpdates != null) {
             $data['required_customer_info_updates'] = json_decode($requiredCustomerInfoUpdates, true);
         }
         $stellarTransactions = $data['stellar_transactions'] ?? null;
-        if($stellarTransactions != null) {
+        if ($stellarTransactions != null) {
             $data['stellar_transactions'] = json_decode($stellarTransactions, true);
         }
-    }
-
-    private static function getRequiredInfoUpdatesFormControl(): Repeater {
-        return Repeater::make('required_info_updates')
-            ->disabled()
-            ->schema([
-                TextInput::make('fieldName')
-                    ->disabled(true)
-                    ->label(__("sep06_lang.label.required_info_updates.name"))
-                    ->required(),
-                TextArea::make('description')
-                    ->disabled(true)
-                    ->label(__("sep06_lang.label.required_info_updates.description"))
-                    ->required(),
-                Toggle::make('optional')
-                    ->disabled(true)
-                    ->label(__("sep06_lang.label.required_info_updates.optional"))
-                    ->required(),
-                Select::make('choices')
-                    ->disabled(true)
-                    ->label(__('sep06_lang.label.required_info_updates.choices'))
-                    ->hidden(fn(Get $get): bool => $get("choices") == null)
-                    ->options(fn(Get $get): array => $get("choices") ? $get("choices") : [])
-            ])
-            ->columns(2);
     }
 
 }

@@ -1,27 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\Sep12CustomerResource\Util\Sep12CustomerResourceHelper;
 use App\Filament\Resources\Sep38RateResource\Pages;
-use App\Filament\Resources\Sep38RateResource\RelationManagers;
-use App\Models\Sep12Customer;
 use App\Models\Sep38Rate;
-use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
+/**
+ *  The UI. controls definitions for a SEP-38 rate resource record from the database.
+ */
 class Sep38RateResource extends Resource
 {
     protected static ?string $model = Sep38Rate::class;

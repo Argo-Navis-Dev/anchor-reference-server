@@ -1,5 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
 
 namespace App\Filament\Resources;
 
@@ -29,6 +34,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * The UI. controls definitions for an Anchor asset record from the database.
+ */
 class AnchorAssetResource extends Resource
 {
     protected static ?string $model = AnchorAsset::class;

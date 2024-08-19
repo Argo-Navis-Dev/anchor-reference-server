@@ -1,14 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources\Sep06TransactionResource\Actions;
 
 use App\Filament\Resources\AnchorAssetResource;
-use App\Filament\Resources\Sep06And24ResourceUtil;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ViewAction;
-use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Defines the edit SEP-31 transaction action.
+ */
 class EditSep31TransactionResource extends EditAction
 {
     protected static string $resource = AnchorAssetResource::class;

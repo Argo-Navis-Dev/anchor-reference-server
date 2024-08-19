@@ -95,6 +95,7 @@ class Sep12FieldsSeeder extends Seeder
             'key' => 'email_address',
             'type' => 'string',
             'desc' => 'Email address',
+            'requires_verification' => true,
             'created_at' => now(),
         ]);
 

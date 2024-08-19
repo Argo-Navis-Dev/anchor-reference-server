@@ -1,13 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources\Sep12TypeToFieldsResource\Pages;
 
-use App\Filament\Resources\AnchorAssetResource\Util\AnchorAssetResourceHelper;
 use App\Filament\Resources\ResourceUtil;
 use App\Filament\Resources\Sep12TypeToFieldsResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
+/**
+ *  This class is responsible for editing SEP-12 customer type to field record in the database.
+ */
 class EditSep12TypeToFields extends EditRecord
 {
     protected static string $resource = Sep12TypeToFieldsResource::class;
@@ -25,12 +33,12 @@ class EditSep12TypeToFields extends EditRecord
     {
         $requiredFieldsStr = $data['required_fields'] ?? null;
         if($requiredFieldsStr != null) {
-            $requiredFields = explode(',', $requiredFieldsStr);
+            $requiredFields = array_map('trim', explode(',', $requiredFieldsStr));
             $data['required_fields'] = $requiredFields;
         }
         $optionalFieldsStr = $data['optional_fields'] ?? null;
         if($optionalFieldsStr != null) {
-            $optionalFields = explode(',', $optionalFieldsStr);
+            $optionalFields = array_map('trim', explode(',', $optionalFieldsStr));
             $data['optional_fields'] = $optionalFields;
         }
         return $data;

@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\Sep06TransactionResource\Actions\EditSep06TransactionResource;
 use App\Filament\Resources\Sep06TransactionResource\Pages;
-use App\Filament\Resources\Sep06TransactionResource\RelationManagers;
 use App\Models\Sep06Transaction;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -12,6 +17,9 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ *  The UI. controls definitions for a SEP-06 transaction record from the database.
+ */
 class Sep06TransactionResource extends Resource
 {
     protected static ?string $model = Sep06Transaction::class;

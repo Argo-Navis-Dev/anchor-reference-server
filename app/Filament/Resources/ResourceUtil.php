@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
+// Copyright 2024 Argo Navis Dev. All rights reserved.
+// Use of this source code is governed by a license that can be
+// found in the LICENSE file.
+
 namespace App\Filament\Resources;
 
 use App\Models\AnchorAsset;
-use App\Models\Sep12Customer;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
 use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
 use Filament\Forms\Components\DateTimePicker;
@@ -20,6 +25,9 @@ use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Utility class containing the shared logic across different resources.
+ */
 class ResourceUtil
 {
 
@@ -27,19 +35,19 @@ class ResourceUtil
     {
         return Section::make()
             ->columnSpan($colspan)
-            ->hidden(fn (?Model $record, Get $get): ?bool => $record == null
+            ->hidden(fn(?Model $record, Get $get): ?bool => $record == null
                 || ($get('created_at') == null && $get('updated_at') == null))
             ->schema([
                 Placeholder::make('created_at')
-                    ->hidden(fn (Get $get): ?bool => $get('created_at') == null)
+                    ->hidden(fn(Get $get): ?bool => $get('created_at') == null)
                     ->label(__('shared_lang.label.created_at'))
                     ->columns(1)
-                    ->content(fn (Model $record): ?string => $record->created_at?->diffForHumans()),
+                    ->content(fn(Model $record): ?string => $record->created_at?->diffForHumans()),
                 Placeholder::make('updated_at')
-                    ->hidden(fn (Get $get): ?bool => $get('updated_at') == null)
+                    ->hidden(fn(Get $get): ?bool => $get('updated_at') == null)
                     ->label(__('shared_lang.label.updated_at'))
                     ->columns(1)
-                    ->content(fn (Model $record): ?string => $record->updated_at?->diffForHumans())
+                    ->content(fn(Model $record): ?string => $record->updated_at?->diffForHumans())
             ]);
     }
 
@@ -111,7 +119,7 @@ class ResourceUtil
 
             ]);
     }
-    
+
     public static function getRefundsInfoFormControls(bool $hasRefunded): Fieldset
     {
         $columns = $hasRefunded ? 3 : 2;
@@ -127,10 +135,25 @@ class ResourceUtil
                 self::getMemoTypeFormControl(true),
                 TextInput::make('refund_memo')
                     ->disabled()
-                    ->required(fn (Get $get): bool => $get("refund_memo_type") != null)
+                    ->required(fn(Get $get): bool => $get("refund_memo_type") != null)
                     ->label(__('shared_lang.label.refund_memo')),
                 self::getRefundsFormControl(),
             ]);
+    }
+
+    public static function getMemoTypeFormControl(bool $isRefund): Select
+    {
+        $options = [
+            'text' => __('shared_lang.label.memo_type.text'),
+            'id' => __('shared_lang.label.memo_type.id'),
+            'hash' => __('shared_lang.label.memo_type.hash'),
+        ];
+        $name = $isRefund ? 'refund_memo_type' : 'memo_type';
+        return Select::make($name)
+            ->live()
+            ->disabled()
+            ->label($isRefund ? __('shared_lang.label.refund_memo_type') : __('shared_lang.label.memo_type'))
+            ->options($options);
     }
 
     private static function getRefundsFormControl(): Section
@@ -150,23 +173,25 @@ class ResourceUtil
                     ->disabled(true)
                     ->schema([
                         TextInput::make('id')
+                            ->disabled(true)
                             ->label(__('shared_lang.label.id')),
                         Select::make("id_type")
+                            ->disabled(true)
                             ->label(__('shared_lang.label.id_type'))
                             ->options([
                                 'stellar' => 'stellar',
                                 'external' => 'external'
                             ]),
                         TextInput::make('amount')
-                            ->numeric()
+                            ->disabled(true)
                             ->minValue(0)
                             ->label(__('shared_lang.label.amount')),
                         TextInput::make('fee')
-                            ->numeric()
+                            ->disabled(true)
                             ->minValue(0)
                             ->label(__('shared_lang.label.fee'))
                     ])
-                ->columns(4)
+                    ->columns(4)
             ]);
     }
 
@@ -176,68 +201,63 @@ class ResourceUtil
             TextColumn::make('amount_in')
                 ->icon('phosphor-money')
                 ->getStateUsing(function (Model $record) {
-                    return __('shared_lang.label.amount_in') . ': '. $record->amount_in;
+                    return __('shared_lang.label.amount_in') . ': ' . $record->amount_in;
                 }),
             TextColumn::make('amount_out')
                 ->icon('phosphor-money')
                 ->getStateUsing(function (Model $record) {
-                    return __('shared_lang.label.amount_out') . ': '. $record->amount_out;
+                    return __('shared_lang.label.amount_out') . ': ' . $record->amount_out;
                 }),
             TextColumn::make('amount_expected')
                 ->icon('phosphor-money')
                 ->getStateUsing(function (Model $record) {
-                    return __('shared_lang.label.amount_expected') . ': '. $record->amount_expected;
+                    return __('shared_lang.label.amount_expected') . ': ' . $record->amount_expected;
                 }),
             TextColumn::make('amount_fee')
                 ->icon('phosphor-money')
                 ->getStateUsing(function (Model $record) {
-                    return __('shared_lang.label.amount_fee') . ': '. $record->amount_fee;
+                    return __('shared_lang.label.amount_fee') . ': ' . $record->amount_fee;
                 }),
         ];
     }
 
+    /**
+     * Returns the transaction info specific UI table controls.
+     *
+     * @return array Table UI controls containing the transaction info fields.
+     */
     public static function getTransactionsInfoTableFields(): array
     {
         return [
             TextColumn::make('tx_started_at')
                 ->icon('heroicon-o-calendar-date-range')
                 ->getStateUsing(function (Model $record) {
-                    return __('shared_lang.label.tx_started_at') . ': '. $record->tx_started_at;
+                    return __('shared_lang.label.tx_started_at') . ': ' . $record->tx_started_at;
                 }),
             TextColumn::make('tx_updated_at')
                 ->icon('heroicon-o-calendar-date-range')
                 ->getStateUsing(function (Model $record) {
-                    return __('shared_lang.label.tx_updated_at') . ': '. $record->tx_updated_at;
+                    return __('shared_lang.label.tx_updated_at') . ': ' . $record->tx_updated_at;
                 }),
             TextColumn::make('tx_completed_at')
                 ->icon('heroicon-o-calendar-date-range')
                 ->getStateUsing(function (Model $record) {
-                    return __('shared_lang.label.tx_completed_at') . ': '. $record->tx_completed_at;
+                    return __('shared_lang.label.tx_completed_at') . ': ' . $record->tx_completed_at;
                 }),
             TextColumn::make('transfer_received_at')
                 ->icon('heroicon-o-calendar-date-range')
                 ->getStateUsing(function (Model $record) {
-                    return __('shared_lang.label.transfer_received_at') . ': '. $record->transfer_received_at;
+                    return __('shared_lang.label.transfer_received_at') . ': ' . $record->transfer_received_at;
                 }),
         ];
     }
 
-    public static function getMemoTypeFormControl(bool $isRefund): Select
-    {
-        $options = [
-            'text' => __('shared_lang.label.memo_type.text'),
-            'id' => __('shared_lang.label.memo_type.id'),
-            'hash' => __('shared_lang.label.memo_type.hash'),
-        ];
-        $name = $isRefund ? 'refund_memo_type' : 'memo_type';
-        return Select::make($name)
-            ->live()
-            ->disabled()
-            ->label($isRefund ? __('shared_lang.label.refund_memo_type') :__('shared_lang.label.memo_type'))
-            ->options($options);
-    }
-
-    public static function getFeeDetailsFormControl(bool $isSep06): Section
+    /**
+     * Returns the fee details UI form controls.
+     *
+     * @return Section The wrapper containing the form controls.
+     */
+    public static function getFeeDetailsFormControl(): Section
     {
         $schema = [
             TextInput::make('fee_details.total')
@@ -274,25 +294,37 @@ class ResourceUtil
         return Section::make(__('shared_lang.label.fee_details'))
             ->disabled()
             ->description(__('shared_lang.label.fee_details.description'))
-            ->hidden(!$isSep06)
             ->columns(2)
             ->schema($schema);
     }
 
+    /**
+     * Elides in the middle the passed table cell value if the length is greater than $maxLength or 20 (default).
+     *
+     * @param string $cellValue The table cell value to be elided.
+     * @param int|null $maxLength The max. no. characters which defines the eliding threshold.
+     * @return string The elided table cell value.
+     */
     public static function elideTableColumnTextInMiddle(
         string $cellValue,
         ?int $maxLength = null
     ): string {
-        if($maxLength == null) {
+        if ($maxLength == null) {
             $maxLength = 20;
         }
         $halfLength = intdiv($maxLength, 2);
         if (strlen($cellValue) > $maxLength) {
             return substr($cellValue, 0, $halfLength) . '...' . substr($cellValue, -$halfLength);
         }
+
         return $cellValue;
     }
 
+    /**
+     * Returns the formatted list of available Anchor assets as a Select UI component data source.
+     *
+     * @return array<string, string> Key value pair containing the asset identifier and the label.
+     */
     public static function getAnchorAssetsDataSourceForSelect(): array
     {
         $allAssets = AnchorAsset::all();
@@ -304,15 +336,20 @@ class ResourceUtil
                     $asset->code,
                     $asset->issuer
                 );
-                LOG::debug($identificationFormatAsset->getStringRepresentation());
                 $allAssetsAsString[$identificationFormatAsset->getStringRepresentation()] =
                     $identificationFormatAsset->getStringRepresentation();
             } catch (InvalidAsset $e) {
+                LOG::error($e->getMessage());
             }
         }
         return $allAssetsAsString;
     }
 
+    /**
+     * Returns the Stellar transactions UI form component which is build from a JSON datasource.
+     *
+     * @return Repeater The component which permits displaying UI components created out of a JSON data model.
+     */
     public static function getStellarTransactionsFormControl(): Repeater
     {
         $schema = [
@@ -330,8 +367,8 @@ class ResourceUtil
                 ->disabled()
                 ->label(__("shared_lang.label.envelope")),
             DateTimePicker::make('created_at')
-               ->disabled()
-               ->label(__('shared_lang.label.created_at')),
+                ->disabled()
+                ->label(__('shared_lang.label.created_at')),
             Repeater::make('payments')
                 ->columns(2)
                 ->columnSpanFull()
@@ -358,6 +395,7 @@ class ResourceUtil
                 ])
 
         ];
+
         return Repeater::make('stellar_transactions')
             ->disabled()
             ->hidden(function (Get $get): bool {
@@ -369,14 +407,21 @@ class ResourceUtil
             ->schema($schema);
     }
 
-
-
+    /**
+     * Converts a JSON array to a comma-separated string.
+     *
+     * @param array<array-key, mixed> $data The data array containing the JSON array.
+     * @param string $fieldName The name of the field containing the JSON array.
+     *
+     * @return string|null The resulting comma-separated string or null if the JSON array is empty or not present.
+     */
     public static function convertJsonArrayToCommaSeparatedString(array $data, string $fieldName): ?string
     {
         $fields = $data[$fieldName] ?? null;
         if ($fields != null) {
             return implode(",", $fields);
         }
+
         return null;
     }
 }
