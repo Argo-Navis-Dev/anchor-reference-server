@@ -18,7 +18,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- *  The UI. controls definitions for a SEP-06 transaction record from the database.
+ *  The UI. components definitions for a SEP-06 transaction record from the database.
  */
 class Sep06TransactionResource extends Resource
 {

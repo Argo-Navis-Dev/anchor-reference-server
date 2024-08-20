@@ -17,6 +17,9 @@ use Filament\Resources\Pages\ListRecords;
  */
 class ListSep08KycStatuses extends ListRecords
 {
+    /**
+     * @var string $resource The db entity to be listed.
+     */
     protected static string $resource = Sep08KycStatusResource::class;
 
     protected function getHeaderActions(): array

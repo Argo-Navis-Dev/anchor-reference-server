@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\AnchorAssetResource\Pages;
 
 use App\Filament\Resources\AnchorAssetResource;
-use App\Filament\Resources\AnchorAssetResource\Util\AnchorAssetResourceHelper;
+use App\Filament\Resources\AnchorAssetResource\Helper\AnchorAssetResourceHelper;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Log;
 
@@ -28,6 +28,7 @@ class CreateAnchorAsset extends CreateRecord
      *
      * @param array<array-key, mixed> $data The form data.
      * @return array<array-key, mixed> $data The mutated form data.
+     * @throws \JsonException
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {

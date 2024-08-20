@@ -10,6 +10,7 @@ namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 
 /**
@@ -17,8 +18,16 @@ use Filament\Resources\Pages\EditRecord;
  */
 class EditUser extends EditRecord
 {
+    /**
+     * @var string $resource The db entity to be edited.
+     */
     protected static string $resource = UserResource::class;
 
+    /**
+     * Returns the form header actions.
+     *
+     * @return array<Action>
+     */
     protected function getHeaderActions(): array
     {
         return [

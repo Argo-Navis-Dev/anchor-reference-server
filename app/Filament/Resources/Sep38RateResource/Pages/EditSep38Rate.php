@@ -10,6 +10,7 @@ namespace App\Filament\Resources\Sep38RateResource\Pages;
 
 use App\Filament\Resources\Sep38RateResource;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 
 /**
@@ -17,8 +18,16 @@ use Filament\Resources\Pages\EditRecord;
  */
 class EditSep38Rate extends EditRecord
 {
+    /**
+     * @var string $resource The db entity to be edited.
+     */
     protected static string $resource = Sep38RateResource::class;
 
+    /**
+     * Returns the form header actions.
+     *
+     * @return array<Action>
+     */
     protected function getHeaderActions(): array
     {
         return [

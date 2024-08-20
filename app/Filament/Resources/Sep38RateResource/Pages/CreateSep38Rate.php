@@ -16,5 +16,8 @@ use Filament\Resources\Pages\CreateRecord;
  */
 class CreateSep38Rate extends CreateRecord
 {
+    /**
+     * @var string $resource The db entity to be created.
+     */
     protected static string $resource = Sep38RateResource::class;
 }

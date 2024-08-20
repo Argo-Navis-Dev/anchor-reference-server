@@ -30,7 +30,13 @@ use Illuminate\Support\Facades\Log;
  */
 class ResourceUtil
 {
-
+    /**
+     * Returns the form component which displays the model created and last edited timestamps.
+     *
+     * @param int $colspan The colspan value.
+     *
+     * @return Section The form component wrapper.
+     */
     public static function getModelTimestampFormControls(int $colspan): Section
     {
         return Section::make()
@@ -51,6 +57,11 @@ class ResourceUtil
             ]);
     }
 
+    /**
+     * Returns a generic transaction timestamps form component representation.
+     *
+     * @return Fieldset
+     */
     public static function getTransactionTimestampFormControls(): Fieldset
     {
         return Fieldset::make(__("shared_lang.label.tx_dates"))
@@ -78,6 +89,11 @@ class ResourceUtil
             ]);
     }
 
+    /**
+     *  Returns the Amount in transaction attribute form component representation.
+     *
+     * @return Fieldset
+     */
     public static function getAmountInfoFormControls(): Fieldset
     {
         return Fieldset::make(__("shared_lang.label.amount_info"))
@@ -120,6 +136,12 @@ class ResourceUtil
             ]);
     }
 
+    /**
+     * Returns the refunded transaction info form component representation.
+     *
+     * @param bool $hasRefunded Flag indicating if has refunded field.
+     * @return Fieldset
+     */
     public static function getRefundsInfoFormControls(bool $hasRefunded): Fieldset
     {
         $columns = $hasRefunded ? 3 : 2;
@@ -141,6 +163,13 @@ class ResourceUtil
             ]);
     }
 
+    /**
+     * Returns the generic memo type form components.
+     *
+     * @param bool $isRefund Flag indicating whether is refunded memo type.
+     *
+     * @return Select
+     */
     public static function getMemoTypeFormControl(bool $isRefund): Select
     {
         $options = [
@@ -156,6 +185,11 @@ class ResourceUtil
             ->options($options);
     }
 
+    /**
+     * Returns the transaction refunds attribute form component representation.
+     *
+     * @return Section
+     */
     private static function getRefundsFormControl(): Section
     {
         return Section::make()
@@ -195,6 +229,11 @@ class ResourceUtil
             ]);
     }
 
+    /**
+     * Returns the transaction amount info components to be shown in table.
+     *
+     * @return array
+     */
     public static function getAmountInfoTableFields(): array
     {
         return [
@@ -253,7 +292,7 @@ class ResourceUtil
     }
 
     /**
-     * Returns the fee details UI form controls.
+     * Returns transaction fee details form component representation.
      *
      * @return Section The wrapper containing the form controls.
      */

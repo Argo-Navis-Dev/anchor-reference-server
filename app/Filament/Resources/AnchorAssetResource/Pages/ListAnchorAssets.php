@@ -33,5 +33,4 @@ class ListAnchorAssets extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
-
 }

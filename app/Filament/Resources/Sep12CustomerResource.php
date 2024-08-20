@@ -10,7 +10,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\Sep12CustomerResource\Actions\ViewSep12Customer;
 use App\Filament\Resources\Sep12CustomerResource\Pages;
-use App\Filament\Resources\Sep12CustomerResource\Util\Sep12CustomerResourceHelper;
+use App\Filament\Resources\Sep12CustomerResource\Helper\Sep12CustomerResourceHelper;
 use App\Models\Sep12Customer;
 use App\Stellar\Sep12Customer\Sep12CustomerType;
 use App\Stellar\Sep12Customer\Sep12Helper;
@@ -82,8 +82,8 @@ class Sep12CustomerResource extends Resource
                 ->label(__('shared_lang.label.lang'))
         ];
 
-        $providedFields = Sep12CustomerResourceHelper::getCustomerCustomFormFields($requiredFieldsList, true);
-        $optionalFormControls = Sep12CustomerResourceHelper::getCustomerCustomFormFields($optionalFieldsList, false);
+        $providedFields = Sep12CustomerResourceHelper::createCustomerCustomFormFields($requiredFieldsList, true);
+        $optionalFormControls = Sep12CustomerResourceHelper::createCustomerCustomFormFields($optionalFieldsList, false);
         $providedFields = array_merge($providedFields, $optionalFormControls);
 
         $components[] = Fieldset::make(__('sep12_lang.label.provided_fields'))->schema($providedFields);

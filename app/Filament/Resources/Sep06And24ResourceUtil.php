@@ -28,10 +28,16 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- *  The UI. controls definition utility common part for SEP-06 and SEP-24 transactions.
+ *  The UI. components definition utility common part for SEP-06 and SEP-24 transactions.
  */
 class Sep06And24ResourceUtil
 {
+    /**
+     * Returns the form components.
+     *
+     * @param bool $isSep06 Flag indicating whether building for SEP-06 or SEP-24.
+     * @return array
+     */
     public static function getFormControls(bool $isSep06): array
     {
         $schema = [
@@ -175,6 +181,13 @@ class Sep06And24ResourceUtil
         return $schema;
     }
 
+    /**
+     * Returns the status form control.
+     *
+     * @param bool $isSep06 Flag indicating whether building for SEP-06 or SEP-24.
+     *
+     * @return Select
+     */
     private static function getStatusFormControl(bool $isSep06): Select
     {
         return Select::make('status')
@@ -183,6 +196,11 @@ class Sep06And24ResourceUtil
             ->options($isSep06 ? self::getSep06StatusOptions() : self::getSep24StatusOptions());
     }
 
+    /**
+     * Get the options for SEP06 transaction status.
+     *
+     * @return array<string, string>
+     */
     private static function getSep06StatusOptions(): array
     {
         return [
@@ -206,6 +224,11 @@ class Sep06And24ResourceUtil
         ];
     }
 
+    /**
+     * Get the options for Sep24 transaction status.
+     *
+     * @return array<string, string>
+     */
     private static function getSep24StatusOptions(): array
     {
         return [
@@ -227,6 +250,11 @@ class Sep06And24ResourceUtil
         ];
     }
 
+    /**
+     * Returns the transaction kind field form components.
+     *
+     * @return Select
+     */
     private static function getKindFormControl(): Select
     {
         return Select::make('kind')
@@ -240,6 +268,12 @@ class Sep06And24ResourceUtil
             ]);
     }
 
+    /**
+     * Returns the transaction type form component.
+     *
+     * @param bool $isSep06 Determines if it's Sep06 transaction or not.
+     * @return Select
+     */
     private static function getTypeFormControl(bool $isSep06): Select
     {
         $options = [
@@ -264,6 +298,11 @@ class Sep06And24ResourceUtil
             ]);
     }
 
+    /**
+     * Returns the transaction required info form component representation.
+     *
+     * @return Repeater
+     */
     private static function getRequiredInfoUpdatesFormControl(): Repeater
     {
         return Repeater::make('required_info_updates')
@@ -290,6 +329,11 @@ class Sep06And24ResourceUtil
             ->columns(2);
     }
 
+    /**
+     * Returns the transaction instructions form component representation.
+     * @param bool $isSep06
+     * @return Section
+     */
     private static function getInstructionsFormControl(bool $isSep06): Section
     {
         $schema = [];
@@ -317,6 +361,14 @@ class Sep06And24ResourceUtil
             ->schema($schema);
     }
 
+    /**
+     * Returns the transaction table column components.
+     *
+     * @param Table $table
+     * @param bool $isSep06 Flag indicating whether building for SEP-06 or SEP-24.
+     *
+     * @return array<mixed>
+     */
     public static function getTableColumns(Table $table, bool $isSep06): array
     {
         $columns = [
@@ -399,6 +451,14 @@ class Sep06And24ResourceUtil
         return $columns;
     }
 
+    /**
+     * Populates the form data before form load.
+     *
+     * @param array $data<array-key, mixed> The form data model.
+     * @param Model $model The DB model.
+     *
+     * @return void
+     */
     public static function populateDataBeforeFormLoad(array &$data, Model $model): void
     {
         $instructions = $data['instructions'] ?? null;
@@ -439,5 +499,4 @@ class Sep06And24ResourceUtil
             $data['stellar_transactions'] = json_decode($stellarTransactions, true);
         }
     }
-
 }

@@ -35,7 +35,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\Log;
 
 /**
- * The UI. controls definitions for an Anchor asset record from the database.
+ * The UI. components definitions for an Anchor asset record from the database.
  */
 class AnchorAssetResource extends Resource
 {

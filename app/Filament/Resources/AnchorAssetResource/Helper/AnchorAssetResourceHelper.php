@@ -6,7 +6,7 @@ declare(strict_types=1);
 // Use of this source code is governed by a license that can be
 // found in the LICENSE file.
 
-namespace App\Filament\Resources\AnchorAssetResource\Util;
+namespace App\Filament\Resources\AnchorAssetResource\Helper;
 
 // Copyright 2024 Argo Navis Dev. All rights reserved.
 // Use of this source code is governed by a license that can be
@@ -21,15 +21,21 @@ use ArgoNavis\PhpAnchorSdk\shared\Sep31AssetInfo;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38AssetInfo;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38DeliveryMethod;
 use Illuminate\Support\Facades\Log;
+use JsonException;
 
+/**
+ * Helper for Anchor asset CRUD operations.
+ */
 class AnchorAssetResourceHelper
 {
     /**
-     * Processes the form data model before saving.
+     * Preprocesses the form data model before saving in the database.
      *
      * @param array<array-key, mixed> $data The form data model.
+     *
      * @return array<array-key, mixed> The processed form data model.
-     * @throws \JsonException
+     *
+     * @throws JsonException
      */
     public static function mutateFormDataBeforeSave(array $data): array
     {
@@ -57,6 +63,7 @@ class AnchorAssetResourceHelper
         } catch (InvalidAsset $e) {
             LOG::debug($e->getMessage());
         }
+
         unset($data['sep31_cfg_quotes_supported']);
         unset($data['sep31_cfg_sep12_sender_types']);
         unset($data['sep31_cfg_sep12_receiver_types']);
@@ -78,8 +85,7 @@ class AnchorAssetResourceHelper
      */
     private static function processSep31InfoBeforeSave(array $data): string
     {
-
-        $schema = (string)$data['schema'] ?? '';
+        $schema = $data['schema'] ?? '';
         $code = $data['code'] ?? '';
         $issuer = $data['issuer'] ?? null;
         $asset = new IdentificationFormatAsset(
@@ -99,7 +105,6 @@ class AnchorAssetResourceHelper
             }
         }
 
-
         $sep31CfgSep12ReceiverTypes = $data['sep31_cfg_sep12_receiver_types'] ?? null;
         $receiverTypes = [];
         if ($sep31CfgSep12ReceiverTypes != null) {
@@ -110,6 +115,7 @@ class AnchorAssetResourceHelper
                 );
             }
         }
+
         $sep31Asset = new Sep31AssetInfo(
             asset: $asset,
             sep12SenderTypes: $senderTypes,
@@ -125,6 +131,7 @@ class AnchorAssetResourceHelper
      *  Processed SEP-38 info before save.
      *
      * @param array<array-key, mixed> $data The form data model.
+     *
      * @throws InvalidAsset
      */
     private static function processSep38InfoBeforeSave(array $data): string
@@ -135,9 +142,6 @@ class AnchorAssetResourceHelper
             issuer: $data['issuer'],
         );
 
-        /**
-         * @param array $sellDeliveryMethods
-         */
         $sellDeliveryMethods = $data['sep38_cfg_sell_delivery_methods'] ?? null;
         $sellMethodsByType = [];
         if ($sellDeliveryMethods != null) {
@@ -182,15 +186,17 @@ class AnchorAssetResourceHelper
      * Populates the SEP-31 info before loading the form.
      *
      * @param array<array-key, mixed> $data The form data model.
+     *
      * @param AnchorAsset $anchorAsset The DB entity to be loaded.
+     *
      * @return void
      */
     public static function populateSep31InfoBeforeFormLoad(array &$data, AnchorAsset $anchorAsset): void
     {
         try {
-            //TODO check this conversion
             if ($anchorAsset->sep31_info != null) {
                 $sep31AssetInfo = Sep31Helper::sep31AssetInfoFromAnchorAsset($anchorAsset);
+
                 $senderTypes = array();
                 foreach ($sep31AssetInfo->sep12SenderTypes as $value) {
                     $type = array("name" => $value->name, "description" => $value->description);
@@ -216,7 +222,7 @@ class AnchorAssetResourceHelper
     /**
      * Populates the SEP-38 info before loading the form.
      *
-     * @param array<array-key, string> $data
+     * @param array<array-key, mixed> $data
      * @param AnchorAsset $anchorAsset The DB entity to be loaded.
      * @return void
      */
@@ -226,9 +232,6 @@ class AnchorAssetResourceHelper
             $sep38AssetInfo = Sep38Helper::sep38AssetInfoFromAnchorAsset($anchorAsset);
             $sellDeliveryMethods = array();
             if ($sep38AssetInfo->sellDeliveryMethods != null) {
-                /**
-                 * @param array<Sep38DeliveryMethod> $sep38AssetInfo ->sellDeliveryMethods
-                 */
                 foreach ($sep38AssetInfo->sellDeliveryMethods as $value) {
                     $method = array("name" => $value->name, "description" => $value->description);
                     $sellDeliveryMethods[] = $method;

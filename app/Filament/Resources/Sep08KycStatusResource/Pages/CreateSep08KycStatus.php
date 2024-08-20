@@ -16,5 +16,8 @@ use Filament\Resources\Pages\CreateRecord;
  */
 class CreateSep08KycStatus extends CreateRecord
 {
+    /**
+     * @var string $resource The db entity to be created.
+     */
     protected static string $resource = Sep08KycStatusResource::class;
 }

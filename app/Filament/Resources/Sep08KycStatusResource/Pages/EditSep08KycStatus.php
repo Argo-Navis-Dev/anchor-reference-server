@@ -10,6 +10,7 @@ namespace App\Filament\Resources\Sep08KycStatusResource\Pages;
 
 use App\Filament\Resources\Sep08KycStatusResource;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 
 /**
@@ -17,14 +18,23 @@ use Filament\Resources\Pages\EditRecord;
  */
 class EditSep08KycStatus extends EditRecord
 {
+    /**
+     * @var string $resource The db entity to be edited.
+     */
     protected static string $resource = Sep08KycStatusResource::class;
 
+    /**
+     * Returns the form header actions.
+     *
+     * @return array<Action>
+     */
     protected function getHeaderActions(): array
     {
         return [
             Actions\DeleteAction::make(),
         ];
     }
+
 
     protected function getFormActions(): array
     {

@@ -17,6 +17,9 @@ use Filament\Resources\Pages\ListRecords;
  */
 class ListSep38Rates extends ListRecords
 {
+    /**
+     * @var string $resource The db entity to be listed.
+     */
     protected static string $resource = Sep38RateResource::class;
 
     protected function getHeaderActions(): array

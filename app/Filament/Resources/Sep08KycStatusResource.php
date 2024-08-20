@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\Sep06TransactionResource\Actions\EditSep08KycStatusResource;
+use App\Filament\Resources\Sep08KycStatusResource\Actions\EditSep08KycStatusResource;
 use App\Filament\Resources\Sep08KycStatusResource\Pages;
 use App\Models\Sep08KycStatus;
 use Filament\Forms\Components\TextInput;

@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\AnchorAssetResource\Actions;
 
 use App\Filament\Resources\AnchorAssetResource;
-use App\Filament\Resources\AnchorAssetResource\Util\AnchorAssetResourceHelper;
+use App\Filament\Resources\AnchorAssetResource\Helper\AnchorAssetResourceHelper;
 use App\Models\AnchorAsset;
 use Filament\Tables\Actions\ViewAction;
 
@@ -28,14 +28,13 @@ class ViewAnchorAsset extends ViewAction
     {
         parent::setUp();
         /**
-         * The application instance.
-         *
          * @param AnchorAsset $record The entity to be shown.
          * @param array<array-key, mixed> $data The view dialog model.
          */
         $this->mutateRecordDataUsing(function (AnchorAsset $record, array $data): array {
             AnchorAssetResourceHelper::populateSep31InfoBeforeFormLoad($data, $record);
             AnchorAssetResourceHelper::populateSep38InfoBeforeFormLoad($data, $record);
+
             return $data;
         });
     }

@@ -6,7 +6,7 @@ declare(strict_types=1);
 // Use of this source code is governed by a license that can be
 // found in the LICENSE file.
 
-namespace App\Filament\Resources\Sep12CustomerResource\Util;
+namespace App\Filament\Resources\Sep12CustomerResource\Helper;
 
 use App\Filament\Resources\Sep12CustomerResource;
 use App\Models\Sep12Customer;
@@ -25,9 +25,20 @@ use Filament\Forms\Set;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 
+/**
+ *  Helper for SEP-12 customer CRUD operations.
+ */
 class Sep12CustomerResourceHelper
 {
 
+    /**
+     * Populates the customer provided fields into the form data model.
+     *
+     * @param array<array-key, mixed> $data The form data model.
+     * @param Sep12Customer $customerModel The customer being edited.
+     *
+     * @return void
+     */
     public static function populateCustomerFieldsBeforeFormLoad(
         array &$data,
         Sep12Customer $customerModel,
@@ -45,13 +56,21 @@ class Sep12CustomerResourceHelper
             $statusSuffix
         ) {
             $field = $fieldIDToBean[$providedField->sep12_field_id];
-            LOG::debug($field->key . ' : ' . $field->id);
             $name = "{$prefix}{$field->id}";
             $data[$name] = $providedField->string_value;
             $data["{$name}{$statusSuffix}"] = $providedField->status;
         });
     }
 
+    /**
+     * Event listener when customer status value changes.
+     *
+     * @param string $newState The newly selected state.
+     * @param callable $set Form data model setter.
+     * @param Sep12Customer $customer The customer being edited.
+     *
+     * @return void
+     */
     public static function onCustomerStatusChanged(
         string $newState,
         callable $set,
@@ -66,10 +85,19 @@ class Sep12CustomerResourceHelper
         }
     }
 
+    /**
+     * Updates all customer fields status to the passed value.
+     *
+     * @param string $newFieldStatus The new status value.
+     * @param callable $set Form data model setter.
+     * @param Sep12Customer $customer The customer being edited.
+     *
+     * @return void
+     */
     private static function updateAllFieldStatus(
         string $newFieldStatus,
         callable $set,
-        ?Sep12Customer $customer = null
+        Sep12Customer $customer
     ): void {
         $fieldNames = self::getAllFieldStatusNames($customer);
         foreach ($fieldNames as $statusFieldName) {
@@ -77,19 +105,24 @@ class Sep12CustomerResourceHelper
         }
     }
 
+    /**
+     * Gathers the name of all field specific status components.
+     *
+     * @param Sep12Customer $customer
+     *
+     * @return array<string> The list of status field names represented in the form data model
+     */
     private static function getAllFieldStatusNames(
-        ?Sep12Customer $customer = null
+        Sep12Customer $customer
     ): array {
-        $type = Sep12CustomerType::DEFAULT;
-        if ($customer !== null) {
-            $type = $customer->type;
-        }
+        $type = $customer->type;
         $sep12FieldsForType = Sep12Helper::getSep12FieldsForCustomerType($type);
         $allFields = [];
         $optionalFields = $sep12FieldsForType['optional'];
         if ($optionalFields != null) {
             $allFields = array_merge($allFields, $optionalFields);
         }
+
         $requiredFields = $sep12FieldsForType['required'];
         if ($requiredFields != null) {
             $allFields = array_merge($allFields, $requiredFields);
@@ -104,10 +137,19 @@ class Sep12CustomerResourceHelper
                 $fieldNames[] = "{$customFieldPrefix}{$field->id}{$statusSuffix}";
             }
         }
+
         return $fieldNames;
     }
 
-    public static function getCustomerCustomFormFields(array $fields, bool $required): array
+    /**
+     * Creates the customer custom fields form components.
+     *
+     * @param array<Sep12Field> $fields The form components.
+     * @param bool $required Flag indicating if the fields are required.
+     *
+     * @return array<mixed> The form components.
+     */
+    public static function createCustomerCustomFormFields(array $fields, bool $required): array
     {
         $customFieldPrefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
         $statusSuffix = Sep12CustomerResource::CUSTOM_STATUS_FIELD_SUFFIX;
@@ -125,7 +167,7 @@ class Sep12CustomerResourceHelper
             $hasStatus = !isset(Sep12CustomerResource::KYC_FIELD_WITHOUT_STATUS[$field->key]);
             if ($fieldType == 'string') {
                 if ($field->choices != null) {
-                    $providedFields[] = self::createDynamicSelectField($field, $hasStatus, $description, $required);
+                    $providedFields[] = self::createGenericSelectFormComponent($field, $hasStatus, $description, $required);
                 } else {
                     $providedFields[] = TextInput::make(name: $name)
                         ->required($required)
@@ -134,19 +176,30 @@ class Sep12CustomerResourceHelper
                 }
             }
             if ($fieldType == 'binary') {
-                $providedFields[] = self::getBinaryFieldComponent($field->id, $label, $description);
+                $providedFields[] = self::createGenericBinaryFormComponent($field->id, $label, $description);
             }
             $statusFieldName = "{$customFieldPrefix}{$field->id}{$statusSuffix}";
             if ($hasStatus) {
                 $requiresVerification = (bool)$field->requires_verification;
-                $statusField = self::createProvidedFieldStatusComp($statusFieldName, $requiresVerification);
+                $statusField = self::createGenericFieldStatusFormComponent($statusFieldName, $requiresVerification);
                 $providedFields[] = $statusField;
             }
         }
+
         return $providedFields;
     }
 
-    private static function createDynamicSelectField(
+    /**
+     * Creates a generic select form component by the passed parameters.
+     *
+     * @param Sep12Field $field The represented field.
+     * @param bool $hasStatusField The flag indicating whether the field has status field associated.
+     * @param string $description The field localized description.
+     * @param bool $required Flag indicating whether the field is required.
+     *
+     * @return Select The form component.
+     */
+    private static function createGenericSelectFormComponent(
         Sep12Field $field,
         bool $hasStatusField,
         string $description,
@@ -171,10 +224,20 @@ class Sep12CustomerResourceHelper
         if (!$hasStatusField) {
             $component->columnSpan(2);
         }
+
         return $component;
     }
 
-    private static function getBinaryFieldComponent(
+    /**
+     * Creates a generic binary form component for displaying images.
+     *
+     * @param int $fieldID The field id to be shown.
+     * @param string $label The field label.
+     * @param string $description The field localized description.
+     *
+     * @return Placeholder The image form component wrapper containing the image.
+     */
+    private static function createGenericBinaryFormComponent(
         int $fieldID,
         string $label,
         string $description
@@ -190,7 +253,15 @@ class Sep12CustomerResourceHelper
             });
     }
 
-    private static function createProvidedFieldStatusComp(string $name, bool $requiresVerification): Field
+    /**
+     * Creates a generic field status form component.
+     *
+     * @param string $name The name of the form component
+     * @param bool $requiresVerification If true the corresponding status options must be selectable.
+     *
+     * @return Field The created form component
+     */
+    private static function createGenericFieldStatusFormComponent(string $name, bool $requiresVerification): Field
     {
         $option = [
             ProvidedCustomerFieldStatus::ACCEPTED => __('sep12_lang.label.field.status.accepted'),
@@ -201,6 +272,7 @@ class Sep12CustomerResourceHelper
             $option[ProvidedCustomerFieldStatus::VERIFICATION_REQUIRED] =
                 __('sep12_lang.label.field.status.verification_required');
         }
+
         return Select::make($name)
             ->label(__('shared_lang.label.status'))
             ->afterStateUpdated(function (Set $set, Get $get, $state, Sep12Customer $customer) {
@@ -211,6 +283,16 @@ class Sep12CustomerResourceHelper
             ->options($option);
     }
 
+    /**
+     * Listener for customer provided field status component change event.
+     *
+     * @param string $newState The newly selected state.
+     * @param callable $set The form data model getter.
+     * @param callable $get The form data model setter.
+     * @param Sep12Customer $customer The customer being edited.
+     *
+     * @return void
+     */
     public static function onCustomerFieldStatusChanged(
         string $newState,
         callable $set,

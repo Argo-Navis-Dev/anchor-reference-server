@@ -11,6 +11,7 @@ namespace App\Filament\Resources\Sep06TransactionResource\Pages;
 use App\Filament\Resources\Sep06And24ResourceUtil;
 use App\Filament\Resources\Sep06TransactionResource;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 
 /**
@@ -18,24 +19,29 @@ use Filament\Resources\Pages\EditRecord;
  */
 class EditSep06Transaction extends EditRecord
 {
+    /**
+     * @var string $resource The db entity to be edited.
+     */
     protected static string $resource = Sep06TransactionResource::class;
 
     /**
-     * Prepares the form model data before loading the form.
+     * Processes the form data model before filling it.
      *
-     * @param array<array-key, mixed> $data The form model data.
-     * @return array<array-key, mixed>
+     * @param array<array-key, mixed> $data The form data model.
+     * @return array<array-key, mixed> The processed form data model.
      */
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $model = $this->getRecord();
         Sep06And24ResourceUtil::populateDataBeforeFormLoad($data, $model);
+
         return $data;
     }
 
     /**
-     * Defines the edit form header actions.
-     * @return array|Actions\Action[]|Actions\ActionGroup[]
+     * Returns the form header actions.
+     *
+     * @return array<Action>
      */
     protected function getHeaderActions(): array
     {

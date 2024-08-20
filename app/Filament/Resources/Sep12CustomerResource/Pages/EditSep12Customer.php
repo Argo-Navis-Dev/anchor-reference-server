@@ -9,12 +9,13 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Sep12CustomerResource\Pages;
 
 use App\Filament\Resources\Sep12CustomerResource;
-use App\Filament\Resources\Sep12CustomerResource\Util\Sep12CustomerResourceHelper;
+use App\Filament\Resources\Sep12CustomerResource\Helper\Sep12CustomerResourceHelper;
 use App\Models\Sep12Customer;
 use App\Models\Sep12Field;
 use App\Models\Sep12ProvidedField;
 use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Log;
 
@@ -23,8 +24,18 @@ use Illuminate\Support\Facades\Log;
  */
 class EditSep12Customer extends EditRecord
 {
+    /**
+     * @var string $resource The db entity to be edited.
+     */
     protected static string $resource = Sep12CustomerResource::class;
 
+    /**
+     * Processes the form data model before filling it.
+     *
+     * @param array $data
+     *
+     * @return array<array-key, mixed>
+     */
     protected function mutateFormDataBeforeFill(array $data): array
     {
         /**
@@ -32,10 +43,17 @@ class EditSep12Customer extends EditRecord
          */
         $customerModel = $this->getRecord();
         Sep12CustomerResourceHelper::populateCustomerFieldsBeforeFormLoad($data, $customerModel);
-        LOG::debug('mutate: ' . json_encode($data));
+
         return $data;
     }
 
+    /**
+     * Preprocesses the form data model before saving in the database.
+     *
+     * @param array<array-key, mixed> $data The form data model to be saved.
+     *
+     * @return array<array-key, mixed> The processed form data model.
+     */
     protected function mutateFormDataBeforeSave(array $data): array
     {
         /**
@@ -55,7 +73,6 @@ class EditSep12Customer extends EditRecord
             $providedField = Sep12ProvidedField::where('sep12_customer_id', $customer->id)
                 ->where('sep12_field_id', $fieldKey)
                 ->first();
-            LOG::debug('$providedField: ' . json_encode($providedField));
             $status = null;
             if (isset($data["{$key}{$statusSuffix}"])) {
                 $status = $data["{$key}{$statusSuffix}"];
@@ -89,6 +106,11 @@ class EditSep12Customer extends EditRecord
         return $data;
     }
 
+    /**
+     * Returns the form header actions.
+     *
+     * @return array<Action>
+     */
     protected function getHeaderActions(): array
     {
         return [

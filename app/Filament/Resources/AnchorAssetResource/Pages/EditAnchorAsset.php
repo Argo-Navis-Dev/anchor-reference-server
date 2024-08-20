@@ -9,9 +9,10 @@ declare(strict_types=1);
 namespace App\Filament\Resources\AnchorAssetResource\Pages;
 
 use App\Filament\Resources\AnchorAssetResource;
-use App\Filament\Resources\AnchorAssetResource\Util\AnchorAssetResourceHelper;
+use App\Filament\Resources\AnchorAssetResource\Helper\AnchorAssetResourceHelper;
 use App\Models\AnchorAsset;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 
 /**
@@ -25,9 +26,9 @@ class EditAnchorAsset extends EditRecord
     protected static string $resource = AnchorAssetResource::class;
 
     /**
-     * Mutates the form data before filling it.
+     * Processes the form data model before filling it.
      *
-     * @param array<array-key, mixed> $data The form data.
+     * @param array<array-key, mixed> $data The form data model.
      * @return array<array-key, mixed> $data The mutated form data model.
      */
     protected function mutateFormDataBeforeFill(array $data): array
@@ -59,6 +60,7 @@ class EditAnchorAsset extends EditRecord
      *
      * @param array<array-key, mixed> $data The form data model.
      * @return array<array-key, mixed> The mutated model before saving it.
+     * @throws \JsonException
      */
     protected function mutateFormDataBeforeSave(array $data): array
     {
@@ -66,9 +68,9 @@ class EditAnchorAsset extends EditRecord
     }
 
     /**
-     * Defines the form header actions.
+     * Returns the form header actions.
      *
-     * @return array<mixed>
+     * @return array<Action>
      */
     protected function getHeaderActions(): array
     {

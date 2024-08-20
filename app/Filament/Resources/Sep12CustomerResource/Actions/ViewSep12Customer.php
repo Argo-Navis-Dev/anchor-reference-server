@@ -9,23 +9,29 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Sep12CustomerResource\Actions;
 
 use App\Filament\Resources\Sep12CustomerResource;
-use App\Filament\Resources\Sep12CustomerResource\Util\Sep12CustomerResourceHelper;
+use App\Filament\Resources\Sep12CustomerResource\Helper\Sep12CustomerResourceHelper;
+use App\Models\Sep12Customer;
 use Filament\Tables\Actions\ViewAction;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Defines the viw SEP-12 customer action.
+ * Defines the edit SEP-12 customer action.
  */
 class ViewSep12Customer extends ViewAction
 {
     protected static string $resource = Sep12CustomerResource::class;
 
-
+    /**
+     * Sets up the view.
+     *
+     * @return void
+     */
     protected function setUp(): void
     {
         parent::setUp();
-        $this->mutateRecordDataUsing(function (Model $record, array $data): array {
+        $this->mutateRecordDataUsing(function (Sep12Customer $record, array $data): array {
             Sep12CustomerResourceHelper::populateCustomerFieldsBeforeFormLoad($data, $record);
+
             return $data;
         });
     }

@@ -17,6 +17,9 @@ use Filament\Resources\Pages\ListRecords;
  */
 class ListSep24Transactions extends ListRecords
 {
+    /**
+     * @var string $resource The db entity to be listed.
+     */
     protected static string $resource = Sep24TransactionResource::class;
 
     protected function getHeaderActions(): array

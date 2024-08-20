@@ -17,6 +17,9 @@ use Filament\Resources\Pages\ListRecords;
  */
 class ListUsers extends ListRecords
 {
+    /**
+     * @var string $resource The db entity to be listed.
+     */
     protected static string $resource = UserResource::class;
 
     protected function getHeaderActions(): array

@@ -6,19 +6,18 @@ declare(strict_types=1);
 // Use of this source code is governed by a license that can be
 // found in the LICENSE file.
 
-namespace App\Filament\Resources\Sep06TransactionResource\Actions;
+namespace App\Filament\Resources\Sep08KycStatusResource\Actions;
 
 use App\Filament\Resources\AnchorAssetResource;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\Tables\Actions\EditAction;
 
 /**
- *  Defines the view SEP-08 KYC status action.
+ *  Defines the edit SEP-08 KYC status action.
  */
 class EditSep08KycStatusResource extends EditAction
 {
     protected static string $resource = AnchorAssetResource::class;
-
 
     protected function setUp(): void
     {

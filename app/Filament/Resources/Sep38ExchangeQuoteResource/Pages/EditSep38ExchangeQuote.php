@@ -10,6 +10,7 @@ namespace App\Filament\Resources\Sep38ExchangeQuoteResource\Pages;
 
 use App\Filament\Resources\Sep38ExchangeQuoteResource;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 
 /**
@@ -17,17 +18,33 @@ use Filament\Resources\Pages\EditRecord;
  */
 class EditSep38ExchangeQuote extends EditRecord
 {
+    /**
+     * @var string $resource The db entity to be edited.
+     */
     protected static string $resource = Sep38ExchangeQuoteResource::class;
 
+    /**
+     * Processes the form data model before filling it.
+     *
+     * @param array<array-key, mixed> $data The form data model to be processed.
+     *
+     * @return array<array-key, mixed> The processed form data model.
+     */
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $feeDetails = $data['fee'] ?? null;
-        if($feeDetails != null) {
+        if ($feeDetails != null) {
             $data['fee_details'] = json_decode($feeDetails, true);
         }
+
         return $data;
     }
 
+    /**
+     * Returns the form header actions.
+     *
+     * @return array<Action>
+     */
     protected function getHeaderActions(): array
     {
         return [
@@ -35,6 +52,11 @@ class EditSep38ExchangeQuote extends EditRecord
         ];
     }
 
+    /**
+     * Returns the form actions.
+     *
+     * @return array<mixed>
+     */
     protected function getFormActions(): array
     {
         return [

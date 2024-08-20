@@ -16,5 +16,8 @@ use Filament\Resources\Pages\CreateRecord;
  */
 class CreateUser extends CreateRecord
 {
+    /**
+     * @var string $resource The db entity to be created.
+     */
     protected static string $resource = UserResource::class;
 }

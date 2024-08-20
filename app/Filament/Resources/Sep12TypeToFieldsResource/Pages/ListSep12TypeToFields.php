@@ -17,6 +17,9 @@ use Filament\Resources\Pages\ListRecords;
  */
 class ListSep12TypeToFields extends ListRecords
 {
+    /**
+     * @var string $resource The db entity to be listed.
+     */
     protected static string $resource = Sep12TypeToFieldsResource::class;
 
     protected function getHeaderActions(): array
