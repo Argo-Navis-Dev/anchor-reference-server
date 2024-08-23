@@ -56,7 +56,7 @@ class AnchorAssetResource extends Resource
                         ->label(__('asset_lang.label.issuer'))
                         ->columnSpanFull()
                         ->live()
-                        ->required(fn (Get $get): bool => $get('schema') == 'stellar')
+                        ->required(fn (Get $get): bool => $get('schema') == 'stellar' && $get('code') != 'native')
                         ->rules([
                             fn (Get $get): Closure => function (string $attribute, $value, Closure $fail) use ($get) {
                                 $code = $get('code');

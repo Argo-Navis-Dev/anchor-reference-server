@@ -37,7 +37,6 @@ class EditSep31Transaction extends EditRecord
         $refunds = $data['refunds'] ?? null;
         if ($refunds != null) {
             $data['refunds'] = json_decode($refunds, true);
-            LOG::debug('Refunds: ' . json_encode($data['refunds']));
         }
 
         $requiredCustomerInfoUpdates = $data['required_customer_info_updates'] ?? null;

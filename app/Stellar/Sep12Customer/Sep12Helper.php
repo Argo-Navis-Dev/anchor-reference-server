@@ -171,9 +171,6 @@ class Sep12Helper
             // create the db objects needed
             $providedFields = self::createSep12ProvidedFieldsFromKycFields($customer->id, $kycData, allSep12Fields: $allSep12Fields);
             foreach ($providedFields as $providedField) {
-                $streamSize = $providedField->binary_value;
-                LOG::info('File uploaded: '. $providedField->id . ' ' . ', Size: ' . $streamSize);
-
                 // save the field.
                 $providedField->save();
                 // check if the field requires verification

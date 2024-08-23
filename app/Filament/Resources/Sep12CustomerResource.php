@@ -58,7 +58,9 @@ class Sep12CustomerResource extends Resource
         $sep12FieldsForType = Sep12Helper::getSep12FieldsForCustomerType($type);
 
         $requiredFieldsList = $sep12FieldsForType['required'] ?? [];
+        $requiredFielsdKey = array_map(function($field){return $field->key; } ,$requiredFieldsList);
         $optionalFieldsList = $sep12FieldsForType['optional'] ?? [];
+
 
         $statusField = self::createCustomerStatusField('status');
         $statusField->columnSpan(2);
@@ -82,17 +84,28 @@ class Sep12CustomerResource extends Resource
                 ->label(__('shared_lang.label.lang'))
         ];
 
-        $providedFields = Sep12CustomerResourceHelper::createCustomerCustomFormFields($requiredFieldsList, true);
-        $optionalFormControls = Sep12CustomerResourceHelper::createCustomerCustomFormFields($optionalFieldsList, false);
-        $providedFields = array_merge($providedFields, $optionalFormControls);
+        $allFields = array_merge($requiredFieldsList, $optionalFieldsList);
+        usort($allFields, function ($first, $second) {
+            if ($first->type === 'binary' && $second->type !== 'binary') {
+                return 1;
+            } elseif ($first->type !== 'binary' && $second->type === 'binary') {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
 
-        $components[] = Fieldset::make(__('sep12_lang.label.provided_fields'))->schema($providedFields);
+        $allFormFields =
+            Sep12CustomerResourceHelper::createCustomerCustomFormFields($allFields, $customer, $requiredFielsdKey);
+
+        $components[] =
+            Fieldset::make(__('sep12_lang.label.provided_fields'))->schema($allFormFields);
         $components[] = ResourceUtil::getModelTimestampFormControls(1);
-
         return $form->schema($components);
     }
 
-    private static function createCustomerStatusField(string $name): Field {
+    private static function createCustomerStatusField(string $name): Field
+    {
         return Select::make($name)
             ->label(__('shared_lang.label.status'))
             ->live()
@@ -143,7 +156,7 @@ class Sep12CustomerResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->hidden(function()  use ($table) {
+                    ->hidden(function () use ($table) {
                         $updatedAt = $table->getColumn('created_at');
                         return $updatedAt->isToggledHidden();
                     })
@@ -152,7 +165,7 @@ class Sep12CustomerResource extends Resource
                     ->description(__('shared_lang.label.updated_at'))
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable()
-                    ->hidden(function()  use ($table) {
+                    ->hidden(function () use ($table) {
                         $updatedAt = $table->getColumn('updated_at');
                         return $updatedAt->isToggledHidden();
                     })
@@ -202,9 +215,9 @@ class Sep12CustomerResource extends Resource
             'edit' => Pages\EditSep12Customer::route('/{record}/edit'),
         ];
     }   public static function getModelLabel(): string
-{
-    return __('sep12_lang.entity.name');
-}
+    {
+        return __('sep12_lang.entity.name');
+    }
 
     public static function getPluralLabel(): string
     {

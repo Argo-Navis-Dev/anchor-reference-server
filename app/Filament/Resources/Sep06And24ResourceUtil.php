@@ -160,6 +160,7 @@ class Sep06And24ResourceUtil
                         ->label(__('sep06_lang.label.required_customer_info_message')),
 
                     Select::make('required_customer_info_updates')
+                        ->disabled(true)
                         ->multiple(true)
                         ->label(__("sep06_lang.label.required_customer_info_updates"))
                 ]),

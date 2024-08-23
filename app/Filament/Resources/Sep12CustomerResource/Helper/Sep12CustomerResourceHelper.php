@@ -12,10 +12,10 @@ use App\Filament\Resources\Sep12CustomerResource;
 use App\Models\Sep12Customer;
 use App\Models\Sep12Field;
 use App\Models\Sep12ProvidedField;
-use App\Stellar\Sep12Customer\Sep12CustomerType;
 use App\Stellar\Sep12Customer\Sep12Helper;
 use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
 use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
@@ -145,38 +145,56 @@ class Sep12CustomerResourceHelper
      * Creates the customer custom fields form components.
      *
      * @param array<Sep12Field> $fields The form components.
-     * @param bool $required Flag indicating if the fields are required.
+     * @param Sep12Customer $customer
+     * @param array<string> $requierdFieldKeys
      *
      * @return array<mixed> The form components.
      */
-    public static function createCustomerCustomFormFields(array $fields, bool $required): array
+    public static function createCustomerCustomFormFields(array $fields, Sep12Customer $customer, array $requierdFieldKeys): array
     {
         $customFieldPrefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
         $statusSuffix = Sep12CustomerResource::CUSTOM_STATUS_FIELD_SUFFIX;
         $providedFields = [];
         foreach ($fields as $field) {
             $label = __("sep12_lang.label.{$field->key}");
+            $required = in_array($field->key, $requierdFieldKeys);
+
             $descriptionKey = "sep12_lang.label.{$field->key}.description";
             $description = __($descriptionKey);
             if ($description == $descriptionKey) {
                 $description = $field->desc;
             }
+
+            $providedField = Sep12ProvidedField::where('sep12_customer_id', $customer->id)
+                ->where('sep12_field_id', $field->id)
+                ->first();
+
             $fieldType = $field->type;
             $name = "{$customFieldPrefix}{$field->id}";
 
             $hasStatus = !isset(Sep12CustomerResource::KYC_FIELD_WITHOUT_STATUS[$field->key]);
-            if ($fieldType == 'string') {
+            if ($fieldType == 'string' || $fieldType == 'number') {
                 if ($field->choices != null) {
-                    $providedFields[] = self::createGenericSelectFormComponent($field, $hasStatus, $description, $required);
+                    $providedFields[] =
+                        self::createGenericSelectFormComponent($field, $hasStatus, $description, $required);
                 } else {
+                    $numeric = $fieldType == 'number';
                     $providedFields[] = TextInput::make(name: $name)
                         ->required($required)
                         ->helperText($description)
+                        ->numeric($numeric)
                         ->label($label);
                 }
             }
+            if($fieldType == 'date') {
+                $providedFields[] = DateTimePicker::make($name)
+                    ->required($required)
+                    ->helperText($description)
+                    ->label($label);
+            }
             if ($fieldType == 'binary') {
-                $providedFields[] = self::createGenericBinaryFormComponent($field->id, $label, $description);
+                $providedFieldID = $providedField != null ? $providedField->id : null;
+                $providedFields[] = self::createGenericBinaryFormComponent($label, $description, $providedFieldID);
             }
             $statusFieldName = "{$customFieldPrefix}{$field->id}{$statusSuffix}";
             if ($hasStatus) {
@@ -213,8 +231,15 @@ class Sep12CustomerResourceHelper
             $convertedChoice = trim($choice);
             $convertedChoice = strtolower($convertedChoice);
             $convertedChoice = preg_replace('/\s+/', '_', $convertedChoice);
-            $options[$choice] = __("sep12_lang.label.{$field->key}.{$convertedChoice}");
+
+            $localizationKey = "sep12_lang.label.{$field->key}.{$convertedChoice}";
+            $localizedLabel = __($localizationKey);;
+            if($localizationKey == $localizedLabel) {
+                $localizedLabel = $choice;
+            }
+            $options[$convertedChoice] = $localizedLabel;
         }
+
         $component = Select::make($name)
             ->label(__("sep12_lang.label.{$field->key}"))
             ->helperText($description)
@@ -231,25 +256,25 @@ class Sep12CustomerResourceHelper
     /**
      * Creates a generic binary form component for displaying images.
      *
-     * @param int $fieldID The field id to be shown.
+     * @param int|null $fieldID The field id to be shown.
      * @param string $label The field label.
      * @param string $description The field localized description.
      *
      * @return Placeholder The image form component wrapper containing the image.
      */
     private static function createGenericBinaryFormComponent(
-        int $fieldID,
         string $label,
-        string $description
+        string $description,
+        ?int $fieldID = null,
     ): Placeholder {
         return Placeholder::make('Image')
-            ->hidden(fn($record) => $record == null)
+            ->hidden(fn ($record) => $record == null)
             ->label($label)
             ->helperText($description)
             ->content(function ($record) use ($fieldID): HtmlString {
                 $id = $record != null ? $record->id : null;
                 $src = '/customer/' . $id . '/binary-field/' . $fieldID;
-                return new HtmlString("<img src= '" . $src . "')>");
+                return new HtmlString("<img width = \"180\" src= '" . $src . "')>");
             });
     }
 
@@ -302,7 +327,7 @@ class Sep12CustomerResourceHelper
         if ($newState != ProvidedCustomerFieldStatus::ACCEPTED) {
             $set('status', CustomerStatus::PROCESSING);
         } else {
-            $fieldStatusNames = self::getAllFieldStatusNames();
+            $fieldStatusNames = self::getAllFieldStatusNames($customer);
             $allFieldStatusesAccepted = true;
             foreach ($fieldStatusNames as $fieldStatusName) {
                 $fieldStatusValue = $get($fieldStatusName);

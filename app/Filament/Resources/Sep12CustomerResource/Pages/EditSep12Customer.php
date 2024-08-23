@@ -61,7 +61,6 @@ class EditSep12Customer extends EditRecord
          */
         $customer = $this->getRecord();
 
-        LOG::debug('Processing data before save: ' . json_encode($data));
         $prefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
         $statusSuffix = Sep12CustomerResource::CUSTOM_STATUS_FIELD_SUFFIX;
         $customFields = array_filter($data, function ($key) use ($prefix, $statusSuffix) {

@@ -16,6 +16,7 @@ return [
     'entity.sep12_type_to_fields.name' => 'Customer fields',
     'entity.sep12_type_to_fields.names' => 'Customer fields',
     'label.first_name' => 'First Name',
+    'label.first_name.description' => 'First Name edited description 1234',
     'label.last_name' => 'Last Name',
     'label.customer.status.accepted' => 'Accepted',
     'label.customer.status.needs_info' => 'Needs info',
