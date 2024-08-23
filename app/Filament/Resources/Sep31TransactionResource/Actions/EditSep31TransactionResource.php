@@ -6,7 +6,7 @@ declare(strict_types=1);
 // Use of this source code is governed by a license that can be
 // found in the LICENSE file.
 
-namespace App\Filament\Resources\Sep06TransactionResource\Actions;
+namespace App\Filament\Resources\Sep31TransactionResource\Actions;
 
 use App\Filament\Resources\AnchorAssetResource;
 use Filament\Support\Facades\FilamentIcon;
