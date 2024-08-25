@@ -19,3 +19,5 @@ yarn-error.log
 /.vscode
 *.lock
 build
+.php-cs-fixer.cache
+phpstan.neon.dist

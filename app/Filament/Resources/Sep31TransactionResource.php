@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\Sep06TransactionResource\Actions\EditSep31TransactionResource;
+use App\Filament\Resources\Sep31TransactionResource\Actions\EditSep31TransactionResource;
 use App\Filament\Resources\Sep31TransactionResource\Pages;
 use App\Models\Sep31Transaction;
 use ArgoNavis\PhpAnchorSdk\shared\Sep31TransactionStatus;
