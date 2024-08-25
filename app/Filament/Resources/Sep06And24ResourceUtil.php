@@ -413,25 +413,7 @@ class Sep06And24ResourceUtil
                     ->searchable(),
                 TextColumn::make('kind')
                     ->description(__('sep06_lang.label.kind'))
-                    ->searchable(),
-                TextColumn::make('created_at')
-                    ->description(__('shared_lang.label.created_at'))
-                    ->dateTime()
-                    ->sortable()
-                    ->hidden(function () use ($table) {
-                        $createdAt = $table->getColumn('created_at');
-                        return $createdAt->isToggledHidden();
-                    })
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->description(__('shared_lang.label.updated_at'))
-                    ->dateTime()
-                    ->sortable()
-                    ->hidden(function () use ($table) {
-                        $updatedAt = $table->getColumn('updated_at');
-                        return $updatedAt->isToggledHidden();
-                    })
-                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->searchable()
             ])
         ];
 

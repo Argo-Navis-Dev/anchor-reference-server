@@ -150,27 +150,7 @@ class Sep12CustomerResource extends Resource
                     ->searchable()
                     ->description(__('shared_lang.label.status'))
                     ->sortable()
-                    ->searchable(),
-                TextColumn::make('created_at')
-                    ->description(__('shared_lang.label.created_at'))
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->hidden(function () use ($table) {
-                        $updatedAt = $table->getColumn('created_at');
-                        return $updatedAt->isToggledHidden();
-                    })
-                    ->sortable(),
-                TextColumn::make('updated_at')
-                    ->description(__('shared_lang.label.updated_at'))
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->sortable()
-                    ->hidden(function () use ($table) {
-                        $updatedAt = $table->getColumn('updated_at');
-                        return $updatedAt->isToggledHidden();
-                    })
-                    ->dateTime()
-                    ->sortable()
+                    ->searchable()
             ])
         ];
         $columns[] = Panel::make([
