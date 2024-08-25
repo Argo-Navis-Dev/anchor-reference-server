@@ -12,7 +12,8 @@ const port = '8000';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: ['resources/sass/app.scss', 'resources/js/app.js',
+                'resources/sass/sep12_demo.scss', 'resources/js/sep12_demo.js'],
             refresh: true,
         }),
         // 003 load the basicSsl plugin
