@@ -23,10 +23,14 @@ use Psr\Http\Message\ServerRequestInterface;
 class StellarCrossBorderController extends Controller
 {
 
-    public function cross(ServerRequestInterface $request): ResponseInterface {
+    public function cross(ServerRequestInterface $request): ResponseInterface
+    {
         $auth = $this->getStellarAuthData($request);
         if ($auth === null) {
-            return new JsonResponse(['error' => 'Unauthorized! Use SEP-10 to authenticate.'], 401);
+            return new JsonResponse(
+                ['error' => __('shared_lang.error.unauthorized.missing_stellar_auth')],
+                401
+            );
         }
         try {
             $sep10Jwt = Sep10Jwt::fromArray($auth);
@@ -39,7 +43,13 @@ class StellarCrossBorderController extends Controller
 
             return $sep31Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
-            return new JsonResponse(['error' => 'Unauthorized! Invalid token data: ' . $e->getMessage()], 401);
+            return new JsonResponse(
+                ['error' => __(
+                    'shared_lang.error.unauthorized.invalid_token',
+                    ['exception' => $e->getMessage()]
+                )],
+                401
+            );
         }
     }
 
@@ -51,7 +61,8 @@ class StellarCrossBorderController extends Controller
      *
      * @return array<array-key | mixed> |null the extracted data if found, otherwise null
      */
-    private function getStellarAuthData(ServerRequestInterface $request) : ?array {
+    private function getStellarAuthData(ServerRequestInterface $request) : ?array
+    {
         $authDataKey = 'stellar_auth';
         $params = $request->getQueryParams();
         if (isset($params[$authDataKey])) {

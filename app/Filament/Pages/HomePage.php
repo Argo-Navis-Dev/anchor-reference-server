@@ -13,6 +13,7 @@ use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\Widget;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Facades\Log;
 
 /**
  * This class represents the home page of the Anchor Reference Server application.
@@ -56,6 +57,13 @@ class HomePage extends Dashboard
      */
     public function getWidgets(): array
     {
+        LOG::debug(__('sep08_lang.error.invalid_stellar_address'));
+        LOG::debug(__('sep08_lang.error.account_not_exist'));
+        LOG::debug(__('sep08_lang.error.asset_not_found'));
+        LOG::debug(__('sep08_lang.error.not_trust', ['code' => 'BNC', 'issuer' => '1234']));
+        LOG::debug(__('sep08_lang.error.issuer_account_not_found'));
+        LOG::debug(__('sep08_lang.error.regulated_asset_could_not_send', ['error' => '']));
+        LOG::debug(__('sep08_lang.error.regulated_asset_could_not_send', ['error' => '4567']));
         return [
             WelcomeWidget::class,
             AccountWidget::make()

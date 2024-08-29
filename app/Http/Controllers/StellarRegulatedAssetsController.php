@@ -14,6 +14,7 @@ use App\Stellar\StellarAppConfig;
 use ArgoNavis\PhpAnchorSdk\Sep08\Sep08Service;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Soneso\StellarSDK\AllowTrustOperationBuilder;
@@ -61,15 +62,16 @@ class StellarRegulatedAssetsController extends Controller
         try {
             $data = $request->json()->all();
             if (!is_array($data) || !isset($data['email_address'])) {
-                return response()->json(['message' => 'Missing email_address'], 400);
+                $errorLabel = __('sep08_lang.action_required.missing_field', ['field_name' => 'email_address']);
+                return response()->json(['message' => $errorLabel], 400);
             }
             $emailAddress = $data['email_address'];
             if (!filter_var($emailAddress, FILTER_VALIDATE_EMAIL)) {
-                return response()->json(['message' => 'The provided email_address is invalid.'], 400);
+                return response()->json(['message' => __('sep08_lang.action_required.invalid_email')], 400);
             }
             $kycData = Sep08KycStatus::whereStellarAddress($stellarAddress)->first();
             if ($kycData === null) {
-                return response()->json(['message' => 'Not found'], 404);
+                return response()->json(['message' => __('sep08_lang.action_required.kyc_data_not_found')], 404);
             }
 
             // As an arbitrary rule:
@@ -99,7 +101,7 @@ class StellarRegulatedAssetsController extends Controller
         try {
             $kycData = Sep08KycStatus::whereStellarAddress($stellarAddress)->first();
             if ($kycData === null) {
-                return response()->json(['message' => 'Not found.'], 404);
+                return response()->json(['message' => __('sep08_lang.action_required.kyc_data_not_found')], 404);
             } else {
                 $result = ['address' => $stellarAddress];
                 if ($kycData->rejected) {
@@ -129,7 +131,7 @@ class StellarRegulatedAssetsController extends Controller
         try {
             $kycData = Sep08KycStatus::whereStellarAddress($stellarAddress)->first();
             if ($kycData === null) {
-                return response()->json(['message' => 'Not found.'], 404);
+                return response()->json(['message' => __('sep08_lang.action_required.kyc_data_not_found')], 404);
             } else {
                 $kycData->delete();
                 return response()->json(['message' => 'ok'], 200);
@@ -150,18 +152,18 @@ class StellarRegulatedAssetsController extends Controller
 
         $stellarAddress = request()->query('addr');
         if(!is_string($stellarAddress)) {
-            return response()->json(['error' => 'Invalid stellar address.'], 400);
+            return response()->json(['error' => __('sep08_lang.error.invalid_stellar_address')], 400);
         }
         $accountData = $this->getAccountDetails($stellarAddress);
         if ($accountData === null) {
-            return response()->json(['error' => 'The Account does not exist on the Stellar Network.'], 400);
+            return response()->json(['error' => __('sep08_lang.error.account_not_exist')], 400);
         }
         $regulatedAsset = Asset::createFromCanonicalForm(
             config('stellar.sep08.asset_code') .':' .
             config('stellar.sep08.asset_issuer_id')
         );
         if (!($regulatedAsset instanceof AssetTypeCreditAlphanum)) {
-            return response()->json(['error' => 'Could not find asset in server config.'], 500);
+            return response()->json(['error' => __('sep08_lang.error.asset_not_found')], 500);
         }
 
         $hasTrustline = false;
@@ -174,15 +176,19 @@ class StellarRegulatedAssetsController extends Controller
             }
         }
         if (!$hasTrustline) {
+            $errorLabel = __(
+                'sep08_lang.error.not_trust',
+                ['code' => $regulatedAsset->getCode(), 'issuer' => $regulatedAsset->getIssuer()]
+            );
             return response()->json(
-                ['error' => 'The Account does not trust '.$regulatedAsset->getCode().':'.$regulatedAsset->getIssuer()],
+                ['error' => $errorLabel],
                 400
             );
         }
         $issuerAccountId = $regulatedAsset->getIssuer();
         $issuerAccount = $this->getAccountDetails($issuerAccountId);
         if($issuerAccount === null) {
-            return response()->json(['error' => 'Could not find issuer account'],
+            return response()->json(['error' => __('sep08_lang.error.issuer_account_not_found')],
                 500
             );
         }
@@ -222,12 +228,14 @@ class StellarRegulatedAssetsController extends Controller
             $txResponse = $sdk->submitTransaction($tx);
             $funded = $txResponse->isSuccessful();
         } catch (HorizonRequestException $e) {
-            return response()->json(['error' => 'Could not send regulated asset ' . $e->getMessage()],
+            $errorLabel = __('sep08_lang.error.regulated_asset_could_not_send', ['error' => $e->getMessage()]);
+            return response()->json(['error' => $errorLabel],
                 500
             );
         }
         if (!$funded) {
-            return response()->json(['error' => 'Could not send regulated asset '],
+            $errorLabel = __('sep08_lang.error.regulated_asset_could_not_send', ['error' => '']);
+            return response()->json(['error' => $errorLabel],
                 500
             );
         }

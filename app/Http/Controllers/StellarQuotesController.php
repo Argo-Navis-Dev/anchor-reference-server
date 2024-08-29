@@ -27,7 +27,10 @@ class StellarQuotesController extends Controller
             $sep38Service = new Sep38Service($sep38Integration);
             return $sep38Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
-            return new JsonResponse(['error' => 'Unauthorized! Invalid token data: ' . $e->getMessage()], 401);
+            return new JsonResponse(
+                ['error' => __('shared_lang.error.unauthorized.invalid_token',
+                    ['exception' => $e->getMessage()])], 401
+            );
         }
     }
 

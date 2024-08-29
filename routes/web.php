@@ -29,4 +29,7 @@ Route::get('/sep12demo', function () {
 })->name('sep12demo');
 
 //Renders the customer (binary) image field
-Route::get('/customer/{id}/binary-field/{fieldID}', [App\Http\Controllers\StellarCustomerController::class, 'renderBinaryField']);
+Route::get(
+    '/customer/{id}/binary-field/{fieldID}',
+    [App\Http\Controllers\StellarCustomerController::class, 'renderBinaryField']
+);
