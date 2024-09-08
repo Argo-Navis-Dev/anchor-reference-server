@@ -41,6 +41,7 @@ class AnchorAssetsSeeder extends Seeder
             'sep31_info' => json_encode($sep31Info[$usdcAssetCode]->toJson()),
             'send_min_amount' => 1.0,
             'send_max_amount' => 1000.0,
+            'created_at' => now(),
         ]);
 
         $jpycAssetCode = config('stellar.assets.jpyc_asset_code');
@@ -67,6 +68,7 @@ class AnchorAssetsSeeder extends Seeder
             'sep31_info' => json_encode($sep31Info[$jpycAssetCode]->toJson()),
             'send_min_amount' => 1.0,
             'send_max_amount' => 1000000.0,
+            'created_at' => now(),
         ]);
 
         DB::table('anchor_assets')->insert([
@@ -99,6 +101,7 @@ class AnchorAssetsSeeder extends Seeder
                         }
                       ]
                  }',
+            'created_at' => now(),
         ]);
 
         DB::table('anchor_assets')->insert([
@@ -112,6 +115,7 @@ class AnchorAssetsSeeder extends Seeder
             'withdrawal_min_amount' => 1,
             'withdrawal_max_amount' => 1000000,
             'sep38_enabled' => true,
+            'created_at' => now(),
         ]);
     }
 

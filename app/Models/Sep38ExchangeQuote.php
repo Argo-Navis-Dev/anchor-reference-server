@@ -56,4 +56,24 @@ class Sep38ExchangeQuote extends Model
      * @var string
      */
     protected $table = 'sep38_exchange_quotes';
+
+    protected $fillable = [
+        'id',
+        'context',
+        'expires_at',
+        'price',
+        'total_price',
+        'sell_asset',
+        'sell_amount',
+        'sell_delivery_method',
+        'buy_asset',
+        'buy_amount',
+        'buy_delivery_method',
+        'fee',
+        'account_id',
+        'account_memo',
+        'transaction_id',
+        'created_at',
+        'updated_at'
+    ];
 }

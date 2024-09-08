@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $amount_fee_asset
  * @property string|null $stellar_account_id
  * @property string|null $stellar_memo
- * @property string|null $stellar_memo_typ
+ * @property string|null $stellar_memo_type
  * @property string|null $client_domain
  * @property string $tx_started_at
  * @property string|null $tx_completed_at
@@ -95,4 +95,43 @@ class Sep31Transaction extends Model
      * @var string
      */
     protected $table = 'sep31_transactions';
+
+    protected $fillable = [
+        'id',
+        'stellar_transaction_id',
+        'external_transaction_id',
+        'status',
+        'status_eta',
+        'amount_expected',
+        'amount_in',
+        'amount_in_asset',
+        'amount_out',
+        'amount_out_asset',
+        'amount_fee',
+        'amount_fee_asset',
+        'stellar_account_id',
+        'stellar_memo',
+        'stellar_memo_type',
+        'client_domain',
+        'tx_started_at',
+        'tx_completed_at',
+        'tx_updated_at',
+        'transfer_received_at',
+        'stellar_transactions',
+        'sep10_account',
+        'sep10_account_memo',
+        'quote_id',
+        'sender_id',
+        'receiver_id',
+        'callback_url',
+        'message',
+        'refunds',
+        'refund_memo',
+        'refund_memo_type',
+        'fee_details',
+        'required_info_message',
+        'required_customer_info_updates',
+        'created_at',
+        'updated_at',
+    ];
 }

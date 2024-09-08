@@ -36,4 +36,14 @@ class Sep38Rate extends Model
      * @var string
      */
     protected $table = 'sep38_rates';
+
+    protected $fillable = [
+        'id',
+        'sell_asset',
+        'buy_asset',
+        'rate',
+        'fee_percent',
+        'created_at',
+        'updated_at'
+    ];
 }

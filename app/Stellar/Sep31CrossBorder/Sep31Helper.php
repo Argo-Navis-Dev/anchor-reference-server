@@ -229,7 +229,7 @@ class Sep31Helper
             amountOutAsset: $amountOutAsset,
             quoteId: $tx->quote_id,
             stellarAccountId: $tx->stellar_account_id,
-            stellarMemoType: $tx->stellar_memo_typ,
+            stellarMemoType: $tx->stellar_memo_type,
             stellarMemo: $tx->stellar_memo,
             startedAt: DateTime::createFromFormat(DATE_ATOM, $tx->tx_started_at),
             updatedAt: $tx->tx_updated_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_updated_at),
@@ -253,7 +253,7 @@ class Sep31Helper
      * @return Sep31AssetInfo the converted asset.
      * @throws InvalidAsset
      */
-    private static function sep31AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep31AssetInfo {
+    public static function sep31AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep31AssetInfo {
         try {
             $formattedAsset = new IdentificationFormatAsset
             (

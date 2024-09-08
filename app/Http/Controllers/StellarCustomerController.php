@@ -8,15 +8,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Sep12ProvidedField;
 use App\Stellar\Sep12Customer\CustomerIntegration;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidSep10JwtData;
 use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Jwt;
 use ArgoNavis\PhpAnchorSdk\Sep12\Sep12Service;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Laminas\Diactoros\Response\JsonResponse;
-use Laminas\Diactoros\ServerRequestFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class StellarCustomerController extends Controller
 {
@@ -53,5 +55,32 @@ class StellarCustomerController extends Controller
             return $params[$authDataKey];
         }
         return null;
+    }
+
+    /**
+     * Retrieves the passed customer binary (image) field or a dummy image if it does not exist.
+     *
+     * @param string $id The ID of the customer.
+     * @param int $providedFieldID The ID of the image field.
+     * @return BinaryFileResponse
+     */
+    public function renderBinaryField(string $id, int $providedFieldID): Response
+    {
+        LOG::debug('Loading image field: ' . $providedFieldID . ' by customer: ' . $id);
+        $imgField = Sep12ProvidedField::where('sep12_customer_id', $id)
+            ->where('id', $providedFieldID)
+            ->first();
+        if ($imgField && $imgField->binary_value) {
+            $size = strlen($imgField->binary_value);
+            if ($size == 0) {
+                LOG::debug('The image field is empty!');
+                return response()->file(public_path('img/empty.jpg'));
+            }
+            $mimeType = finfo_buffer(finfo_open(), $imgField->binary_value, FILEINFO_MIME_TYPE);
+            LOG::debug('The image field has been found, the mime type is: ' . $mimeType);
+            return response($imgField->binary_value)->header('Content-Type', $mimeType);
+        }
+        LOG::debug('The image field has not been found!');
+        return response()->file(public_path('img/empty.jpg'));
     }
 }

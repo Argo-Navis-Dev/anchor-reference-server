@@ -656,7 +656,7 @@ class Sep06Helper
      * @param string $requiredInfoUpdatesJson the json string to parse from
      * @return Sep06InfoField[]|null the result if it could be parsed.
      */
-    private static function parseRequiredInfoUpdates(string $requiredInfoUpdatesJson) : ?array {
+    public static function parseRequiredInfoUpdates(string $requiredInfoUpdatesJson) : ?array {
         $infoUpdates = json_decode($requiredInfoUpdatesJson, true);
         if ($infoUpdates !== null) {
             /**

@@ -33,4 +33,13 @@ class Sep12TypeToFields extends Model
      * @var string
      */
     protected $table = 'sep12_type_to_fields';
+
+    protected $fillable = [
+        'id',
+        'type',
+        'required_fields',
+        'optional_fields',
+        'created_at',
+        'updated_at'
+    ];
 }
