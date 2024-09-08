@@ -129,11 +129,12 @@ class Sep31Helper
         }
 
         $sep31Transaction->stellar_memo = strval(rand(5000000, 150000000));
-        $sep31Transaction->stellar_memo_type = 'id';
-        if ($request->asset->asset->getCode() === 'USDC') {
-            $sep31Transaction->stellar_account_id = 'GAKRN7SCC7KVT52XLMOFFWOOM4LTI2TQALFKKJ6NKU3XWPNCLD5CFRY2';
-        } else if ($request->asset->asset->getCode() === 'JPYC') {
-            $sep31Transaction->stellar_account_id = 'GCMMCKP2OJXLBZCANRHXSGMMUOGJQKNCHH7HQZ4G3ZFLAIBZY5ODJYO6';
+        $sep31Transaction->stellar_memo_typ = 'id';
+
+        if ($request->asset->asset->getCode() === config('stellar.assets.usdc_asset_code')) {
+            $sep31Transaction->stellar_account_id = config('stellar.assets.usdc_asset_distribution_account_id');
+        } else if ($request->asset->asset->getCode() === config('stellar.assets.jpyc_asset_code')) {
+            $sep31Transaction->stellar_account_id = config('stellar.assets.jpyc_asset_distribution_account_id');
         }
 
         $sep31Transaction->save();

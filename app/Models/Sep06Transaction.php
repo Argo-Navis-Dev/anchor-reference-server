@@ -103,6 +103,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Sep06Transaction whereMoreInfoUrl($value)
  * @property string|null $instructions
  * @method static \Illuminate\Database\Eloquent\Builder|Sep06Transaction whereInstructions($value)
+ * @property string|null $stellar_paging_token
+ * @method static \Illuminate\Database\Eloquent\Builder|Sep06Transaction whereStellarPagingToken($value)
  * @mixin \Eloquent
  */
 class Sep06Transaction extends Model

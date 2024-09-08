@@ -18,7 +18,7 @@ class StellarSep06Config implements ISep06Config
      */
     public function isAccountCreationSupported(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -26,6 +26,6 @@ class StellarSep06Config implements ISep06Config
      */
     public function areClaimableBalancesSupported(): bool
     {
-        return false;
+        return true;
     }
 }

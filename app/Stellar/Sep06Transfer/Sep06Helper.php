@@ -10,6 +10,8 @@ namespace App\Stellar\Sep06Transfer;
 
 use App\Models\AnchorAsset;
 use App\Models\Sep06Transaction;
+use App\Models\Sep38Rate;
+use App\Stellar\Sep12Customer\Sep12Helper;
 use App\Stellar\Sep38Quote\Sep38Helper;
 use App\Stellar\Shared\SepHelper;
 use ArgoNavis\PhpAnchorSdk\callback\Sep06TransactionResponse;
@@ -18,8 +20,10 @@ use ArgoNavis\PhpAnchorSdk\callback\StartDepositRequest;
 use ArgoNavis\PhpAnchorSdk\callback\StartWithdrawExchangeRequest;
 use ArgoNavis\PhpAnchorSdk\callback\StartWithdrawRequest;
 use ArgoNavis\PhpAnchorSdk\callback\TransactionHistoryRequest;
+use ArgoNavis\PhpAnchorSdk\exception\AccountNotFound;
 use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
+use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
 use ArgoNavis\PhpAnchorSdk\shared\DepositOperation;
 use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
 use ArgoNavis\PhpAnchorSdk\shared\InstructionsField;
@@ -28,18 +32,24 @@ use ArgoNavis\PhpAnchorSdk\shared\Sep06InfoField;
 use ArgoNavis\PhpAnchorSdk\shared\Sep06TransactionStatus;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfo;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfoDetail;
-use ArgoNavis\PhpAnchorSdk\shared\TransactionRefundPayment;
-use ArgoNavis\PhpAnchorSdk\shared\TransactionRefunds;
 use ArgoNavis\PhpAnchorSdk\shared\WithdrawOperation;
+use ArgoNavis\PhpAnchorSdk\Stellar\TrustlinesHelper;
 use ArgoNavis\PhpAnchorSdk\util\MemoHelper;
 use DateTime;
 use DateTimeInterface;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Soneso\StellarSDK\Memo;
 use Throwable;
 
 class Sep06Helper
 {
+
+    public const KIND_DEPOSIT = 'deposit';
+    public const KIND_DEPOSIT_EXCHANGE = 'deposit-exchange';
+    public const KIND_WITHDRAW = 'withdraw';
+    public const KIND_WITHDRAW_EXCHANGE = 'withdraw-exchange';
+
     /**
      * @return array<Sep06AssetInfo> the assets having sep06 support enabled.
      */
@@ -120,15 +130,33 @@ class Sep06Helper
      * Creates and saves a new deposit transaction from the given request data.
      * @param StartDepositRequest $request the request data.
      * @return Sep06Transaction then new created deposit transaction.
+     * @throws AnchorFailure
      */
     public static function newDepositTransaction(StartDepositRequest $request) : Sep06Transaction {
 
+        $destinationAssetCode = $request->depositAsset->asset->getCode();
+        $destinationAssetIssuer = $request->depositAsset->asset->getIssuer();
+        $claimableBalanceSupported = $request->claimableBalanceSupported === null ? false : $request->claimableBalanceSupported;
+
         $sep06Transaction = new Sep06Transaction;
-        $sep06Transaction->status = Sep06TransactionStatus::INCOMPLETE;
-        $sep06Transaction->kind = 'deposit';
+        $sep06Transaction->status = self::getNewTransactionStatus($request->sep10Account, $request->sep10AccountMemo);
+        if ($sep06Transaction->status === Sep06TransactionStatus::PENDING_USER_TRANSFER_START) {
+            if (!$claimableBalanceSupported && $destinationAssetIssuer !== null) {
+
+                $needsTrustline = self::needsDepositTrustline(
+                    receivingAccountId: $request->account,
+                    assetCode: $destinationAssetCode,
+                    assetIssuer: $destinationAssetIssuer,
+                );
+                if ($needsTrustline) {
+                    $sep06Transaction->status = Sep06TransactionStatus::PENDING_TRUST;
+                }
+            }
+        }
+        $sep06Transaction->kind = self::KIND_DEPOSIT;
         $sep06Transaction->type = $request->type;
-        $sep06Transaction->request_asset_code = $request->depositAsset->asset->getCode();
-        $sep06Transaction->request_asset_issuer = $request->depositAsset->asset->getIssuer();
+        $sep06Transaction->request_asset_code = $destinationAssetCode;
+        $sep06Transaction->request_asset_issuer = $destinationAssetIssuer;
         $sep06Transaction->amount_expected = $request->amount;
         $start = new DateTime('now');
         $sep06Transaction->tx_started_at = $start->format(DateTimeInterface::ATOM);
@@ -141,18 +169,18 @@ class Sep06Helper
             $sep06Transaction->memo = $memoFields['memo_value'];
             $sep06Transaction->memo_type = $memoFields['memo_type'];
         }
-        $sep06Transaction->claimable_balance_supported = $request->claimableBalanceSupported;
+        $sep06Transaction->claimable_balance_supported = $claimableBalanceSupported;
 
         // add your own business logic here
         $instructions = [
             (new InstructionsField(
                 name: 'bank_number',
                 value: '121122676',
-                description: 'US bank routing number'))->toJson(),
+                description: 'Fake bank number'))->toJson(),
             (new InstructionsField(
                 name: 'bank_account_number',
                 value: '13719713158835300',
-                description: 'US bank account number'))->toJson(),
+                description: 'Fake bank account number'))->toJson(),
         ];
         $sep06Transaction->instructions = json_encode($instructions);
 
@@ -170,13 +198,29 @@ class Sep06Helper
      */
     public static function newDepositExchangeTransaction(StartDepositExchangeRequest $request) : Sep06Transaction {
 
+        $destinationAssetCode = $request->destinationAsset->asset->getCode();
+        $destinationAssetIssuer = $request->destinationAsset->asset->getIssuer();
+        $claimableBalanceSupported = $request->claimableBalanceSupported === null ? false : $request->claimableBalanceSupported;
+
         $sep06Transaction = new Sep06Transaction;
-        $sep06Transaction->status = Sep06TransactionStatus::INCOMPLETE;
-        $sep06Transaction->kind = 'deposit-exchange';
+        $sep06Transaction->status = self::getNewTransactionStatus($request->sep10Account, $request->sep10AccountMemo);
+        if ($sep06Transaction->status === Sep06TransactionStatus::PENDING_USER_TRANSFER_START) {
+            if (!$claimableBalanceSupported && $destinationAssetIssuer !== null) {
+                $needsTrustline = self::needsDepositTrustline(
+                  receivingAccountId: $request->account,
+                  assetCode: $destinationAssetCode,
+                  assetIssuer: $destinationAssetIssuer,
+                );
+                if ($needsTrustline) {
+                    $sep06Transaction->status = Sep06TransactionStatus::PENDING_TRUST;
+                }
+            }
+        }
+        $sep06Transaction->kind = self::KIND_DEPOSIT_EXCHANGE;
         $sep06Transaction->type = $request->type;
-        $sep06Transaction->request_asset_code = $request->destinationAsset->asset->getCode();
-        $sep06Transaction->request_asset_issuer = $request->destinationAsset->asset->getIssuer();
-        $sep06Transaction->amount_in = $request->amount;
+        $sep06Transaction->request_asset_code = $destinationAssetCode;
+        $sep06Transaction->request_asset_issuer = $destinationAssetIssuer;
+        $sep06Transaction->amount_in = 0.0;
         $sep06Transaction->amount_in_asset = $request->sourceAsset->getStringRepresentation();
         $sep06Transaction->amount_out_asset = $request->destinationAsset->asset->getStringRepresentation();
 
@@ -207,11 +251,11 @@ class Sep06Helper
             (new InstructionsField(
                 name: 'bank_number',
                 value: '121122676',
-                description: 'US bank routing number'))->toJson(),
+                description: 'Fake bank number'))->toJson(),
             (new InstructionsField(
                 name: 'bank_account_number',
                 value: '13719713158835300',
-                description: 'US bank account number'))->toJson(),
+                description: 'Fake bank account number'))->toJson(),
         ];
         $sep06Transaction->instructions = json_encode($instructions);
 
@@ -228,7 +272,7 @@ class Sep06Helper
             $sep06Transaction->memo = $memoFields['memo_value'];
             $sep06Transaction->memo_type = $memoFields['memo_type'];
         }
-        $sep06Transaction->claimable_balance_supported = $request->claimableBalanceSupported;
+        $sep06Transaction->claimable_balance_supported = $claimableBalanceSupported;
         $sep06Transaction->save();
         $sep06Transaction->refresh();
         return $sep06Transaction;
@@ -238,12 +282,13 @@ class Sep06Helper
      * Creates and stores a new withdrawal transaction from the given request data.
      * @param StartWithdrawRequest $request the request data to create the transaction from.
      * @return Sep06Transaction the new created withdrawal transaction.
+     * @throws AnchorFailure
      */
     public static function newWithdrawTransaction(StartWithdrawRequest $request) : Sep06Transaction {
 
         $sep06Transaction = new Sep06Transaction;
-        $sep06Transaction->status = Sep06TransactionStatus::INCOMPLETE;
-        $sep06Transaction->kind = 'withdraw';
+        $sep06Transaction->status = self::getNewTransactionStatus($request->sep10Account, $request->sep10AccountMemo);
+        $sep06Transaction->kind = self::KIND_WITHDRAW;
         $sep06Transaction->type = $request->type;
         $sep06Transaction->request_asset_code = $request->asset->asset->getCode();
         $sep06Transaction->request_asset_issuer = $request->asset->asset->getIssuer();
@@ -264,10 +309,12 @@ class Sep06Helper
         }
 
         // add your business logic here. e.g.
-        if ($sep06Transaction->request_asset_code === 'USDC') {
-            $sep06Transaction->withdraw_anchor_account = 'GAKRN7SCC7KVT52XLMOFFWOOM4LTI2TQALFKKJ6NKU3XWPNCLD5CFRY2';
-        } else if ($sep06Transaction->request_asset_code === 'JPYC') {
-            $sep06Transaction->withdraw_anchor_account = 'GCMMCKP2OJXLBZCANRHXSGMMUOGJQKNCHH7HQZ4G3ZFLAIBZY5ODJYO6';
+        if ($sep06Transaction->request_asset_code === config('stellar.assets.usdc_asset_code')) {
+            $sep06Transaction->withdraw_anchor_account = config('stellar.assets.usdc_asset_distribution_account_id');
+            $sep06Transaction->amount_out_asset = 'iso4217:USD';
+        } else if ($sep06Transaction->request_asset_code === config('stellar.assets.jpyc_asset_code')) {
+            $sep06Transaction->withdraw_anchor_account = config('stellar.assets.jpyc_asset_distribution_account_id');
+            $sep06Transaction->amount_out_asset = 'iso4217:JPYC';
         }
         $sep06Transaction->memo = strval(rand(5000000, 150000000));
         $sep06Transaction->memo_type = 'id';
@@ -275,6 +322,53 @@ class Sep06Helper
         $sep06Transaction->save();
         $sep06Transaction->refresh();
         return $sep06Transaction;
+    }
+
+    private static function getKYCStatus(string $accountId, ?string $memo) : ?string {
+        $sep12Customer = Sep12Helper::getSep12CustomerByAccountId(
+            accountId: $accountId,
+            memo: $memo);
+        return $sep12Customer?->status;
+    }
+
+    /**
+     * @throws AnchorFailure
+     */
+    private static function getNewTransactionStatus(
+        string $sep10AccountId,
+        ?string $sep10AccountMemo,
+    ) : ?string {
+        $kycStatus = self::getKYCStatus($sep10AccountId, $sep10AccountMemo);
+
+        if ($kycStatus === CustomerStatus::ACCEPTED) {
+            return Sep06TransactionStatus::PENDING_USER_TRANSFER_START;
+        } elseif ($kycStatus === CustomerStatus::REJECTED) {
+            throw new AnchorFailure("Customer KYC has status rejected");
+        } elseif ($kycStatus === null || $kycStatus === CustomerStatus::NEEDS_INFO) {
+            return Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE;
+        }
+        return Sep06TransactionStatus::INCOMPLETE;
+    }
+
+    private static function needsDepositTrustline(
+        string $receivingAccountId,
+        string $assetCode,
+        string $assetIssuer,
+    ) : bool {
+        try {
+            $horizonUrl = config('stellar.app.horizon_url', );
+            return !TrustlinesHelper::checkIfAccountTrustsAsset(
+                horizonUrl: $horizonUrl,
+                accountId: $receivingAccountId,
+                assetCode: $assetCode,
+                assetIssuer: $assetIssuer,
+            );
+        } catch (Exception $e) {
+            if ($e instanceof AccountNotFound) {
+                return false;
+            }
+            return true;
+        }
     }
 
     /**
@@ -286,7 +380,7 @@ class Sep06Helper
     public static function newWithdrawExchangeTransaction(StartWithdrawExchangeRequest $request) : Sep06Transaction {
 
         $sep06Transaction = new Sep06Transaction;
-        $sep06Transaction->status = Sep06TransactionStatus::INCOMPLETE;
+        $sep06Transaction->status = self::getNewTransactionStatus($request->sep10Account, $request->sep10AccountMemo);
         $sep06Transaction->kind = 'withdraw-exchange';
         $sep06Transaction->type = $request->type;
         $sep06Transaction->request_asset_code = $request->sourceAsset->asset->getCode();
@@ -295,14 +389,11 @@ class Sep06Helper
         $sep06Transaction->amount_in_asset = $request->sourceAsset->asset->getStringRepresentation();
         $sep06Transaction->amount_out_asset = $request->destinationAsset->getStringRepresentation();
 
-        // add you business logic here
         // calculate amount out here. if quoteId != null take it from the quote,
         // otherwise calculate with your business logic.
         // $sep06Transaction->amount_out = ...;
         // $sep06Transaction->feeDetails = ...;
-        // others .. e.g.
-        // add your business logic here
-        // e.g.
+        // others ..
         if ($request->quoteId !== null) {
             try {
                 $quote = Sep38Helper::getQuoteById($request->quoteId, $request->sep10Account, $request->sep10AccountMemo);
@@ -312,18 +403,31 @@ class Sep06Helper
                 throw new AnchorFailure(message: $e->getMessage(), code: $e->getCode());
             }
         } else {
+            // based on exchange rate
+            $exchangeRate = Sep38Rate::where('sell_asset', '=', $sep06Transaction->amount_in_asset)
+                ->where('buy_asset', '=', $sep06Transaction->amount_out_asset)->first();
+
+            if ($exchangeRate === null) {
+                throw new AnchorFailure(message: 'no exchange rate found for sell asset ' .
+                    $sep06Transaction->amount_in_asset . ' and buy asset '. $sep06Transaction->amount_in_asset);
+            }
+            $feePercent = $exchangeRate->fee_percent;
+            $fee = $sep06Transaction->amount_in * ($feePercent / 100);
+            $amountInMinusFee = $sep06Transaction->amount_in - $fee;
+            $sep06Transaction->amount_out = $amountInMinusFee * $exchangeRate->rate;
+
             $feeInfo = new TransactionFeeInfo(
-                total: '0.1',
+                total: strval($fee),
                 asset: $request->sourceAsset->asset,
                 details: [new TransactionFeeInfoDetail(
                     name: 'Service fee',
-                    amount: '0.1')]);
+                    amount: strval($fee))]);
             $sep06Transaction->fee_details = json_encode($feeInfo->toJson());
         }
-        if ($sep06Transaction->request_asset_code === 'USDC') {
-            $sep06Transaction->withdraw_anchor_account = 'GAKRN7SCC7KVT52XLMOFFWOOM4LTI2TQALFKKJ6NKU3XWPNCLD5CFRY2';
-        } else if ($sep06Transaction->request_asset_code === 'JPYC') {
-            $sep06Transaction->withdraw_anchor_account = 'GCMMCKP2OJXLBZCANRHXSGMMUOGJQKNCHH7HQZ4G3ZFLAIBZY5ODJYO6';
+        if ($sep06Transaction->request_asset_code === config('stellar.assets.usdc_asset_code')) {
+            $sep06Transaction->withdraw_anchor_account = config('stellar.assets.usdc_asset_distribution_account_id');
+        } else if ($sep06Transaction->request_asset_code === config('stellar.assets.jpyc_asset_code')) {
+            $sep06Transaction->withdraw_anchor_account = config('stellar.assets.jpyc_asset_distribution_account_id');
         }
         $sep06Transaction->memo = strval(rand(5000000, 150000000));
         $sep06Transaction->memo_type = 'id';
@@ -459,6 +563,7 @@ class Sep06Helper
             message: $tx->message,
             requiredInfoMessage: $tx->required_info_message,
             requiredInfoUpdates: $tx->required_info_updates,
+            claimableBalanceId: $tx->claimable_balance_id,
         );
 
         if ($tx->required_info_updates != null) {
@@ -499,11 +604,11 @@ class Sep06Helper
      * "[
      *      "organization.bank_number": {
      *          "value": "121122676",
-     *          "description": "US bank routing number"
+     *          "description": "Fake bank number"
      *       },
      *      "organization.bank_account_number": {
      *          "value": "13719713158835300",
-     *          "description": "US bank account number"
+     *          "description": "Fake bank account number"
      *      }
      * ]"
      * see also: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response

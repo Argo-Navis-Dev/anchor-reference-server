@@ -13,6 +13,7 @@ use Soneso\StellarSDK\SEP\KYCService\KYCService;
 use Soneso\StellarSDK\SEP\KYCService\PutCustomerCallbackRequest;
 use Soneso\StellarSDK\SEP\KYCService\PutCustomerInfoRequest;
 use Soneso\StellarSDK\SEP\KYCService\PutCustomerVerificationRequest;
+use Soneso\StellarSDK\SEP\StandardKYCFields\FinancialAccountKYCFields;
 use Soneso\StellarSDK\SEP\StandardKYCFields\NaturalPersonKYCFields;
 use Soneso\StellarSDK\SEP\StandardKYCFields\StandardKYCFields;
 use Soneso\StellarSDK\SEP\Toml\StellarToml;
@@ -86,7 +87,6 @@ class StellarCustomerTest extends TestCase
         $emailField = $providedFields['email_address'];
         assertEquals(ProvidedCustomerFieldStatus::VERIFICATION_REQUIRED, $emailField->getStatus());
 
-
         // update customer
         $naturalPersonFields = new NaturalPersonKYCFields();
         $naturalPersonFields->lastName = "Doe2";
@@ -97,7 +97,14 @@ class StellarCustomerTest extends TestCase
             $filePath = '../files/id_back.png';
         }
         $naturalPersonFields->photoIdFront = file_get_contents($filePath, false);
+
+        $financialAccountFields = new FinancialAccountKYCFields();
+        $financialAccountFields->bankAccountNumber = 'BE91798829733676';
+        $financialAccountFields->bankNumber = "WHKVAG80ARS";
+        $naturalPersonFields->financialAccountKYCFields = $financialAccountFields;
+
         $kyc->naturalPersonKYCFields = $naturalPersonFields;
+
         $request->id = $id;
         $request->KYCFields = $kyc;
         $response = $kycService->putCustomerInfo($request);
@@ -110,7 +117,7 @@ class StellarCustomerTest extends TestCase
         assertNotNull($response->getFields());
         //print_r($response->getFields());
         assertNotNull($response->getProvidedFields());
-        assertEquals(CustomerStatus::PROCESSING, $response->getStatus());
+        assertEquals(CustomerStatus::ACCEPTED, $response->getStatus());
 
         // verify email address
         $verificationRequest = new PutCustomerVerificationRequest();

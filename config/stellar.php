@@ -65,7 +65,7 @@ return [
         |
         */
         'home_domains' => [
-            'localhost:5173'
+            env('STELLAR_SERVER_HOME_DOMAIN'),
         ],
         /*
         |--------------------------------------------------------------------------
@@ -113,7 +113,7 @@ return [
         | should be higher than the authentication challenge transaction timeout.
         |
         */
-        'jwt_timeout' => 300,
+        'jwt_timeout' => 3000,
 
         /*
         |--------------------------------------------------------------------------
@@ -252,6 +252,30 @@ return [
         |
         */
         'kyc_status_endpoint' => env('SEP08_KYC_STATUS_ENDPOINT'),
-    ]
+    ],
 
+    // test assets
+    'assets' => [
+        'usdc_asset_code' => env('USDC_ASSET_CODE'),
+        'usdc_asset_issuer_id' => env('USDC_ASSET_ISSUER_ID'),
+        'usdc_asset_issuer_signing_key' => env('USDC_ASSET_ISSUER_SIGNING_KEY'),
+        'usdc_asset_distribution_account_id' => env('USDC_ASSET_DISTRIBUTION_ACCOUNT_ID'),
+        'usdc_asset_distribution_signing_key' => env('USDC_ASSET_DISTRIBUTION_ACCOUNT_SIGNING_KEY'),
+
+        'jpyc_asset_code' => env('JPYC_ASSET_CODE'),
+        'jpyc_asset_issuer_id' => env('JPYC_ASSET_ISSUER_ID'),
+        'jpyc_asset_issuer_signing_key' => env('JPYC_ASSET_ISSUER_SIGNING_KEY'),
+        'jpyc_asset_distribution_account_id' => env('JPYC_ASSET_DISTRIBUTION_ACCOUNT_ID'),
+        'jpyc_asset_distribution_signing_key' => env('JPYC_ASSET_DISTRIBUTION_ACCOUNT_SIGNING_KEY'),
+    ],
+
+    'server' => [
+        'server_account_id' => env('STELLAR_SERVER_ACCOUNT_ID'),
+        'server_account_signing_key' => env('STELLAR_SIGNING_KEY'),
+        'server_home_domain' => env('STELLAR_SERVER_HOME_DOMAIN'),
+    ],
+
+    'sep12' => [
+        'auto_accept' => 'true',
+    ],
 ];
