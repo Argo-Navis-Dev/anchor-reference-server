@@ -13,8 +13,10 @@ return [
 
     'entity.name' => 'Customer',
     'entity.names' => 'Customers',
-    'entity.sep12_type_to_fields.name' => 'Customer fields',
-    'entity.sep12_type_to_fields.names' => 'Customer fields',
+    'entity.type_to_fields.name' => 'SEP-12 Type',
+    'entity.type_to_fields.names' => 'SEP-12 Types',
+    'entity.field.name' => 'SEP-12 Field',
+    'entity.field.names' => 'SEP-12 Fields',
     'label.first_name' => 'First Name',
     'label.first_name.description' => 'First Name edited description 1234',
     'label.last_name' => 'Last Name',
@@ -39,7 +41,6 @@ return [
     'label.fields.required' => 'Required fields',
     'label.fields.optional' => 'Optional fields',
     'label.fields.type' => 'Type',
-
     'label.card_number' => 'Card number',
     'label.card_expiration_date' => 'Card expiration date',
     'label.card_cvc' => 'Card cvc',
@@ -109,4 +110,12 @@ return [
     'label.proof_of_income' => 'Proof of income',
     'label.proof_of_liveness' => 'Proof of liveness',
     'label.referral_id' => 'Referral id',
+    'label.key' => 'Key',
+    'label.field.type.string' => 'string',
+    'label.field.type.binary' => 'binary',
+    'label.field.type.date' => 'date',
+    'label.field.type.number' => 'number',
+    'label.field.choices' => 'Choices',
+    'label.field.requires_verification' => 'Requires verification',
+    'label.field.lang' => 'Language',
 ];

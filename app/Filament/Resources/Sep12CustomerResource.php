@@ -9,14 +9,16 @@ declare(strict_types=1);
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\Sep12CustomerResource\Actions\ViewSep12Customer;
-use App\Filament\Resources\Sep12CustomerResource\Pages;
 use App\Filament\Resources\Sep12CustomerResource\Helper\Sep12CustomerResourceHelper;
+use App\Filament\Resources\Sep12CustomerResource\Pages;
 use App\Models\Sep12Customer;
+use App\Models\Sep12TypeToFields;
 use App\Stellar\Sep12Customer\Sep12CustomerType;
 use App\Stellar\Sep12Customer\Sep12Helper;
 use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -24,13 +26,13 @@ use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
-use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\Layout\Panel;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Log;
 
 /**
  *  The UI. controls definitions for a SEP-12 customer record from the database.
@@ -58,7 +60,9 @@ class Sep12CustomerResource extends Resource
         $sep12FieldsForType = Sep12Helper::getSep12FieldsForCustomerType($type);
 
         $requiredFieldsList = $sep12FieldsForType['required'] ?? [];
-        $requiredFielsdKey = array_map(function($field){return $field->key; } ,$requiredFieldsList);
+        $requiredFielsdKey = array_map(function ($field) {
+            return $field->key;
+        }, $requiredFieldsList);
         $optionalFieldsList = $sep12FieldsForType['optional'] ?? [];
 
 
@@ -74,14 +78,30 @@ class Sep12CustomerResource extends Resource
                 ->label(__('shared_lang.label.memo'))
                 ->maxLength(255),
             $statusField,
-            TextInput::make('callback_url')
-                ->url(true)
-                ->maxLength(2000)
-                ->label(__('sep12_lang.label.callback_url')),
-            TextInput::make('lang')
-                ->minLength(2)
-                ->maxLength(2)
-                ->label(__('shared_lang.label.lang'))
+            Grid::make()
+                ->columns(3)
+                ->schema([
+                    TextInput::make('callback_url')
+                        ->url(true)
+                        ->maxLength(2000)
+                        ->label(__('sep12_lang.label.callback_url')),
+                    TextInput::make('lang')
+                        ->minLength(2)
+                        ->maxLength(2)
+                        ->label(__('shared_lang.label.lang')),
+                    Select::make('type')
+                        ->label(__('shared_lang.label.type'))
+                        ->required()
+                        ->default('string')
+                        ->disabled()
+                        ->options(function (?Sep12Customer $record) {
+                            $types = Sep12TypeToFields::pluck('type');
+                            if ($types != null && $types->count() > 0) {
+                                return array_combine($types->toArray(), $types->toArray());
+                            }
+                            return [];
+                        })
+                ])
         ];
 
         $allFields = array_merge($requiredFieldsList, $optionalFieldsList);
@@ -101,6 +121,7 @@ class Sep12CustomerResource extends Resource
         $components[] =
             Fieldset::make(__('sep12_lang.label.provided_fields'))->schema($allFormFields);
         $components[] = ResourceUtil::getModelTimestampFormControls(1);
+
         return $form->schema($components);
     }
 
@@ -150,7 +171,17 @@ class Sep12CustomerResource extends Resource
                     ->searchable()
                     ->description(__('shared_lang.label.status'))
                     ->sortable()
-                    ->searchable()
+                    ->searchable(),
+                SelectColumn::make('type')
+                    ->label((__('shared_lang.label.type')))
+                    ->selectablePlaceholder(false)
+                    ->options(function (?Sep12Customer $record) {
+                        $types = Sep12TypeToFields::pluck('type');
+                        if ($types != null && $types->count() > 0) {
+                            return array_combine($types->toArray(), $types->toArray());
+                        }
+                        return [];
+                    })
             ])
         ];
         $columns[] = Panel::make([
@@ -170,7 +201,7 @@ class Sep12CustomerResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
                 ViewSep12Customer::make()
             ])
             ->bulkActions([
@@ -194,7 +225,9 @@ class Sep12CustomerResource extends Resource
             'create' => Pages\CreateSep12Customer::route('/create'),
             'edit' => Pages\EditSep12Customer::route('/{record}/edit'),
         ];
-    }   public static function getModelLabel(): string
+    }
+
+    public static function getModelLabel(): string
     {
         return __('sep12_lang.entity.name');
     }

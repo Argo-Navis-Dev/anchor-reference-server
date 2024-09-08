@@ -61,5 +61,5 @@ return [
     'label.source_account' => 'Source account',
     'label.payment_type' => 'Payment type',
     'label.envelope' => 'Envelope',
-    'error.invalid_account_id' => 'The provided account ID is invalid!'
+    'label.type' => 'Type',
 ];

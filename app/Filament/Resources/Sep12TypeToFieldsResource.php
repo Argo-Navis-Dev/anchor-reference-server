@@ -54,6 +54,7 @@ class Sep12TypeToFieldsResource extends Resource
                         return self::getFieldsSelectOptions();
                     })
                     ->columnSpanFull(),
+                ResourceUtil::getModelTimestampFormControls(1)
             ]);
     }
 
@@ -135,17 +136,12 @@ class Sep12TypeToFieldsResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('sep12_lang.entity.sep12_type_to_fields.name');
+        return __('sep12_lang.entity.type_to_fields.name');
     }
 
     public static function getPluralLabel(): string
     {
-        return __('sep12_lang.entity.sep12_type_to_fields.names');
-    }
-
-    public static function canCreate(): bool
-    {
-        return false;
+        return __('sep12_lang.entity.type_to_fields.names');
     }
 
     /**

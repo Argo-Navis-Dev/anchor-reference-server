@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Sep12TypeToFieldsResource\Pages;
 
+use App\Filament\Resources\ResourceUtil;
 use App\Filament\Resources\Sep12TypeToFieldsResource;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -20,4 +21,20 @@ class CreateSep12TypeToFields extends CreateRecord
      * @var string $resource The db entity to be created.
      */
     protected static string $resource = Sep12TypeToFieldsResource::class;
+
+    /**
+     * Mutates the form data before creating a resource.
+     *
+     * @param array<array-key, mixed> $data The form data.
+     * @return array<array-key, mixed> $data The mutated form data.
+     */
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['required_fields'] =
+            ResourceUtil::convertJsonArrayToCommaSeparatedString($data, 'required_fields');
+        $data['optional_fields'] =
+            ResourceUtil::convertJsonArrayToCommaSeparatedString($data, 'optional_fields');
+
+        return $data;
+    }
 }
