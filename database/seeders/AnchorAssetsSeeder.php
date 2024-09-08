@@ -11,22 +11,19 @@ use Illuminate\Support\Facades\DB;
 class AnchorAssetsSeeder extends Seeder
 {
 
-    const USDC_ASSET_CODE = 'USDC';
-    const USDC_ASSET_ISSUER = 'GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2';
-    const JPYC_ASSET_CODE = 'JPYC';
-    const JPYC_ASSET_ISSUER = 'GBDQ4I7EIIPAIEBGN4GOKTU7MGUCOOC37NYLNRBN76SSWOWFGLWTXW3U';
-
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
         $sep31Info = $this->composeSep31Info();
+        $usdcAssetCode = config('stellar.assets.usdc_asset_code');
+        $usdcAssetIssuerId = config('stellar.assets.usdc_asset_issuer_id');
 
         DB::table('anchor_assets')->insert([
             'schema' => 'stellar',
-            'code' => self::USDC_ASSET_CODE,
-            'issuer' => self::USDC_ASSET_ISSUER,
+            'code' => $usdcAssetCode,
+            'issuer' => $usdcAssetIssuerId,
             'significant_decimals' => 2,
             'deposit_enabled' => true,
             'deposit_min_amount' => 1.0,
@@ -38,18 +35,21 @@ class AnchorAssetsSeeder extends Seeder
             'sep06_enabled' => true,
             'sep06_deposit_exchange_enabled' => true,
             'sep06_withdraw_exchange_enabled' => true,
-            'sep06_deposit_methods' => 'WIRE, cash',
-            'sep06_withdraw_methods' => 'WIRE, cash, mobile',
+            'sep06_deposit_methods' => 'bank_account',
+            'sep06_withdraw_methods' => 'bank_account',
             'sep31_enabled' => true,
-            'sep31_info' => json_encode($sep31Info[self::USDC_ASSET_CODE]->toJson()),
+            'sep31_info' => json_encode($sep31Info[$usdcAssetCode]->toJson()),
             'send_min_amount' => 1.0,
             'send_max_amount' => 1000.0,
         ]);
 
+        $jpycAssetCode = config('stellar.assets.jpyc_asset_code');
+        $jpycAssetIssuerId = config('stellar.assets.jpyc_asset_issuer_id');
+
         DB::table('anchor_assets')->insert([
             'schema' => 'stellar',
-            'code' => self::JPYC_ASSET_CODE,
-            'issuer' => self::JPYC_ASSET_ISSUER,
+            'code' => $jpycAssetCode,
+            'issuer' => $jpycAssetIssuerId,
             'significant_decimals' => 2,
             'deposit_enabled' => true,
             'deposit_min_amount' => 1.0,
@@ -61,10 +61,10 @@ class AnchorAssetsSeeder extends Seeder
             'sep06_enabled' => true,
             'sep06_deposit_exchange_enabled' => true,
             'sep06_withdraw_exchange_enabled' => true,
-            'sep06_deposit_methods' => 'WIRE, cash',
-            'sep06_withdraw_methods' => 'WIRE, cash, mobile',
+            'sep06_deposit_methods' => 'bank_account',
+            'sep06_withdraw_methods' => 'bank_account',
             'sep31_enabled' => true,
-            'sep31_info' => json_encode($sep31Info[self::JPYC_ASSET_CODE]->toJson()),
+            'sep31_info' => json_encode($sep31Info[$jpycAssetCode]->toJson()),
             'send_min_amount' => 1.0,
             'send_max_amount' => 1000000.0,
         ]);
@@ -88,13 +88,13 @@ class AnchorAssetsSeeder extends Seeder
                       "decimals": 4,
                       "sell_delivery_methods": [
                         {
-                          "name": "WIRE",
+                          "name": "bank_account",
                           "description": "Send USD directly to the Anchor\'s bank account."
                         }
                       ],
                       "buy_delivery_methods": [
                         {
-                          "name": "WIRE",
+                          "name": "bank_account",
                           "description": "Have USD sent directly to your bank account."
                         }
                       ]
@@ -119,15 +119,21 @@ class AnchorAssetsSeeder extends Seeder
      * @return array<array-key, Sep31AssetInfo>
      */
     private function composeSep31Info():array {
+        $usdcAssetCode = config('stellar.assets.usdc_asset_code');
+        $usdcAssetIssuerId = config('stellar.assets.usdc_asset_issuer_id');
+
         $usdc = new IdentificationFormatAsset(
             schema: IdentificationFormatAsset::ASSET_SCHEMA_STELLAR,
-            code: self::USDC_ASSET_CODE,
-            issuer: self::USDC_ASSET_ISSUER,
+            code: $usdcAssetCode,
+            issuer: $usdcAssetIssuerId,
         );
+
+        $jpycAssetCode = config('stellar.assets.jpyc_asset_code');
+        $jpycAssetIssuerId = config('stellar.assets.jpyc_asset_issuer_id');
         $jpyc = new IdentificationFormatAsset(
             schema: IdentificationFormatAsset::ASSET_SCHEMA_STELLAR,
-            code: self::JPYC_ASSET_CODE,
-            issuer: self::JPYC_ASSET_ISSUER,
+            code: $jpycAssetCode,
+            issuer: $jpycAssetIssuerId,
         );
 
         $senderTypes = [
@@ -173,8 +179,8 @@ class AnchorAssetsSeeder extends Seeder
         );
 
         return [
-            self::USDC_ASSET_CODE => $usdcSep31Asset,
-            self::JPYC_ASSET_CODE => $jpycSep31Asset,
+            $usdcAssetCode => $usdcSep31Asset,
+            $jpycAssetCode => $jpycSep31Asset,
         ];
     }
 }

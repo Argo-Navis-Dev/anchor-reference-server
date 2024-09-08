@@ -12,45 +12,55 @@ class Sep38RatesSeeder extends Seeder
      */
     public function run(): void
     {
+        $usdcAssetCode = config('stellar.assets.usdc_asset_code');
+        $usdcAssetIssuerId = config('stellar.assets.usdc_asset_issuer_id');
+        $usdcSep38Asset = 'stellar:'. $usdcAssetCode . ':' . $usdcAssetIssuerId;
+
+        $jpycAssetCode = config('stellar.assets.jpyc_asset_code');
+        $jpycAssetIssuerId = config('stellar.assets.jpyc_asset_issuer_id');
+        $jpycSep38Asset = 'stellar:'. $jpycAssetCode . ':' . $jpycAssetIssuerId;
+
+        $usdSep38Fiat = 'iso4217:USD';
+
         DB::table('sep38_rates')->insert([
-            'sell_asset' => 'stellar:USDC:GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2',
-            'buy_asset' => 'stellar:JPYC:GBDQ4I7EIIPAIEBGN4GOKTU7MGUCOOC37NYLNRBN76SSWOWFGLWTXW3U',
+            'sell_asset' => $usdcSep38Asset,
+            'buy_asset' => $jpycSep38Asset,
             'rate' => 0.0066
         ]);
 
         DB::table('sep38_rates')->insert([
-            'sell_asset' => 'stellar:USDC:GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2',
-            'buy_asset' => 'iso4217:USD',
+            'sell_asset' => $usdcSep38Asset,
+            'buy_asset' => $usdSep38Fiat,
             'rate' => 1
         ]);
 
         DB::table('sep38_rates')->insert([
-            'sell_asset' => 'stellar:JPYC:GBDQ4I7EIIPAIEBGN4GOKTU7MGUCOOC37NYLNRBN76SSWOWFGLWTXW3U',
-            'buy_asset' => 'stellar:USDC:GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2',
+            'sell_asset' => $jpycSep38Asset,
+            'buy_asset' => $usdcSep38Asset,
             'rate' => 151.79
         ]);
 
         DB::table('sep38_rates')->insert([
-            'sell_asset' => 'stellar:JPYC:GBDQ4I7EIIPAIEBGN4GOKTU7MGUCOOC37NYLNRBN76SSWOWFGLWTXW3U',
-            'buy_asset' => 'iso4217:USD',
+            'sell_asset' => $jpycSep38Asset,
+            'buy_asset' => $usdSep38Fiat,
             'rate' => 151.79
         ]);
 
         DB::table('sep38_rates')->insert([
-            'sell_asset' => 'iso4217:USD',
-            'buy_asset' => 'stellar:JPYC:GBDQ4I7EIIPAIEBGN4GOKTU7MGUCOOC37NYLNRBN76SSWOWFGLWTXW3U',
+            'sell_asset' => $usdSep38Fiat,
+            'buy_asset' => $jpycSep38Asset,
             'rate' => 0.0066
         ]);
 
         DB::table('sep38_rates')->insert([
-            'sell_asset' => 'iso4217:USD',
-            'buy_asset' => 'stellar:USDC:GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2',
+            'sell_asset' => $usdSep38Fiat,
+            'buy_asset' => $usdcSep38Asset,
             'rate' => 1.0
         ]);
 
         DB::table('sep38_rates')->insert([
             'sell_asset' => 'stellar:native',
-            'buy_asset' => 'stellar:USDC:GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2',
+            'buy_asset' => $usdcSep38Asset,
             'rate' => 7.5
         ]);
 

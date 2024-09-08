@@ -77,8 +77,8 @@ class StellarTransferTest extends TestCase
 
         assertNotNull($response->featureFlags);
         $featureFlags = $response->featureFlags;
-        assertFalse($featureFlags->accountCreation);
-        assertFalse($featureFlags->claimableBalances);
+        assertTrue($featureFlags->accountCreation);
+        assertTrue($featureFlags->claimableBalances);
 
         $depositAssetUSD = $response->depositAssets["USDC"];
         assertNotNull($depositAssetUSD);
@@ -96,8 +96,7 @@ class StellarTransferTest extends TestCase
         assertNotNull($typeField);
         assertTrue($typeField instanceof AnchorField);
         assertEquals("type of deposit to make", $typeField->description);
-        assertTrue(in_array("WIRE", $typeField->choices));
-        assertTrue(in_array("cash", $typeField->choices));
+        assertTrue(in_array("bank_account", $typeField->choices));
 
         $depositExchangeAssetUSD = $response->depositExchangeAssets["USDC"];
         assertNotNull($depositExchangeAssetUSD);
@@ -113,8 +112,7 @@ class StellarTransferTest extends TestCase
         assertNotNull($typeField);
         assertTrue($typeField instanceof AnchorField);
         assertEquals("type of deposit to make", $typeField->description);
-        assertTrue(in_array("WIRE", $typeField->choices));
-        assertTrue(in_array("cash", $typeField->choices));
+        assertTrue(in_array("bank_account", $typeField->choices));
 
         $withdrawAssetUSD = $response->withdrawAssets["USDC"];
         assertNotNull($withdrawAssetUSD);
@@ -128,13 +126,9 @@ class StellarTransferTest extends TestCase
 
         $types = $withdrawAssetUSD->types;
         assertNotNull($types);
-        assertCount(3, $types);
-        $wireFields = $types["WIRE"];
+        assertCount(1, $types);
+        $wireFields = $types["bank_account"];
         assertNotNull($wireFields);
-        $cashFields = $types["cash"];
-        assertNotNull($cashFields);
-        $mobileFields = $types["mobile"];
-        assertNotNull($mobileFields);
 
         $withdrawExchangeAssetUSD = $response->withdrawExchangeAssets["USDC"];
         assertNotNull($withdrawExchangeAssetUSD);
@@ -146,13 +140,9 @@ class StellarTransferTest extends TestCase
 
         $types = $withdrawExchangeAssetUSD->types;
         assertNotNull($types);
-        assertCount(3, $types);
-        $wireFields = $types["WIRE"];
+        assertCount(1, $types);
+        $wireFields = $types["bank_account"];
         assertNotNull($wireFields);
-        $cashFields = $types["cash"];
-        assertNotNull($cashFields);
-        $mobileFields = $types["mobile"];
-        assertNotNull($mobileFields);
     }
 
 
@@ -165,7 +155,7 @@ class StellarTransferTest extends TestCase
         $request = new DepositRequest(
             assetCode: "USDC",
             account: $this->userAccountId,
-            type: 'WIRE',
+            type: 'bank_account',
             amount: "100",
             jwt: $jwtToken,
         );
@@ -183,16 +173,16 @@ class StellarTransferTest extends TestCase
 
         assertEquals($depositId, $tx->id);
         assertEquals('deposit', $tx->kind);
-        assertEquals(Sep06TransactionStatus::INCOMPLETE, $tx->status);
+        assertEquals(Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE, $tx->status);
         assertNotNull($tx->instructions);
         assertCount(2, $tx->instructions);
         $bankAccount = $tx->instructions['bank_number'];
         assertEquals('121122676', $bankAccount->value);
-        assertEquals('US bank routing number', $bankAccount->description);
+        assertEquals('Fake bank number', $bankAccount->description);
 
         $request = new WithdrawRequest(
             assetCode: "USDC",
-            type: "WIRE",
+            type: "bank_account",
             account: $this->userAccountId,
             amount: "100.0",
             jwt: $jwtToken,
@@ -214,7 +204,7 @@ class StellarTransferTest extends TestCase
 
         assertEquals($withdrawId, $tx->id);
         assertEquals('withdraw', $tx->kind);
-        assertEquals(Sep06TransactionStatus::INCOMPLETE, $tx->status);
+        assertEquals(Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE, $tx->status);
         assertEquals(100, floatval($tx->amountIn));
         assertEquals($withdrawMemo, $tx->withdrawMemo);
         assertEquals('id', $tx->withdrawMemoType);
@@ -233,7 +223,7 @@ class StellarTransferTest extends TestCase
             sourceAsset: $usdFiat->getStringRepresentation(),
             amount: "100",
             account: $this->userAccountId,
-            type: 'WIRE',
+            type: 'bank_account',
             jwt: $jwtToken,
         );
         $response = $transferService->depositExchange($request);
@@ -250,8 +240,8 @@ class StellarTransferTest extends TestCase
 
         assertEquals($depositExchangeId, $tx->id);
         assertEquals('deposit-exchange', $tx->kind);
-        assertEquals(Sep06TransactionStatus::INCOMPLETE, $tx->status);
-        assertEquals(100, floatval($tx->amountIn));
+        assertEquals(Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE, $tx->status);
+        assertEquals(0, floatval($tx->amountIn));
         assertEquals($usdFiat->getStringRepresentation(), $tx->amountInAsset);
         assertStringContainsString('JPYC', $tx->amountOutAsset);
         $feeDetails = $tx->feeDetails;
@@ -267,13 +257,13 @@ class StellarTransferTest extends TestCase
         assertCount(2, $tx->instructions);
         $bankAccount = $tx->instructions['bank_number'];
         assertEquals('121122676', $bankAccount->value);
-        assertEquals('US bank routing number', $bankAccount->description);
+        assertEquals('Fake bank number', $bankAccount->description);
 
         $request = new WithdrawExchangeRequest(
             sourceAsset: "JPYC",
             destinationAsset: $usdFiat->getStringRepresentation(),
             amount: "100.0",
-            type: "WIRE",
+            type: "bank_account",
             account: $this->userAccountId,
             jwt: $jwtToken,
         );
@@ -294,7 +284,7 @@ class StellarTransferTest extends TestCase
 
         assertEquals($withdrawExchangeId, $tx->id);
         assertEquals('withdraw-exchange', $tx->kind);
-        assertEquals(Sep06TransactionStatus::INCOMPLETE, $tx->status);
+        assertEquals(Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE, $tx->status);
         assertEquals(100, floatval($tx->amountIn));
         assertEquals($withdrawMemo, $tx->withdrawMemo);
         assertEquals('id', $tx->withdrawMemoType);
@@ -302,12 +292,12 @@ class StellarTransferTest extends TestCase
         assertStringContainsString('JPYC', $tx->amountInAsset);
         $feeDetails = $tx->feeDetails;
         assertNotNull($feeDetails);
-        assertEquals('0.1', $feeDetails->total);
+        assertEquals('1', $feeDetails->total);
         assertStringContainsString('JPYC', $feeDetails->asset);
         assertCount(1, $feeDetails->details);
         $detail = $feeDetails->details[0];
         assertEquals('Service fee', $detail->name);
-        assertEquals('0.1', $detail->amount);
+        assertEquals('1', $detail->amount);
         assertEquals('GCMMCKP2OJXLBZCANRHXSGMMUOGJQKNCHH7HQZ4G3ZFLAIBZY5ODJYO6', $tx->withdrawAnchorAccount);
 
     }
@@ -335,7 +325,7 @@ class StellarTransferTest extends TestCase
             amount: "100",
             account: $this->userAccountId,
             quoteId: $quote->id,
-            type: 'WIRE',
+            type: 'bank_account',
             jwt: $jwtToken,
         );
 
@@ -354,8 +344,8 @@ class StellarTransferTest extends TestCase
         assertEquals($depositExchangeId, $tx->id);
         assertEquals($quote->id, $tx->quoteId);
         assertEquals('deposit-exchange', $tx->kind);
-        assertEquals(Sep06TransactionStatus::INCOMPLETE, $tx->status);
-        assertEquals(100, floatval($tx->amountIn));
+        assertEquals(Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE, $tx->status);
+        assertEquals(0, floatval($tx->amountIn));
         assertEquals($usdFiat->getStringRepresentation(), $tx->amountInAsset);
         assertStringContainsString('JPYC', $tx->amountOutAsset);
 
@@ -370,7 +360,7 @@ class StellarTransferTest extends TestCase
         assertCount(2, $tx->instructions);
         $bankAccount = $tx->instructions['bank_number'];
         assertEquals('121122676', $bankAccount->value);
-        assertEquals('US bank routing number', $bankAccount->description);
+        assertEquals('Fake bank number', $bankAccount->description);
 
         $request = new SEP38PostQuoteRequest(
             context: 'sep6',
@@ -384,7 +374,7 @@ class StellarTransferTest extends TestCase
             sourceAsset: "JPYC",
             destinationAsset: $usdFiat->getStringRepresentation(),
             amount: "100.0",
-            type: "WIRE",
+            type: "bank_account",
             quoteId: $quote->id,
             account: $this->userAccountId,
             jwt: $jwtToken,
@@ -407,7 +397,7 @@ class StellarTransferTest extends TestCase
         assertEquals($quote->id, $tx->quoteId);
         assertEquals($withdrawExchangeId, $tx->id);
         assertEquals('withdraw-exchange', $tx->kind);
-        assertEquals(Sep06TransactionStatus::INCOMPLETE, $tx->status);
+        assertEquals(Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE, $tx->status);
         assertEquals(100, floatval($tx->amountIn));
         assertEquals($withdrawMemo, $tx->withdrawMemo);
         assertEquals('id', $tx->withdrawMemoType);

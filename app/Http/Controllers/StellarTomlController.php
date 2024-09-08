@@ -39,13 +39,13 @@ class StellarTomlController extends Controller
         $generalInfo->transferServerSep24 = config('stellar.api.endpoints_base_url') . "/sep24";
         $generalInfo->anchorQuoteServer = config('stellar.api.endpoints_base_url') . "/sep38";
         $generalInfo->directPaymentServer = config('stellar.api.endpoints_base_url') . "/sep31";
-        $generalInfo->signingKey = "GCAT3G32LQV2V3WHRMKXLFAQNOCQXTUPUQXOXSTLSLSCLIVQP2NRQQ3T";
+        $generalInfo->signingKey = config('stellar.server.server_account_id');
         $generalInfo->accounts = [
-            'GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2',
-            'GAKRN7SCC7KVT52XLMOFFWOOM4LTI2TQALFKKJ6NKU3XWPNCLD5CFRY2',
-            'GBDQ4I7EIIPAIEBGN4GOKTU7MGUCOOC37NYLNRBN76SSWOWFGLWTXW3U',
-            'GCMMCKP2OJXLBZCANRHXSGMMUOGJQKNCHH7HQZ4G3ZFLAIBZY5ODJYO6',
-            'GCAT3G32LQV2V3WHRMKXLFAQNOCQXTUPUQXOXSTLSLSCLIVQP2NRQQ3T',
+            config('stellar.server.server_account_id'),
+            config('stellar.assets.usdc_asset_issuer_id'),
+            config('stellar.assets.usdc_asset_distribution_account_id'),
+            config('stellar.assets.jpyc_asset_issuer_id'),
+            config('stellar.assets.jpyc_asset_distribution_account_id'),
             config('stellar.sep08.asset_issuer_id')];
         $tomlData->generalInformation = $generalInfo;
 
@@ -58,26 +58,26 @@ class StellarTomlController extends Controller
         $currencyUSD->isAssetAnchored = false;
 
         $currencyUSDC = new Currency();
-        $currencyUSDC->code = 'USDC';
-        $currencyUSDC->issuer = 'GDC4MJVYQBCQY6XYBZZBLGBNGFOGEFEZDRXTQ3LXFA3NEYYT6QQIJPA2';
+        $currencyUSDC->code = config('stellar.assets.usdc_asset_code');
+        $currencyUSDC->issuer = config('stellar.assets.usdc_asset_issuer_id');
         $currencyUSDC->status = 'test';
         $currencyUSDC->displayDecimals = 2;
         $currencyUSDC->name = 'US Dollar token on the chain';
         $currencyUSDC->desc = 'US Dollar on the chain for testing';
         $currencyUSDC->isAssetAnchored = true;
         $currencyUSDC->anchorAsset = 'USD';
-        $currencyUSDC->redemptionInstructions = 'You can purchase the USDC token with USD, JYPC or native stellar lumens. You can sell it for USD or JYPC';
+        $currencyUSDC->redemptionInstructions = 'You can purchase the USDC token with USD, JPYC or native stellar lumens. You can sell it for USD or JPYC';
 
-        $currencyJYPC = new Currency();
-        $currencyJYPC->code = 'JPYC';
-        $currencyJYPC->issuer = 'GBDQ4I7EIIPAIEBGN4GOKTU7MGUCOOC37NYLNRBN76SSWOWFGLWTXW3U';
-        $currencyJYPC->status = 'test';
-        $currencyJYPC->displayDecimals = 2;
-        $currencyJYPC->name = 'Japan Yen token on the chain';
-        $currencyJYPC->desc = 'Japan Yen on the chain for testing';
-        $currencyJYPC->isAssetAnchored = true;
-        $currencyJYPC->anchorAsset = 'JPY';
-        $currencyJYPC->redemptionInstructions = 'You can purchase the JPYC token with USD, or USDC. You can sell it for USD or USDC';
+        $currencyJPYC = new Currency();
+        $currencyJPYC->code = config('stellar.assets.jpyc_asset_code');;
+        $currencyJPYC->issuer = config('stellar.assets.jpyc_asset_issuer_id');
+        $currencyJPYC->status = 'test';
+        $currencyJPYC->displayDecimals = 2;
+        $currencyJPYC->name = 'Japan Yen token on the chain';
+        $currencyJPYC->desc = 'Japan Yen on the chain for testing';
+        $currencyJPYC->isAssetAnchored = true;
+        $currencyJPYC->anchorAsset = 'JPY';
+        $currencyJPYC->redemptionInstructions = 'You can purchase the JPYC token with USD, or USDC. You can sell it for USD or USDC';
 
         $currencySTAR = new Currency();
         $currencySTAR->code = config('stellar.sep08.asset_code');
@@ -91,7 +91,7 @@ class StellarTomlController extends Controller
         $currencySTAR->approvalServer = config('stellar.sep08.asset_toml_approval_server');
         $currencySTAR->approvalCriteria = config('stellar.sep08.asset_toml_approval_criteria');
 
-        $currencies = new Currencies($currencyUSD, $currencyUSDC, $currencyJYPC, $currencySTAR);
+        $currencies = new Currencies($currencyUSD, $currencyUSDC, $currencyJPYC, $currencySTAR);
         $tomlData->currencies = $currencies;
 
         $doc = new Documentation();
