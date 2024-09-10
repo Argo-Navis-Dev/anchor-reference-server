@@ -129,7 +129,7 @@ class Sep31Helper
         }
 
         $sep31Transaction->stellar_memo = strval(rand(5000000, 150000000));
-        $sep31Transaction->stellar_memo_typ = 'id';
+        $sep31Transaction->stellar_memo_type = 'id';
 
         if ($request->asset->asset->getCode() === config('stellar.assets.usdc_asset_code')) {
             $sep31Transaction->stellar_account_id = config('stellar.assets.usdc_asset_distribution_account_id');
