@@ -19,9 +19,9 @@ class CreateSep12Field extends CreateRecord
     /**
      * Mutates the form data before creating a resource.
      *
-     * @param array $data
-     * @return array|mixed[]
-     */
+     * @param array<array-key, mixed> $data The form data.
+     * @return array<array-key, mixed> $data The mutated form data.
+    */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['choices'] =

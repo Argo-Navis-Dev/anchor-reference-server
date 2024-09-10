@@ -134,7 +134,7 @@ class Sep12FieldResource extends Resource
      * Creates the field type select form component.
      *
      * @param Form $form The form to create the field for.
-     * @return Field The created field object.
+     * @return Select The created field object.
      */
     private static function createTypeField(Form $form): Select
     {
@@ -152,7 +152,7 @@ class Sep12FieldResource extends Resource
     }
 
     /**
-     * Creates the string type field possible choices form select component.
+     * Creates the select component for possible choices of the string-type field.
      * @param Form $form
      * @return Select
      */

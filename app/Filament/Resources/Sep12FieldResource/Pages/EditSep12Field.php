@@ -20,8 +20,8 @@ class EditSep12Field extends EditRecord
     /**
      * Processes the form data model before filling it.
      *
-     * @param array $data
-     * @return array|mixed[]
+     * @param array<array-key, mixed> $data The form data model.
+     * @return array<array-key, mixed> $data The mutated form data model.
      */
     protected function mutateFormDataBeforeFill(array $data): array
     {
@@ -37,8 +37,8 @@ class EditSep12Field extends EditRecord
     /**
      * Processes the form data model before saving it.
      *
-     * @param array $data
-     * @return array|mixed[]
+     * @param array<array-key, mixed> $data The form data model.
+     * @return array<array-key, mixed> $data The mutated form data model.
      */
     protected function mutateFormDataBeforeSave(array $data): array
     {
