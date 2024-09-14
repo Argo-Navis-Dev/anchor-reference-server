@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace App\Stellar\Sep12Customer;
 
+use App\Jobs\Sep6PendingInfoWatcher;
 use App\Mail\Sep12EmailVerification;
 use App\Models\Sep12Customer;
 use App\Models\Sep12Field;
@@ -183,6 +184,14 @@ class Sep12Helper
             $customer->status = CustomerStatus::NEEDS_INFO;
             $customer->save();
             $customer->refresh();
+        } else {
+            $autoAccept = config('stellar.sep12.auto_accept');
+            Log::debug(message: 'auto accept customer: ' . $autoAccept . PHP_EOL);
+            if ($autoAccept === 'true') {
+                $customer->status = CustomerStatus::ACCEPTED;
+                $customer->save();
+                $customer->refresh();
+            }
         }
 
         // check if any automatic validation request can be sent.
@@ -283,15 +292,19 @@ class Sep12Helper
 
         // check if any automatic validation request can be sent.
         self::sendVerificationCode($allSep12Fields, $fieldsThatRequireVerification);
-
         $customerStatus = $customer->status;
         // check if the customer still needs to send info
         if (self::customerNeedsInfo($customer, $allSep12Fields)) {
             $customer->status = CustomerStatus::NEEDS_INFO;
 
         } else {
-            // set status to processing so that the new data can be checked.
-            $customer->status = CustomerStatus::PROCESSING;
+            $autoAccept = config('stellar.sep12.auto_accept');
+            if ($autoAccept === 'true') {
+                $customer->status = CustomerStatus::ACCEPTED;
+            } else {
+                // set status to processing so that the new data can be checked.
+                $customer->status = CustomerStatus::PROCESSING;
+            }
         }
 
         $customer->save();
@@ -540,6 +553,11 @@ class Sep12Helper
                         $providedField->status = ProvidedCustomerFieldStatus::PROCESSING;
                         if ($mField->requires_verification) {
                             $providedField->status = ProvidedCustomerFieldStatus::VERIFICATION_REQUIRED;
+                        } else {
+                            $autoAccept = config('stellar.sep12.auto_accept');
+                            if ($autoAccept === 'true') {
+                                $providedField->status = ProvidedCustomerFieldStatus::ACCEPTED;
+                            }
                         }
                         $providedField->sep12_customer_id = $customerId;
                         $providedField->sep12_field_id = $mField->id;
@@ -686,7 +704,7 @@ class Sep12Helper
      */
     private static function getCallbackSignaturedHeader(GetCustomerResponse $sep12CustomerData, string $callbackUrl)
     {
-        $signingSeed = env('STELLAR_SIGNING_KEY');
+        $signingSeed = config('stellar.server.server_account_signing_key');
         $anchorKeys = KeyPair::fromSeed($signingSeed);
         $currentTime = round(microtime(true));
         $signature = $currentTime . '.' . $callbackUrl . '.' . json_encode($sep12CustomerData);

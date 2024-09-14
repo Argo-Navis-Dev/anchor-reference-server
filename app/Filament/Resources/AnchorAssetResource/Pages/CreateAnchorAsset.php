@@ -28,7 +28,6 @@ class CreateAnchorAsset extends CreateRecord
      *
      * @param array<array-key, mixed> $data The form data.
      * @return array<array-key, mixed> $data The mutated form data.
-     * @throws \JsonException
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {

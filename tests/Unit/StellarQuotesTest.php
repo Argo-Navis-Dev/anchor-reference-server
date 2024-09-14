@@ -65,12 +65,12 @@ class StellarQuotesTest extends TestCase
         assertContains('USA', $usd->countryCodes);
         assertCount(1, $usd->sellDeliveryMethods);
         assertCount(1, $usd->buyDeliveryMethods);
-        assertEquals('WIRE', $usd->sellDeliveryMethods[0]->name);
+        assertEquals('bank_account', $usd->sellDeliveryMethods[0]->name);
         assertEquals(
             "Send USD directly to the Anchor's bank account.",
             $usd->sellDeliveryMethods[0]->description,
         );
-        assertEquals('WIRE', $usd->buyDeliveryMethods[0]->name);
+        assertEquals('bank_account', $usd->buyDeliveryMethods[0]->name);
         assertEquals(
             "Have USD sent directly to your bank account.",
             $usd->buyDeliveryMethods[0]->description,

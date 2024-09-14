@@ -211,7 +211,7 @@ class StellarInteractiveTest extends TestCase
         $providedFields = $customerInfoResponse->getProvidedFields();
         assertNotNull($providedFields);
         assertNotNull($providedFields['id_type']);
-        assertEquals(ProvidedCustomerFieldStatus::PROCESSING, $providedFields['id_type']->getStatus());
+        assertEquals(ProvidedCustomerFieldStatus::ACCEPTED, $providedFields['id_type']->getStatus());
     }
 
     public function testDepositAndWithdrawWithQuote() {
@@ -337,7 +337,7 @@ class StellarInteractiveTest extends TestCase
         $providedFields = $customerInfoResponse->getProvidedFields();
         assertNotNull($providedFields);
         assertNotNull($providedFields['id_type']);
-        assertEquals(ProvidedCustomerFieldStatus::PROCESSING, $providedFields['id_type']->getStatus());
+        assertEquals(ProvidedCustomerFieldStatus::ACCEPTED, $providedFields['id_type']->getStatus());
     }
 
 

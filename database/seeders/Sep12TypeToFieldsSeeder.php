@@ -15,9 +15,8 @@ class Sep12TypeToFieldsSeeder extends Seeder
     {
         DB::table('sep12_type_to_fields')->insert([
             'type' => 'default',
-            'required_fields' => 'first_name, last_name, email_address, id_number, id_type, photo_id_front',
-            'optional_fields' => 'photo_id_back',
-            'created_at' => now(),
+            'required_fields' => 'first_name, last_name, email_address, id_number, id_type, bank_account_number, bank_number',
+            'optional_fields' => 'photo_id_front, photo_id_back',
         ]);
     }
 }

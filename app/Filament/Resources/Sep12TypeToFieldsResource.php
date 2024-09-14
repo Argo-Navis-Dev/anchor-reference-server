@@ -16,11 +16,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Columns\TagsColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 
 /**
  *  The UI. controls definitions for a SEP-12 customer type to field record from the database.
@@ -43,17 +41,18 @@ class Sep12TypeToFieldsResource extends Resource
                 Select::make('required_fields')
                     ->label(__('sep12_lang.label.fields.required'))
                     ->multiple(true)
-                    ->options(function(?Model $record)  {
+                    ->options(function (?Model $record) {
                         return self::getFieldsSelectOptions();
                     })
                     ->columnSpanFull(),
                 Select::make('optional_fields')
                     ->label(__('sep12_lang.label.fields.optional'))
                     ->multiple(true)
-                    ->options(function(?Model $record)  {
+                    ->options(function (?Model $record) {
                         return self::getFieldsSelectOptions();
                     })
                     ->columnSpanFull(),
+                ResourceUtil::getModelTimestampFormControls(1)
             ]);
     }
 
@@ -119,6 +118,10 @@ class Sep12TypeToFieldsResource extends Resource
         ];
     }
 
+    /**
+     * Returns the select component that contains the available fields, which can be chosen as optional or required.
+     * @return array
+     */
     private static function getFieldsSelectOptions(): array
     {
         $fields = Sep12Field::all();
@@ -135,17 +138,12 @@ class Sep12TypeToFieldsResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('sep12_lang.entity.sep12_type_to_fields.name');
+        return __('sep12_lang.entity.type_to_fields.name');
     }
 
     public static function getPluralLabel(): string
     {
-        return __('sep12_lang.entity.sep12_type_to_fields.names');
-    }
-
-    public static function canCreate(): bool
-    {
-        return false;
+        return __('sep12_lang.entity.type_to_fields.names');
     }
 
     /**

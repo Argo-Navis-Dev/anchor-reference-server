@@ -8,11 +8,20 @@ declare(strict_types=1);
 
 namespace App\Stellar\Shared;
 
+use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionRefundPayment;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionRefunds;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfo;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfoDetail;
 use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
+use Exception;
+use Illuminate\Support\Facades\Log;
+use Soneso\StellarSDK\CreateAccountOperationBuilder;
+use Soneso\StellarSDK\Crypto\KeyPair;
+use Soneso\StellarSDK\Exceptions\HorizonRequestException;
+use Soneso\StellarSDK\Network;
+use Soneso\StellarSDK\StellarSDK;
+use Soneso\StellarSDK\TransactionBuilder;
 
 class SepHelper
 {
@@ -126,5 +135,31 @@ class SepHelper
             }
         }
         return null;
+    }
+    
+    public static function logHorizonRequestException(HorizonRequestException $e, array $context) : void {
+        Log::error(message: ' HorizonRequestException - requested url: ' . $e->getRequestedUrl(). PHP_EOL, context: $context);
+        Log::error(message: ' HorizonRequestException - status code: ' . $e->getStatusCode(). PHP_EOL, context: $context);
+        Log::error(message: ' HorizonRequestException - message: ' . $e->getMessage(). PHP_EOL, context: $context);
+        $horizonErrorResponse = $e->getHorizonErrorResponse();
+        if ($horizonErrorResponse !== null) {
+            Log::error(message: ' HorizonRequestException - error response type: ' . $horizonErrorResponse->type. PHP_EOL, context: $context);
+            Log::error(message: ' HorizonRequestException - error response title: ' . $horizonErrorResponse->title. PHP_EOL, context: $context);
+            Log::error(message: ' HorizonRequestException - error response status: ' . $horizonErrorResponse->status. PHP_EOL, context: $context);
+            Log::error(message: ' HorizonRequestException - error response detail: ' . $horizonErrorResponse->detail. PHP_EOL, context: $context);
+            if($horizonErrorResponse->instance !== null) {
+                Log::error(message: ' HorizonRequestException - error response instance: ' . $horizonErrorResponse->instance. PHP_EOL, context: $context);
+            }
+            $extras = $horizonErrorResponse->extras;
+            if ($extras?->getResultXdr() !== null) {
+                Log::error(message: ' HorizonRequestException - error response extras result xdr: ' . $extras?->getResultXdr(). PHP_EOL, context: $context);
+            }
+            if ($extras?->getEnvelopeXdr() !== null) {
+                Log::error(message:  ' HorizonRequestException - error response extras envelope xdr: ' . $extras?->getEnvelopeXdr(). PHP_EOL, context: $context);
+            }
+            if ($extras?->getTxHash() !== null) {
+                Log::error(message:  ' HorizonRequestException - error response extras tx hash: ' . $extras?->getTxHash(). PHP_EOL, context: $context);
+            }
+        }
     }
 }

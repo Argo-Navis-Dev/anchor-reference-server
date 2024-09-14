@@ -39,4 +39,18 @@ class Sep12Field extends Model
      * @var string
      */
     protected $table = 'sep12_fields';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'key',
+        'type',
+        'desc',
+        'choices',
+        'requires_verification',
+        'lang'
+    ];
 }

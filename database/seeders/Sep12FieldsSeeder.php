@@ -199,6 +199,13 @@ class Sep12FieldsSeeder extends Seeder
         ]);
 
         DB::table('sep12_fields')->insert([
+            'key' => 'bank_number',
+            'type' => 'string',
+            'desc' => 'Number identifying bank in national banking system (routing number in US)',
+            'created_at' => now(),
+        ]);
+
+        DB::table('sep12_fields')->insert([
             'key' => 'photo_id_front',
             'type' => 'binary',
             'desc' => "Image of front of user's photo ID or passport",
@@ -283,14 +290,7 @@ class Sep12FieldsSeeder extends Seeder
         DB::table('sep12_fields')->insert([
             'key' => 'bank_account_number',
             'type' => 'string',
-            'desc' => 'Number identifying bank account',
-            'created_at' => now(),
-        ]);
-
-        DB::table('sep12_fields')->insert([
-            'key' => 'bank_number',
-            'type' => 'string',
-            'desc' => 'Number identifying bank in national banking system (routing number in US)',
+            'desc' => "Number identifying the customers bank account",
             'created_at' => now(),
         ]);
 

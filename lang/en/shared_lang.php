@@ -62,9 +62,9 @@ return [
     'label.payment_type' => 'Payment type',
     'label.envelope' => 'Envelope',
     'error.invalid_account_id' => 'The provided account ID is invalid!',
-
     'error.internal_server' => 'Internal server error: :error_type.',
     'error.invalid_config' => 'Invalid config',
     'error.unauthorized.missing_stellar_auth' => 'Unauthorized! Use SEP-10 to authenticate.',
-    'error.unauthorized.invalid_token' => 'Unauthorized! Invalid token data: :exception'
+    'error.unauthorized.invalid_token' => 'Unauthorized! Invalid token data: :exception',
+    'label.type' => 'Type',
 ];
