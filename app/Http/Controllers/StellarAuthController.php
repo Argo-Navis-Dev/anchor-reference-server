@@ -13,7 +13,8 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class StellarAuthController extends Controller
 {
-    public function auth(ServerRequestInterface $request): ResponseInterface {
+    public function auth(ServerRequestInterface $request): ResponseInterface
+    {
         try {
             $appConfig = new StellarAppConfig();
             $sep10Config = new StellarSep10Config();
@@ -21,8 +22,12 @@ class StellarAuthController extends Controller
 
             return $sep10Service->handleRequest($request, httpClient: new Client());
         } catch (InvalidConfig $invalid) {
-            return new JsonResponse(['error' => 'Internal server error: Invalid config. ' .
-                $invalid->getMessage()], 500);
+            $errorLabel = __(
+                'shared_lang.error.internal_server',
+                ['error_type' => __('shared_lang.error.invalid_config')]
+            );
+
+            return new JsonResponse(['error' => $errorLabel . ' ' . $invalid->getMessage()], 500);
         }
     }
 }

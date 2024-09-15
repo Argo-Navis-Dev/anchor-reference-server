@@ -26,7 +26,10 @@ class StellarCustomerController extends Controller
 
         $auth = $this->getStellarAuthData($request);
         if ($auth === null) {
-            return new JsonResponse(['error' => 'Unauthorized! Use SEP-10 to authenticate.'], 401);
+            return new JsonResponse(
+                ['error' => __('shared_lang.error.unauthorized.missing_stellar_auth')],
+                401
+            );
         }
         try {
             $sep10Jwt = Sep10Jwt::fromArray($auth);
@@ -34,7 +37,10 @@ class StellarCustomerController extends Controller
             $sep12Service = new Sep12Service($customerIntegration);
             return $sep12Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
-            return new JsonResponse(['error' => 'Unauthorized! Invalid token data: ' . $e->getMessage()], 401);
+            return new JsonResponse(
+                ['error' => __('shared_lang.error.unauthorized.invalid_token',
+                    ['exception' => $e->getMessage()])], 401
+            );
         }
     }
 

@@ -13,6 +13,8 @@ return [
 
     'entity.name' => 'Customer',
     'entity.names' => 'Customers',
+    'entity.sep12_type_to_fields.name' => 'Customer fields',
+    'entity.sep12_type_to_fields.names' => 'Customer fields',
     'entity.type_to_fields.name' => 'SEP-12 Type',
     'entity.type_to_fields.names' => 'SEP-12 Types',
     'entity.field.name' => 'SEP-12 Field',

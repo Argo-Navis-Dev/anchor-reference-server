@@ -29,7 +29,10 @@ class StellarInteractiveFlowController extends Controller
             $sep24Service = new Sep24Service($sep24Config, $sep24Integration);
             return $sep24Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
-            return new JsonResponse(['error' => 'Unauthorized! Invalid token data: ' . $e->getMessage()], 401);
+            return new JsonResponse(
+                ['error' => __('shared_lang.error.unauthorized.invalid_token',
+                    ['exception' => $e->getMessage()])], 401
+            );
         }
     }
 
