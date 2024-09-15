@@ -31,7 +31,7 @@ class StellarAuthMiddleware
 
             return $next($request);
         } catch (Exception $e) {
-            return new Response('Unauthorized: ' . $e->getMessage(), 403);
+            return new Response(__('shared_lang.error.unauthorized', ['error' => $e->getMessage()]), 403);
         }
     }
 }

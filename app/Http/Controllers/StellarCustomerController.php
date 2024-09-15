@@ -38,8 +38,8 @@ class StellarCustomerController extends Controller
             return $sep12Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
             return new JsonResponse(
-                ['error' => 'Unauthorized! Invalid token data: ' . $e->getMessage()],
-                401
+                ['error' => __('shared_lang.error.unauthorized.invalid_token',
+                    ['exception' => $e->getMessage()])], 401
             );
         }
     }

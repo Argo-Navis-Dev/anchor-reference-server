@@ -61,6 +61,7 @@ return [
     'label.source_account' => 'Source account',
     'label.payment_type' => 'Payment type',
     'label.envelope' => 'Envelope',
+    'error.unauthorized' => 'Unauthorized: :error',
     'error.invalid_account_id' => 'The provided account ID is invalid!',
     'error.internal_server' => 'Internal server error: :error_type.',
     'error.invalid_config' => 'Invalid config',
