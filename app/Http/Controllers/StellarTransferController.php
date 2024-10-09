@@ -15,13 +15,15 @@ use App\Stellar\StellarSep06Config;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidSep10JwtData;
 use ArgoNavis\PhpAnchorSdk\Sep06\Sep06Service;
 use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Jwt;
+use Illuminate\Support\Facades\Log;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 class StellarTransferController extends Controller
 {
-    public function transfer(ServerRequestInterface $request): ResponseInterface {
+    public function transfer(ServerRequestInterface $request): ResponseInterface
+    {
 
         $auth = $this->getStellarAuthData($request);
         try {
@@ -31,12 +33,17 @@ class StellarTransferController extends Controller
                 sep06Config: new StellarSep06Config(),
                 sep06Integration: new TransferIntegration(),
                 quotesIntegration: new QuotesIntegration(),
+                logger: Log::getLogger()
             );
+
             return $sep06Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
             return new JsonResponse(
-                ['error' => __('shared_lang.error.unauthorized.invalid_token',
-                    ['exception' => $e->getMessage()])], 401
+                ['error' => __(
+                    'shared_lang.error.unauthorized.invalid_token',
+                    ['exception' => $e->getMessage()]
+                )],
+                401
             );
         }
     }
@@ -48,7 +55,8 @@ class StellarTransferController extends Controller
      * @param ServerRequestInterface $request
      * @return array<array-key | mixed> |null the extracted data if found, otherwise null
      */
-    private function getStellarAuthData(ServerRequestInterface $request) : ?array {
+    private function getStellarAuthData(ServerRequestInterface $request) : ?array
+    {
         $authDataKey = 'stellar_auth';
         $params = $request->getQueryParams();
         if (isset($params[$authDataKey])) {

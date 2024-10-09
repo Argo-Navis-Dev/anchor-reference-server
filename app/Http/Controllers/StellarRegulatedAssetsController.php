@@ -41,7 +41,7 @@ class StellarRegulatedAssetsController extends Controller
      */
     public function approve(ServerRequestInterface $request): ResponseInterface {
         $sep08Integration = new RegulatedAssetsIntegration();
-        $sep08Service = new Sep08Service($sep08Integration);
+        $sep08Service = new Sep08Service($sep08Integration, Log::getLogger());
         return $sep08Service->handleRequest($request);
     }
 

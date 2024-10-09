@@ -34,7 +34,7 @@ class StellarCustomerController extends Controller
         try {
             $sep10Jwt = Sep10Jwt::fromArray($auth);
             $customerIntegration = new CustomerIntegration();
-            $sep12Service = new Sep12Service($customerIntegration);
+            $sep12Service = new Sep12Service($customerIntegration, null, Log::getLogger());
             return $sep12Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
             return new JsonResponse(

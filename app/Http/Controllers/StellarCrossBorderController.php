@@ -16,6 +16,7 @@ use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Jwt;
 use ArgoNavis\PhpAnchorSdk\Sep12\Sep12Service;
 use ArgoNavis\PhpAnchorSdk\Sep31\Sep31Service;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -39,6 +40,7 @@ class StellarCrossBorderController extends Controller
             $sep31Service = new Sep31Service(
                 sep31Integration: $crossBorderIntegration,
                 quotesIntegration: $quotesIntegration,
+                logger: Log::getLogger()
             );
 
             return $sep31Service->handleRequest($request, $sep10Jwt);

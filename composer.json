@@ -84,7 +84,7 @@
     "repositories": [
         {
             "type": "path",
-            "url": "D:/workspaces/php-anchor-sdk",
+            "url": "../php-anchor-sdk",
             "options": {
                 "symlink": true
             }

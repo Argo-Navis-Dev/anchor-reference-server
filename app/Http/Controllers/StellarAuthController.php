@@ -7,6 +7,7 @@ use App\Stellar\StellarSep10Config;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidConfig;
 use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Service;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,7 +19,7 @@ class StellarAuthController extends Controller
         try {
             $appConfig = new StellarAppConfig();
             $sep10Config = new StellarSep10Config();
-            $sep10Service = new Sep10Service($appConfig, $sep10Config);
+            $sep10Service = new Sep10Service($appConfig, $sep10Config, Log::getLogger());
 
             return $sep10Service->handleRequest($request, httpClient: new Client());
         } catch (InvalidConfig $invalid) {
