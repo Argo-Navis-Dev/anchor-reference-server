@@ -79,6 +79,7 @@ class Sep6DepositPaymentsWatcher implements ShouldQueue, ShouldBeUnique
     {
         $this->horizonUrl = config('stellar.app.horizon_url');
         $this->networkPassphrase = config('stellar.app.network_passphrase');
+        TrustlinesHelper::setLogger(Log::getLogger());
     }
 
     /**

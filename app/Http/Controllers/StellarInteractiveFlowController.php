@@ -13,6 +13,7 @@ use App\Stellar\StellarSep24Config;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidSep10JwtData;
 use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Jwt;
 use ArgoNavis\PhpAnchorSdk\Sep24\Sep24Service;
+use Illuminate\Support\Facades\Log;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -26,7 +27,7 @@ class StellarInteractiveFlowController extends Controller
             $sep10Jwt = $auth === null ? null : Sep10Jwt::fromArray($auth);
             $sep24Config = new StellarSep24Config();
             $sep24Integration = new InteractiveFlowIntegration();
-            $sep24Service = new Sep24Service($sep24Config, $sep24Integration);
+            $sep24Service = new Sep24Service($sep24Config, $sep24Integration, Log::getLogger());
             return $sep24Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
             return new JsonResponse(

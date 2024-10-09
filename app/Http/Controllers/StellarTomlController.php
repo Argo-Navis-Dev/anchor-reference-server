@@ -10,6 +10,7 @@ namespace App\Http\Controllers;
 
 use ArgoNavis\PhpAnchorSdk\Sep01\TomlData;
 use ArgoNavis\PhpAnchorSdk\Sep01\TomlProvider;
+use Illuminate\Support\Facades\Log;
 use Psr\Http\Message\ResponseInterface;
 use Soneso\StellarSDK\Network;
 use Soneso\StellarSDK\SEP\Toml\Currencies;
@@ -23,7 +24,7 @@ class StellarTomlController extends Controller
 {
     //
     public function toml():ResponseInterface {
-        $provider = new TomlProvider();
+        $provider = new TomlProvider(Log::getLogger());
         return $provider->handleFromData(self::tomlData());
     }
 

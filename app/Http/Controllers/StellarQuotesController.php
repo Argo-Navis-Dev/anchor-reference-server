@@ -12,6 +12,7 @@ use App\Stellar\Sep38Quote\QuotesIntegration;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidSep10JwtData;
 use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Jwt;
 use ArgoNavis\PhpAnchorSdk\Sep38\Sep38Service;
+use Illuminate\Support\Facades\Log;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,7 +25,7 @@ class StellarQuotesController extends Controller
         try {
             $sep10Jwt = $auth === null ? null : Sep10Jwt::fromArray($auth);
             $sep38Integration = new QuotesIntegration();
-            $sep38Service = new Sep38Service($sep38Integration);
+            $sep38Service = new Sep38Service($sep38Integration, Log::getLogger());
             return $sep38Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
             return new JsonResponse(

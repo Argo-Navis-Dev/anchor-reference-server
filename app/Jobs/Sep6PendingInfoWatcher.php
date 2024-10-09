@@ -18,6 +18,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 /**
  * This job checks SEP-6 transactions that are waiting for the user to have their KYC data accepted
@@ -62,7 +63,6 @@ class Sep6PendingInfoWatcher implements ShouldQueue, ShouldBeUnique
      */
     public function handle(): void
     {
-
         $sep6Txs = Sep06Transaction::where(
             'status',
             '=',

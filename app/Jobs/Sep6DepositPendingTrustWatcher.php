@@ -63,6 +63,7 @@ class Sep6DepositPendingTrustWatcher implements ShouldQueue, ShouldBeUnique
     public function __construct()
     {
         $this->horizonUrl = config('stellar.app.horizon_url');
+        TrustlinesHelper::setLogger(Log::getLogger());
     }
 
     /**

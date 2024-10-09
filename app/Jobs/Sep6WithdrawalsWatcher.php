@@ -91,6 +91,7 @@ class Sep6WithdrawalsWatcher implements ShouldQueue, ShouldBeUnique
     {
         $this->horizonUrl = config('stellar.app.horizon_url');
         $this->networkPassphrase = config('stellar.app.network_passphrase');
+        PaymentsHelper::setLogger(Log::getLogger());
     }
 
     /**
