@@ -148,7 +148,7 @@ class StellarRegulatedAssetsTest extends TestCase
         // the destination account must also trust the regulated asset, so that it can receive it.
         $destinationAccount = $this->requestAccount($this->destinationAccountId);
         $trustlineExists = false;
-        foreach ($senderAccount->getBalances()->toArray() as $balance) {
+        foreach ($destinationAccount->getBalances()->toArray() as $balance) {
             if($balance->getAssetCode() === $this->regulatedAsset->getCode() &&
                 $balance->getAssetIssuer() === $this->regulatedAsset->getIssuer()) {
                 $trustlineExists = true;
