@@ -12,6 +12,8 @@ use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+use function json_encode;
+
 class StellarAuthController extends Controller
 {
     public function auth(ServerRequestInterface $request): ResponseInterface
@@ -19,10 +21,22 @@ class StellarAuthController extends Controller
         try {
             $appConfig = new StellarAppConfig();
             $sep10Config = new StellarSep10Config();
+            Log::debug(
+                'The configurations has been parsed successfully.',
+                ['context' => 'sep10', 'app_config' => json_encode($appConfig),
+                    'sep_10_config' => json_encode($sep10Config),
+                ],
+            );
             $sep10Service = new Sep10Service($appConfig, $sep10Config, Log::getLogger());
 
             return $sep10Service->handleRequest($request, httpClient: new Client());
         } catch (InvalidConfig $invalid) {
+            Log::error(
+                'Failed to parse the configuration.',
+                ['context' => 'sep10', 'error' => $invalid->getMessage(),
+                    'exception' => $invalid, 'http_status_code' => 500,
+                ],
+            );
             $errorLabel = __(
                 'shared_lang.error.internal_server',
                 ['error_type' => __('shared_lang.error.invalid_config')]

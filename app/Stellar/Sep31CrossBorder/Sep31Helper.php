@@ -32,6 +32,8 @@ use Soneso\StellarSDK\Memo;
 use Soneso\StellarSDK\SEP\CrossBorderPayments\SEP31InfoResponse;
 use Throwable;
 
+use function json_encode;
+
 class Sep31Helper
 {
     /**
@@ -39,7 +41,8 @@ class Sep31Helper
      *
      * @return array<Sep31AssetInfo> the assets having sep31 support enabled.
      */
-    public static function getSupportedAssets(): array {
+    public static function getSupportedAssets(): array
+    {
         /**
          * @var array<Sep31AssetInfo> $result
          */
@@ -53,9 +56,17 @@ class Sep31Helper
             try {
                 $result[] = self::sep31AssetInfoFromAnchorAsset($asset);
             } catch (InvalidAsset $iA) {
-                Log::error('invalid anchor_asset (id: '. $asset->id . ') in db: ' . $iA->getMessage());
+                Log::error(
+                    'Invalid asset in DB',
+                    ['context' => 'sep31', 'asset' => json_encode($asset),
+                        'error' => $iA->getMessage(), 'exception' => $iA],
+                );
             }
         }
+        Log::debug(
+            'The supported assets',
+            ['context' => 'sep31', 'assets' => json_encode($result)],
+        );
 
         return $result;
     }
@@ -68,7 +79,13 @@ class Sep31Helper
      *
      * @throws AnchorFailure if any error occurs.
      */
-    public static function newTransaction(Sep31PostTransactionRequest $request) : Sep31Transaction {
+    public static function newTransaction(Sep31PostTransactionRequest $request) : Sep31Transaction
+    {
+        Log::debug(
+            'Creating new transaction.',
+            ['context' => 'sep31', 'operation' => 'new_transaction', 'request' => json_encode($request)],
+        );
+
         $sep31Transaction = new Sep31Transaction;
         $sep31Transaction->status = Sep31TransactionStatus::PENDING_RECEIVER;
         $start = new DateTime('now');
@@ -98,23 +115,40 @@ class Sep31Helper
         // $sep31Transaction->stellar_account_id = ...;
         // others ... e.g. :
         if ($request->quoteId !== null) {
+            Log::debug(
+                'Retrieving the quote.',
+                ['context' => 'sep31', 'operation' => 'new_transaction', 'quote_id' => $request->quoteId],
+            );
+
             try {
                 $quote = Sep38Helper::getQuoteById($request->quoteId, $request->accountId, $request->accountMemo);
                 $sep31Transaction->fee_details = json_encode($quote->fee->toJson());
                 $sep31Transaction->amount_out = $quote->buyAmount;
             } catch (Throwable $e) {
+                Log::debug(
+                    'Failed to get the quote.',
+                    ['context' => 'sep31', 'operation' => 'new_transaction',
+                        'error' => $e->getMessage(), 'exception' => $e,
+                    ],
+                );
+
                 throw new AnchorFailure(message: $e->getMessage(), code: $e->getCode());
             }
         } else {
+            Log::debug(
+                'No quote id provided, calculating the fee.',
+                ['context' => 'sep31', 'operation' => 'new_transaction'],
+            );
+
             //Improve here the fee calculation according your business logic.
             $fee = 0.1;
             $feeDetail = 'Service fee';
             $feeAsset = $request->destinationAsset;
-            if($request->asset->feeFixed !== null){
+            if ($request->asset->feeFixed !== null) {
                 $fee = $request->asset->feeFixed;
                 $feeDetail = 'Fee fixed';
                 $feeAsset = $request->asset->asset;
-            }else if($request->asset->feePercent !== null){
+            } elseif ($request->asset->feePercent !== null) {
                 $fee = $request->amount * $request->asset->feePercent;
                 $feeDetail = 'Fee percent';
                 $feeAsset = $request->asset->asset;
@@ -124,7 +158,9 @@ class Sep31Helper
                 asset: $feeAsset,
                 details: [new TransactionFeeInfoDetail(
                     name: $feeDetail,
-                    amount: strval($fee))]);
+                    amount: strval($fee)
+                )]
+            );
             $sep31Transaction->fee_details = json_encode($feeInfo->toJson());
         }
 
@@ -133,12 +169,18 @@ class Sep31Helper
 
         if ($request->asset->asset->getCode() === config('stellar.assets.usdc_asset_code')) {
             $sep31Transaction->stellar_account_id = config('stellar.assets.usdc_asset_distribution_account_id');
-        } else if ($request->asset->asset->getCode() === config('stellar.assets.jpyc_asset_code')) {
+        } elseif ($request->asset->asset->getCode() === config('stellar.assets.jpyc_asset_code')) {
             $sep31Transaction->stellar_account_id = config('stellar.assets.jpyc_asset_distribution_account_id');
         }
 
         $sep31Transaction->save();
         $sep31Transaction->refresh();
+
+        Log::debug(
+            'The transaction has been saved successfully.',
+            ['context' => 'sep31', 'operation' => 'new_transaction', 'transaction' => json_encode($sep31Transaction)],
+        );
+
         return $sep31Transaction;
     }
 
@@ -164,10 +206,16 @@ class Sep31Helper
         if ($accountMemo !== null) {
             $query['sep10_account_memo'] = $accountMemo;
         }
+        Log::debug(
+            'Retrieving transaction by query.',
+            ['context' => 'sep31', 'query' => json_encode($query)],
+        );
         $tx = Sep31Transaction::where($query)->first();
         if ($tx !== null) {
             return self::sep31TransactionResponseFromTx($tx);
-        }else{
+        } else {
+            Log::debug('Transaction not found.', ['context' => 'sep31']);
+
             throw new Sep31TransactionNotFoundForId($id);
         }
     }
@@ -180,6 +228,7 @@ class Sep31Helper
     public static function putTransactionCallback(
         Sep31PutTransactionCallbackRequest $request
     ) : void {
+        Log::debug('Saving transaction callback.', ['context' => 'sep31', 'request' => json_encode($request)]);
 
         $query = ['id' => $request->transactionId, 'sep10_account' => $request->accountId];
         if ($request->accountMemo !== null) {
@@ -190,7 +239,13 @@ class Sep31Helper
             $tx->callback_url = $request->url;
             $tx->save();
             $tx->refresh();
-        }else {
+            Log::debug(
+                'Transaction callback has been saved successfully.',
+                ['context' => 'sep31', 'callback_url' => $tx->callback_url],
+            );
+        } else {
+            Log::debug('Transaction not found.', ['context' => 'sep31']);
+
             throw new Sep31TransactionNotFoundForId($request->transactionId);
         }
     }
@@ -203,18 +258,34 @@ class Sep31Helper
      * @return Sep31TransactionResponse the converted transaction.
      * @throws AnchorFailure
      */
-    private static function sep31TransactionResponseFromTx(Sep31Transaction $tx) : Sep31TransactionResponse {
+    private static function sep31TransactionResponseFromTx(Sep31Transaction $tx) : Sep31TransactionResponse
+    {
 
         try {
-            $amountInAsset = $tx->amount_in_asset !== null ? IdentificationFormatAsset::fromString($tx->amount_in_asset) : null;
-            $amountOutAsset = $tx->amount_out_asset !== null ? IdentificationFormatAsset::fromString($tx->amount_out_asset) : null;
-        } catch (InvalidAsset) {
+            $amountInAsset = $tx->amount_in_asset !== null ?
+                IdentificationFormatAsset::fromString($tx->amount_in_asset) : null;
+            $amountOutAsset = $tx->amount_out_asset !== null ?
+                IdentificationFormatAsset::fromString($tx->amount_out_asset) : null;
+        } catch (InvalidAsset $ex) {
+            Log::debug(
+                'Invalid asset in db.',
+                ['context' => 'sep31', 'error' => $ex->getMessage(), 'exception' => $ex,
+                    'amount_in_asset' => $tx->amount_in_asset, 'amount_out_asset' => $tx->amount_out_asset,
+                    'http_status_code' => 500,
+                ],
+            );
+
             throw new AnchorFailure('Invalid asset in DB', 500);
         }
 
         // todo: check if this can not be optional... (leave it as it is)
         if ($tx->fee_details === null) {
-            throw new AnchorFailure('Invalid asset in DB', 500);
+            Log::debug(
+                'Invalid transaction in in db, fee details field is missing.',
+                ['context' => 'sep31'],
+            );
+
+            throw new AnchorFailure('Invalid transaction in DB, missing fee_details', 500);
         }
 
         $response =  new Sep31TransactionResponse(
@@ -242,6 +313,11 @@ class Sep31Helper
             $response->refunds = SepHelper::parseRefunds($tx->refunds);
         }
 
+        Log::debug(
+            'The built transaction model.',
+            ['context' => 'sep31', 'transaction' => json_encode($response)],
+        );
+
         return $response;
     }
 
@@ -253,16 +329,21 @@ class Sep31Helper
      * @return Sep31AssetInfo the converted asset.
      * @throws InvalidAsset
      */
-    public static function sep31AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep31AssetInfo {
+    public static function sep31AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep31AssetInfo
+    {
         try {
-            $formattedAsset = new IdentificationFormatAsset
-            (
+            $formattedAsset = new IdentificationFormatAsset(
                 $anchorAsset->schema,
                 $anchorAsset->code,
                 $anchorAsset->issuer,
             );
 
             if ($anchorAsset->sep31_info === null) {
+                Log::error(
+                    'Invalid Anchor asset, sep31_info field is missing.',
+                    ['context' => 'sep31', 'asset' => json_encode($anchorAsset)],
+                );
+
                 throw new InvalidAsset('missing sep31_info');
             }
 
@@ -286,7 +367,7 @@ class Sep31Helper
                 $receiverTypes[] = new Sep12Type(name:$key, description: $value);
             }
 
-            return new Sep31AssetInfo(
+            $sep31AssetInfo = new Sep31AssetInfo(
                 asset: $formattedAsset,
                 sep12SenderTypes: $senderTypes,
                 sep12ReceiverTypes: $receiverTypes,
@@ -297,7 +378,18 @@ class Sep31Helper
                 quotesSupported: $assetInfo->quotesSupported,
                 quotesRequired: $assetInfo->quotesRequired,
             );
+            Log::debug(
+                'The built SEP-31 asset info model.',
+                ['context' => 'sep31', 'model' => json_encode($sep31AssetInfo)],
+            );
+
+            return $sep31AssetInfo;
         } catch (Throwable $t) {
+            Log::error(
+                'Failed to convert Anchor asset to SEP-31 asset info model.',
+                ['context' => 'sep31', 'error' => $t->getMessage(), 'exception' => $t],
+            );
+
             throw new InvalidAsset($t->getMessage());
         }
     }
@@ -309,12 +401,13 @@ class Sep31Helper
      *
      * @return array<string,?string> keys: memo_type and memo_value
      */
-    private static function memoFieldsFromMemo(Memo $memo) : array {
+    private static function memoFieldsFromMemo(Memo $memo) : array
+    {
         $memoType = MemoHelper::memoTypeAsString($memo->getType());
         $memoValue = null;
         if ($memoType === 'hash' || $memoType === 'return') {
             $memoValue = base64_encode($memo->getValue());
-        } else if ($memo->getValue() !== null) {
+        } elseif ($memo->getValue() !== null) {
             $memoValue = strval($memo->getValue());
         }
 

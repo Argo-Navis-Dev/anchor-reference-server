@@ -87,6 +87,7 @@ class Sep12Customer extends Model
     public function getIdNumberAttribute(): string {
         return $this->getProvidedFieldValue('id_number');
     }
+
     public function getIdTypeAttribute(): string {
         $value = $this->getProvidedFieldValue('id_type');
         return __("sep12_lang.label.id_type.{$value}");

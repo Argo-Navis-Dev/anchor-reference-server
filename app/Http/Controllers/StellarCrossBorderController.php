@@ -28,6 +28,11 @@ class StellarCrossBorderController extends Controller
     {
         $auth = $this->getStellarAuthData($request);
         if ($auth === null) {
+            Log::error(
+                'The stellar_auth missing from the request, authentication required.',
+                ['context' => 'sep31', 'http_status_code' => 401],
+            );
+
             return new JsonResponse(
                 ['error' => __('shared_lang.error.unauthorized.missing_stellar_auth')],
                 401
@@ -45,6 +50,11 @@ class StellarCrossBorderController extends Controller
 
             return $sep31Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
+            Log::error(
+                'Invalid JWT token.',
+                ['context' => 'sep31', 'error' => $e->getMessage(), 'exception' => $e, 'http_status_code' => 401],
+            );
+
             return new JsonResponse(
                 ['error' => __(
                     'shared_lang.error.unauthorized.invalid_token',

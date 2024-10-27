@@ -8,9 +8,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\AnchorAssetResource\Helper;
 
-// Copyright 2024 Argo Navis Dev. All rights reserved.
-// Use of this source code is governed by a license that can be
-// found in the LICENSE file.
 use App\Models\AnchorAsset;
 use App\Stellar\Sep31CrossBorder\Sep31Helper;
 use App\Stellar\Sep38Quote\Sep38Helper;
@@ -21,7 +18,8 @@ use ArgoNavis\PhpAnchorSdk\shared\Sep31AssetInfo;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38AssetInfo;
 use ArgoNavis\PhpAnchorSdk\shared\Sep38DeliveryMethod;
 use Illuminate\Support\Facades\Log;
-use JsonException;
+
+use function json_encode;
 
 /**
  * Helper for Anchor asset CRUD operations.
@@ -35,11 +33,15 @@ class AnchorAssetResourceHelper
      *
      * @return array<array-key, mixed> The processed form data model.
      *
-     * @throws JsonException
      */
     public static function mutateFormDataBeforeSave(array $data): array
     {
         try {
+            Log::debug(
+                'Processing anchor asset data for save action.',
+                ['context' => 'anchor_asset_ui', 'data' => json_encode($data)],
+            );
+
             $sep31InfoJson = self::processSep31InfoBeforeSave($data);
             $sep38InfoJson = self::processSep38InfoBeforeSave($data);
             $data['sep31_info'] = $sep31InfoJson;
@@ -60,10 +62,12 @@ class AnchorAssetResourceHelper
             } else {
                 $data['sep06_deposit_methods'] = null;
             }
-        } catch (InvalidAsset $e) {
-            LOG::debug($e->getMessage());
+        } catch (InvalidAsset | \JsonException $e) {
+            Log::error(
+                'Failed to process data for the save action.',
+                ['context' => 'anchor_asset_ui', 'error' => $e->getMessage(), 'exception' => $e],
+            );
         }
-
         unset($data['sep31_cfg_quotes_supported']);
         unset($data['sep31_cfg_sep12_sender_types']);
         unset($data['sep31_cfg_sep12_receiver_types']);
@@ -71,6 +75,10 @@ class AnchorAssetResourceHelper
         unset($data['sep38_cfg_decimals']);
         unset($data['sep38_cfg_sell_delivery_methods']);
         unset($data['sep38_cfg_buy_delivery_methods']);
+        Log::debug(
+            'The processed anchor asset data for save action.',
+            ['context' => 'anchor_asset_ui', 'data' => json_encode($data)],
+        );
 
         return $data;
     }
@@ -122,6 +130,12 @@ class AnchorAssetResourceHelper
             sep12ReceiverTypes: $receiverTypes,
             quotesSupported: $data['sep31_cfg_quotes_supported'] ?? null,
             quotesRequired: $data['sep31_cfg_quotes_required'] ?? null,
+        );
+        Log::debug(
+            'The parsed SEP-31 asset info for save action.',
+            ['context' => 'anchor_asset_ui', 'sep31_asset_info' => json_encode($sep31Asset),
+                'data' => json_encode($data),
+            ],
         );
 
         return json_encode($sep31Asset->toJson(), JSON_THROW_ON_ERROR);
@@ -178,6 +192,12 @@ class AnchorAssetResourceHelper
             'buy_delivery_methods' => $sep38AssetInfoJson['buy_delivery_methods'] ?? [],
             'country_codes' => $sep38AssetInfoJson['country_codes'] ?? []
         );
+        Log::debug(
+            'The parsed SEP-38 asset info for save action.',
+            ['context' => 'anchor_asset_ui', 'sep31_asset_info' => json_encode($result),
+                'data' => json_encode($data),
+            ],
+        );
 
         return json_encode($result);
     }
@@ -215,7 +235,10 @@ class AnchorAssetResourceHelper
                 $data['sep31_cfg_quotes_required'] = $sep31AssetInfo->quotesRequired;
             }
         } catch (InvalidAsset $e) {
-            LOG::error($e);
+            Log::error(
+                'Invalid asset, failed to populate the SEP-31 info for edit action.',
+                ['context' => 'anchor_asset_ui', 'error' => $e->getMessage(), 'exception' => $e],
+            );
         }
     }
 
@@ -249,7 +272,10 @@ class AnchorAssetResourceHelper
             $data['sep38_cfg_buy_delivery_methods'] = $buyDeliveryMethods;
             $data['sep38_cfg_country_codes'] = $sep38AssetInfo->countryCodes;
         } catch (InvalidAsset $e) {
-            LOG::error($e);
+            Log::error(
+                'Invalid asset, failed to populate the SEP-38 info for edit action.',
+                ['context' => 'anchor_asset_ui', 'error' => $e->getMessage(), 'exception' => $e],
+            );
         }
     }
 }

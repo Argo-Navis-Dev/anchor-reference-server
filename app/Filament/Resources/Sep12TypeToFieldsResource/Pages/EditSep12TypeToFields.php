@@ -13,6 +13,9 @@ use App\Filament\Resources\Sep12TypeToFieldsResource;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Log;
+
+use function json_encode;
 
 /**
  *  This class is responsible for editing SEP-12 customer type to field record in the database.
@@ -33,10 +36,18 @@ class EditSep12TypeToFields extends EditRecord
      */
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        Log::debug(
+            'Preparing data for save action.',
+            ['context' => 'sep12_ui', 'data' => json_encode($data)],
+        );
         $data['required_fields'] =
             ResourceUtil::convertJsonArrayToCommaSeparatedString($data, 'required_fields');
         $data['optional_fields'] =
             ResourceUtil::convertJsonArrayToCommaSeparatedString($data, 'optional_fields');
+        Log::debug(
+            'The processed data for save action.',
+            ['context' => 'sep12_ui', 'data' => json_encode($data)],
+        );
 
         return $data;
     }
@@ -50,6 +61,11 @@ class EditSep12TypeToFields extends EditRecord
      */
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        Log::debug(
+            'Preparing form data for edit action.',
+            ['context' => 'sep12_ui', 'data' => json_encode($data)],
+        );
+
         $requiredFieldsStr = $data['required_fields'] ?? null;
         if ($requiredFieldsStr != null) {
             $requiredFields = array_map('trim', explode(',', $requiredFieldsStr));
@@ -61,6 +77,10 @@ class EditSep12TypeToFields extends EditRecord
             $optionalFields = array_map('trim', explode(',', $optionalFieldsStr));
             $data['optional_fields'] = $optionalFields;
         }
+        Log::debug(
+            'The processed form data for edit action.',
+            ['context' => 'sep12_ui', 'data' => json_encode($data)],
+        );
 
         return $data;
     }

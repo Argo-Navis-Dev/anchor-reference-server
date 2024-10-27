@@ -8,6 +8,8 @@ use ArgoNavis\PhpAnchorSdk\shared\Sep31AssetInfo;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
+use function json_encode;
+
 class AnchorAssetsSeeder extends Seeder
 {
 

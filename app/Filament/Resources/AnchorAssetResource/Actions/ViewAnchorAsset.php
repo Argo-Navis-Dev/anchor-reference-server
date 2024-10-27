@@ -12,6 +12,9 @@ use App\Filament\Resources\AnchorAssetResource;
 use App\Filament\Resources\AnchorAssetResource\Helper\AnchorAssetResourceHelper;
 use App\Models\AnchorAsset;
 use Filament\Tables\Actions\ViewAction;
+use Illuminate\Support\Facades\Log;
+
+use function json_encode;
 
 /**
  * Defines the view Anchor asset action.
@@ -32,8 +35,17 @@ class ViewAnchorAsset extends ViewAction
          * @param array<array-key, mixed> $data The view dialog model.
          */
         $this->mutateRecordDataUsing(function (AnchorAsset $record, array $data): array {
+            Log::debug(
+                'Preparing data for view action.',
+                ['context' => 'anchor_asset_ui', 'data' => json_encode($data)],
+            );
+
             AnchorAssetResourceHelper::populateSep31InfoBeforeFormLoad($data, $record);
             AnchorAssetResourceHelper::populateSep38InfoBeforeFormLoad($data, $record);
+            Log::debug(
+                'Data prepared for view action.',
+                ['context' => 'anchor_asset_ui', 'data' => json_encode($data)],
+            );
 
             return $data;
         });

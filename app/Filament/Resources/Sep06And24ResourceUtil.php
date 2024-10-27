@@ -26,6 +26,9 @@ use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+
+use function json_encode;
 
 /**
  *  The UI. components definition utility common part for SEP-06 and SEP-24 transactions.
@@ -211,10 +214,14 @@ class Sep06And24ResourceUtil
             Sep06TransactionStatus::PENDING_STELLAR => __('sep06_lang.label.status.pending_external'),
             Sep06TransactionStatus::PENDING_TRUST => __('sep06_lang.label.status.pending_trust'),
             Sep06TransactionStatus::PENDING_USER => __('sep06_lang.label.status.pending_user'),
-            Sep06TransactionStatus::PENDING_USER_TRANSFER_START => __('sep06_lang.label.status.pending_user_transfer_start'),
-            Sep06TransactionStatus::PENDING_USER_TRANSFER_COMPLETE => __('sep06_lang.label.status.pending_user_transfer_complete'),
-            Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE => __('sep06_lang.label.status.pending_customer_info_update'),
-            Sep06TransactionStatus::PENDING_TRANSACTION_INFO_UPDATE => __('sep06_lang.label.status.pending_transaction_info_update'),
+            Sep06TransactionStatus::PENDING_USER_TRANSFER_START =>
+                __('sep06_lang.label.status.pending_user_transfer_start'),
+            Sep06TransactionStatus::PENDING_USER_TRANSFER_COMPLETE =>
+                __('sep06_lang.label.status.pending_user_transfer_complete'),
+            Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE =>
+                __('sep06_lang.label.status.pending_customer_info_update'),
+            Sep06TransactionStatus::PENDING_TRANSACTION_INFO_UPDATE =>
+                __('sep06_lang.label.status.pending_transaction_info_update'),
             Sep06TransactionStatus::INCOMPLETE => __('sep06_lang.label.status.incomplete'),
             Sep06TransactionStatus::EXPIRED => __('sep06_lang.label.status.expired'),
             Sep06TransactionStatus::NO_MARKET => __('sep06_lang.label.status.no_market'),
@@ -234,8 +241,10 @@ class Sep06And24ResourceUtil
     {
         return [
             Sep24TransactionStatus::INCOMPLETE => __('sep24_lang.label.status.incomplete'),
-            Sep24TransactionStatus::PENDING_USER_TRANSFER_START => __('sep24_lang.label.status.pending_user_transfer_start'),
-            Sep24TransactionStatus::PENDING_USER_TRANSFER_COMPLETE => __('sep24_lang.label.status.pending_user_transfer_complete'),
+            Sep24TransactionStatus::PENDING_USER_TRANSFER_START =>
+                __('sep24_lang.label.status.pending_user_transfer_start'),
+            Sep24TransactionStatus::PENDING_USER_TRANSFER_COMPLETE =>
+                __('sep24_lang.label.status.pending_user_transfer_complete'),
             Sep24TransactionStatus::PENDING_EXTERNAL => __('sep24_lang.label.status.pending_external'),
             Sep24TransactionStatus::PENDING_ANCHOR => __('sep24_lang.label.status.pending_anchor'),
             Sep24TransactionStatus::PENDING_STELLAR => __('sep24_lang.label.status.pending_stellar'),
@@ -324,8 +333,8 @@ class Sep06And24ResourceUtil
                 Select::make('choices')
                     ->disabled(true)
                     ->label(__('sep06_lang.label.required_info_updates.choices'))
-                    ->hidden(fn(Get $get): bool => $get("choices") == null)
-                    ->options(fn(Get $get): array => $get("choices") ? $get("choices") : [])
+                    ->hidden(fn (Get $get): bool => $get("choices") == null)
+                    ->options(fn (Get $get): array => $get("choices") ? $get("choices") : [])
             ])
             ->columns(2);
     }
@@ -419,7 +428,8 @@ class Sep06And24ResourceUtil
 
         $firstStackFields = ResourceUtil::getAmountInfoTableFields();
         $firstStackFields[] = TextColumn::make('claimable_balance_supported')
-            ->icon(fn(Model $record
+            ->icon(fn (
+                Model $record
             ): ?string => $record->claimable_balance_supported ? 'heroicon-c-check' : 'heroicon-o-x-mark')
             ->getStateUsing(function () {
                 return __('sep06_lang.label.claimable_balance_supported');
@@ -444,6 +454,11 @@ class Sep06And24ResourceUtil
      */
     public static function populateDataBeforeFormLoad(array &$data, Model $model): void
     {
+        Log::debug(
+            'Preparing form data for edit action.',
+            ['context' => 'sep06_24_ui', 'data' => json_encode($data), 'model' => json_encode($model)],
+        );
+
         $instructions = $data['instructions'] ?? null;
         if ($instructions != null) {
             $data['instructions'] = json_decode($instructions, true);
@@ -481,5 +496,10 @@ class Sep06And24ResourceUtil
         if ($stellarTransactions != null) {
             $data['stellar_transactions'] = json_decode($stellarTransactions, true);
         }
+
+        Log::debug(
+            'The processed form data for edit action.',
+            ['context' => 'sep06_24_ui', 'data' => json_encode($data)],
+        );
     }
 }

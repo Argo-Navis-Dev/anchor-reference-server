@@ -13,6 +13,9 @@ use App\Filament\Resources\Sep24TransactionResource;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Log;
+
+use function json_encode;
 
 /**
  *  This class is responsible for editing SEP-24 transaction record in the database.
@@ -34,8 +37,15 @@ class EditSep24Transaction extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $model = $this->getRecord();
+        Log::debug(
+            'Preparing form data for edit action.',
+            ['context' => 'sep24_ui', 'data' => json_encode($data)],
+        );
         Sep06And24ResourceUtil::populateDataBeforeFormLoad($data, $model);
-
+        Log::debug(
+            'The processed form data for edit action.',
+            ['context' => 'sep24_ui', 'data' => json_encode($data)],
+        );
         return $data;
     }
 

@@ -49,6 +49,8 @@ use Soneso\StellarSDK\PaymentOperationBuilder;
 use Soneso\StellarSDK\StellarSDK;
 use Soneso\StellarSDK\TransactionBuilder;
 
+use function json_encode;
+
 /**
  * This Job checks if the anchor received payments for SEP-6 WITHDRAW and WITHDRAW_EXCHANGE transactions
  * that have the status PENDING_USER_TRANSFER_START (waiting for the users stellar anchor asset payment to the anchor).

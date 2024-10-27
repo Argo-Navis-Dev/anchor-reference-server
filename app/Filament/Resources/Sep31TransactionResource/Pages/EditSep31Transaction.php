@@ -14,6 +14,8 @@ use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Log;
 
+use function json_encode;
+
 class EditSep31Transaction extends EditRecord
 {
     /**
@@ -30,6 +32,10 @@ class EditSep31Transaction extends EditRecord
      */
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        Log::debug(
+            'Preparing form data for edit action.',
+            ['context' => 'sep31_ui', 'data' => json_encode($data)],
+        );
         $feeDetails = $data['fee_details'] ?? null;
         if ($feeDetails != null) {
             $data['fee_details'] = json_decode($feeDetails, true);
@@ -48,6 +54,10 @@ class EditSep31Transaction extends EditRecord
         if ($stellarTransactions != null) {
             $data['stellar_transactions'] = json_decode($stellarTransactions, true);
         }
+        Log::debug(
+            'The processed form data for edit action.',
+            ['context' => 'sep31_ui', 'data' => json_encode($data)],
+        );
 
         return $data;
     }

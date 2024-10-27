@@ -34,6 +34,10 @@ use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
+use Illuminate\Support\Facades\Log;
+
+use function json_encode;
+
 /**
  *  The UI. controls definitions for a SEP-12 customer record from the database.
  */
@@ -58,13 +62,16 @@ class Sep12CustomerResource extends Resource
             $type = $customer->type;
         }
         $sep12FieldsForType = Sep12Helper::getSep12FieldsForCustomerType($type);
+        Log::debug(
+            'Customer fields by type.',
+            ['context' => 'sep12_ui', 'fields' => json_encode($sep12FieldsForType), 'type' => $type],
+        );
 
         $requiredFieldsList = $sep12FieldsForType['required'] ?? [];
-        $requiredFielsdKey = array_map(function ($field) {
+        $requiredFieldsKey = array_map(function ($field) {
             return $field->key;
         }, $requiredFieldsList);
         $optionalFieldsList = $sep12FieldsForType['optional'] ?? [];
-
 
         $statusField = self::createCustomerStatusField('status');
         $statusField->columnSpan(2);
@@ -114,12 +121,10 @@ class Sep12CustomerResource extends Resource
                 return 0;
             }
         });
+        $allFormFields = Sep12CustomerResourceHelper::
+            createCustomerCustomFormFields($allFields, $customer, $requiredFieldsKey);
 
-        $allFormFields =
-            Sep12CustomerResourceHelper::createCustomerCustomFormFields($allFields, $customer, $requiredFielsdKey);
-
-        $components[] =
-            Fieldset::make(__('sep12_lang.label.provided_fields'))->schema($allFormFields);
+        $components[] = Fieldset::make(__('sep12_lang.label.provided_fields'))->schema($allFormFields);
         $components[] = ResourceUtil::getModelTimestampFormControls(1);
 
         return $form->schema($components);

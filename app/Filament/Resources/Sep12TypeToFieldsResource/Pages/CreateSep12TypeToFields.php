@@ -11,6 +11,9 @@ namespace App\Filament\Resources\Sep12TypeToFieldsResource\Pages;
 use App\Filament\Resources\ResourceUtil;
 use App\Filament\Resources\Sep12TypeToFieldsResource;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\Log;
+
+use function json_encode;
 
 /**
  * This class is responsible for creating SEP-12 customer type to field record in the database.
@@ -30,11 +33,18 @@ class CreateSep12TypeToFields extends CreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        Log::debug(
+            'Preparing data for create action.',
+            ['context' => 'sep12_ui', 'data' => json_encode($data)],
+        );
         $data['required_fields'] =
             ResourceUtil::convertJsonArrayToCommaSeparatedString($data, 'required_fields');
         $data['optional_fields'] =
             ResourceUtil::convertJsonArrayToCommaSeparatedString($data, 'optional_fields');
-
+        Log::debug(
+            'The processed data for create action.',
+            ['context' => 'sep12_ui', 'data' => json_encode($data)],
+        );
         return $data;
     }
 }

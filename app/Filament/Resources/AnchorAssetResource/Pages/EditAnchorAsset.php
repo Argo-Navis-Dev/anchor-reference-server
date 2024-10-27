@@ -14,6 +14,9 @@ use App\Models\AnchorAsset;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Log;
+
+use function json_encode;
 
 /**
  * This class is responsible for editing an anchor asset record in the database.
@@ -38,6 +41,13 @@ class EditAnchorAsset extends EditRecord
          * @var AnchorAsset $anchorAsset The DB entity.
          */
         $anchorAsset = $this->getRecord();
+        Log::debug(
+            'Preparing form data for edit action.',
+            ['context' => 'anchor_asset_ui', 'data' => json_encode($data),
+                'anchor_asset_record' => json_encode($anchorAsset),
+            ],
+        );
+
         AnchorAssetResourceHelper::populateSep31InfoBeforeFormLoad($data, $anchorAsset);
         AnchorAssetResourceHelper::populateSep38InfoBeforeFormLoad($data, $anchorAsset);
 
@@ -52,6 +62,11 @@ class EditAnchorAsset extends EditRecord
             $sep06DepositMethods = array_map('trim', explode(',', $sep06DepositMethodsStr));
             $data['sep06_deposit_methods'] = $sep06DepositMethods;
         }
+        Log::debug(
+            'The processed data for edit action.',
+            ['context' => 'anchor_asset_ui', 'data' => json_encode($data)],
+        );
+
         return $data;
     }
 
@@ -60,7 +75,6 @@ class EditAnchorAsset extends EditRecord
      *
      * @param array<array-key, mixed> $data The form data model.
      * @return array<array-key, mixed> The mutated model before saving it.
-     * @throws \JsonException
      */
     protected function mutateFormDataBeforeSave(array $data): array
     {

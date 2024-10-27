@@ -12,6 +12,9 @@ use App\Filament\Resources\Sep38ExchangeQuoteResource;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Log;
+
+use function json_encode;
 
 /**
  *  This class is responsible for editing SEP-38 exchange quote record in the database.
@@ -32,10 +35,18 @@ class EditSep38ExchangeQuote extends EditRecord
      */
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        Log::debug(
+            'Preparing form data for edit action.',
+            ['context' => 'sep38_ui', 'data' => json_encode($data)],
+        );
         $feeDetails = $data['fee'] ?? null;
         if ($feeDetails != null) {
             $data['fee_details'] = json_decode($feeDetails, true);
         }
+        Log::debug(
+            'The processed form data for edit action.',
+            ['context' => 'sep38_ui', 'data' => json_encode($data)],
+        );
 
         return $data;
     }

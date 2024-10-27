@@ -20,19 +20,28 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class StellarInteractiveFlowController extends Controller
 {
-    public function interactive(ServerRequestInterface $request): ResponseInterface {
-
+    public function interactive(ServerRequestInterface $request): ResponseInterface
+    {
         $auth = $this->getStellarAuthData($request);
         try {
             $sep10Jwt = $auth === null ? null : Sep10Jwt::fromArray($auth);
             $sep24Config = new StellarSep24Config();
             $sep24Integration = new InteractiveFlowIntegration();
             $sep24Service = new Sep24Service($sep24Config, $sep24Integration, Log::getLogger());
+
             return $sep24Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
+            Log::error(
+                'Invalid JWT token.',
+                ['context' => 'sep24', 'error' => $e->getMessage(), 'exception' => $e, 'http_status_code' => 401],
+            );
+
             return new JsonResponse(
-                ['error' => __('shared_lang.error.unauthorized.invalid_token',
-                    ['exception' => $e->getMessage()])], 401
+                ['error' => __(
+                    'shared_lang.error.unauthorized.invalid_token',
+                    ['exception' => $e->getMessage()],
+                )],
+                401
             );
         }
     }
@@ -43,7 +52,8 @@ class StellarInteractiveFlowController extends Controller
      * @param ServerRequestInterface $request
      * @return array<array-key | mixed> |null the extracted data if found, otherwise null
      */
-    private function getStellarAuthData(ServerRequestInterface $request) : ?array {
+    private function getStellarAuthData(ServerRequestInterface $request) : ?array
+    {
         $authDataKey = 'stellar_auth';
         $params = $request->getQueryParams();
         if (isset($params[$authDataKey])) {

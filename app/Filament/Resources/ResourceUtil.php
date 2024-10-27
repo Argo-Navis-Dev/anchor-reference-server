@@ -41,19 +41,19 @@ class ResourceUtil
     {
         return Section::make()
             ->columnSpan($colspan)
-            ->hidden(fn(?Model $record, Get $get): ?bool => $record == null
+            ->hidden(fn (?Model $record, Get $get): ?bool => $record == null
                 || ($get('created_at') == null && $get('updated_at') == null))
             ->schema([
                 Placeholder::make('created_at')
-                    ->hidden(fn(Get $get): ?bool => $get('created_at') == null)
+                    ->hidden(fn (Get $get): ?bool => $get('created_at') == null)
                     ->label(__('shared_lang.label.created_at'))
                     ->columns(1)
-                    ->content(fn(Model $record): ?string => $record->created_at?->diffForHumans()),
+                    ->content(fn (Model $record): ?string => $record->created_at?->diffForHumans()),
                 Placeholder::make('updated_at')
-                    ->hidden(fn(Get $get): ?bool => $get('updated_at') == null)
+                    ->hidden(fn (Get $get): ?bool => $get('updated_at') == null)
                     ->label(__('shared_lang.label.updated_at'))
                     ->columns(1)
-                    ->content(fn(Model $record): ?string => $record->updated_at?->diffForHumans())
+                    ->content(fn (Model $record): ?string => $record->updated_at?->diffForHumans())
             ]);
     }
 
@@ -119,7 +119,6 @@ class ResourceUtil
                     ->label(__('shared_lang.label.amount_fee'))
                     ->minValue(0)
                     ->numeric(),
-
                 TextInput::make('amount_in_asset')
                     ->disabled()
                     ->columnSpan(1)
@@ -132,7 +131,6 @@ class ResourceUtil
                     ->disabled()
                     ->columnSpan(1)
                     ->label(__('shared_lang.label.amount_fee_asset')),
-
             ]);
     }
 
@@ -157,7 +155,7 @@ class ResourceUtil
                 self::getMemoTypeFormControl(true),
                 TextInput::make('refund_memo')
                     ->disabled()
-                    ->required(fn(Get $get): bool => $get("refund_memo_type") != null)
+                    ->required(fn (Get $get): bool => $get("refund_memo_type") != null)
                     ->label(__('shared_lang.label.refund_memo')),
                 self::getRefundsFormControl(),
             ]);
@@ -348,15 +346,23 @@ class ResourceUtil
         string $cellValue,
         ?int $maxLength = null
     ): string {
+        $elidedValue = $cellValue;
+
         if ($maxLength == null) {
             $maxLength = 20;
         }
         $halfLength = intdiv($maxLength, 2);
         if (strlen($cellValue) > $maxLength) {
-            return substr($cellValue, 0, $halfLength) . '...' . substr($cellValue, -$halfLength);
+            $elidedValue = substr($cellValue, 0, $halfLength) . '...' . substr($cellValue, -$halfLength);
         }
+        Log::debug(
+            'Eliding cell value in the middle.',
+            ['context' => 'shared_ui', 'value' => $cellValue,
+                'max_length' => $maxLength, 'elided_value' => $elidedValue,
+            ],
+        );
 
-        return $cellValue;
+        return $elidedValue;
     }
 
     /**
@@ -378,9 +384,16 @@ class ResourceUtil
                 $allAssetsAsString[$identificationFormatAsset->getStringRepresentation()] =
                     $identificationFormatAsset->getStringRepresentation();
             } catch (InvalidAsset $e) {
-                LOG::error($e->getMessage());
+                Log::error(
+                    'Failed to parse asset.',
+                    ['context' => 'shared_ui', 'error' => $e->getMessage(),
+                        'exception' => $e, 'schema' => $asset->schema, 'code' => $asset->code,
+                        'issuer' => $asset->issuer,
+                    ],
+                );
             }
         }
+
         return $allAssetsAsString;
     }
 

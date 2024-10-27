@@ -15,6 +15,7 @@ use App\Jobs\Sep6DepositPendingTrustWatcher;
 use App\Jobs\Sep6WithdrawalsWatcher;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -23,6 +24,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        Log::debug(
+            'Scheduling the Anchor jobs.',
+            ['context' => 'shared'],
+        );
         $schedule->job(new Sep6PendingInfoWatcher)->everyMinute();
         $schedule->job(new Sep6DepositPendingTrustWatcher)->everyMinute();
         $schedule->job(new Sep6DepositPaymentsWatcher)->everyMinute();

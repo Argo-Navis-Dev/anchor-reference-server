@@ -38,6 +38,11 @@ class StellarTransferController extends Controller
 
             return $sep06Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
+            Log::error(
+                'Invalid JWT token.',
+                ['context' => 'sep06', 'error' => $e->getMessage(), 'exception' => $e, 'http_status_code' => 401],
+            );
+
             return new JsonResponse(
                 ['error' => __(
                     'shared_lang.error.unauthorized.invalid_token',

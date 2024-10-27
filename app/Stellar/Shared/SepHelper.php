@@ -23,6 +23,8 @@ use Soneso\StellarSDK\Network;
 use Soneso\StellarSDK\StellarSDK;
 use Soneso\StellarSDK\TransactionBuilder;
 
+use function json_encode;
+
 class SepHelper
 {
     /**
@@ -44,8 +46,13 @@ class SepHelper
      * @param string $refundsJson
      * @return TransactionRefunds|null
      */
-    public static function parseRefunds(string $refundsJson) : ?TransactionRefunds {
+    public static function parseRefunds(string $refundsJson) : ?TransactionRefunds
+    {
         $refunds = json_decode($refundsJson, true);
+        Log::debug(
+            'Parsing refunds string.',
+            ['context' => 'shared', 'refunds' => json_encode($refundsJson)],
+        );
 
         if ($refunds != null) {
             if (isset($refunds['amount_refunded']) && is_string($refunds['amount_refunded'])
@@ -56,12 +63,11 @@ class SepHelper
                  * @var array<TransactionRefundPayment> $payments
                  */
                 $payments = [];
-                foreach($refunds['payments'] as $payment) {
-                    if(isset($payment['id']) && is_string($payment['id'])
+                foreach ($refunds['payments'] as $payment) {
+                    if (isset($payment['id']) && is_string($payment['id'])
                         && isset($payment['id_type']) && is_string($payment['id_type'])
                         && isset($payment['amount']) && is_string($payment['amount'])
-                        && isset($payment['fee']) && is_string($payment['fee']) ) {
-
+                        && isset($payment['fee']) && is_string($payment['fee'])) {
                         $payment = new TransactionRefundPayment(
                             id: $payment['id'],
                             idType: $payment['id_type'],
@@ -70,12 +76,28 @@ class SepHelper
                         );
 
                         $payments[] = $payment;
+                    } else {
+                        Log::warning(
+                            'Invalid payment json, id, id_type, amount and fee must be set.',
+                            ['context' => 'shared', 'refunds' => json_encode($payment)],
+                        );
                     }
                 }
-                return new TransactionRefunds(
+                $transactionRefunds = new TransactionRefunds(
                     amountRefunded: $refunds['amount_refunded'],
                     amountFee: $refunds['amount_fee'],
                     payments: $payments,
+                );
+                Log::debug(
+                    'The parsed refunds.',
+                    ['context' => 'shared', 'refunds' => json_encode($transactionRefunds)],
+                );
+
+                return $transactionRefunds;
+            } else {
+                Log::warning(
+                    'Invalid refunds json, amount_refunded, amount_fee and payments must be set.',
+                    ['context' => 'shared', 'refunds' => json_encode($refundsJson)],
                 );
             }
         }
@@ -99,7 +121,13 @@ class SepHelper
      * @param string $feeDetailsJson
      * @return TransactionFeeInfo|null
      */
-    public static function parseFeeDetails(string $feeDetailsJson) : ?TransactionFeeInfo {
+    public static function parseFeeDetails(string $feeDetailsJson) : ?TransactionFeeInfo
+    {
+        Log::debug(
+            'Parsing transaction fee details string.',
+            ['context' => 'shared', 'fee_details' => json_encode($feeDetailsJson)],
+        );
+
         $feeDetails = json_decode($feeDetailsJson, true);
 
         if ($feeDetails != null) {
@@ -113,9 +141,9 @@ class SepHelper
                          * @var array<TransactionFeeInfoDetail> $details
                          */
                         $details = [];
-                        foreach($feeDetails['details'] as $detail) {
-                            if(isset($detail['name']) && is_string($detail['name'])
-                                && isset($detail['amount']) && is_string($detail['amount']) ) {
+                        foreach ($feeDetails['details'] as $detail) {
+                            if (isset($detail['name']) && is_string($detail['name'])
+                                && isset($detail['amount']) && is_string($detail['amount'])) {
                                 $feeDetail = new TransactionFeeInfoDetail(
                                     name:$detail['name'],
                                     amount:$detail['amount'],
@@ -124,20 +152,55 @@ class SepHelper
                                     $feeDetail->description = $detail['description'];
                                 }
                                 $details[] = $feeDetail;
+                            } else {
+                                Log::warning(
+                                    'Invalid fee detail json, name and amount must be set.',
+                                    ['context' => 'shared', 'fee_detail' => json_encode($detail)],
+                                );
                             }
                         }
                         $feeInfo->details = $details;
+                    } else {
+                        Log::debug(
+                            'Invalid fee details json, details must be set.',
+                            ['context' => 'shared', 'fee_details' => json_encode($feeDetailsJson)],
+                        );
                     }
+                    Log::debug(
+                        'The parsed fee details.',
+                        ['context' => 'shared', 'fee_details' => json_encode($feeInfo)],
+                    );
+
                     return $feeInfo;
-                } catch (InvalidAsset) {
-                    // todo: logging
+                } catch (InvalidAsset $iae) {
+                    Log::error(
+                        'Invalid asset.',
+                        ['context' => 'shared', 'error' =>  $iae->getMessage(), 'exception' => $iae,
+                            'asset' => $feeDetails['asset']],
+                    );
                 }
+            } else {
+                Log::warning(
+                    'Invalid fee details json, total and asset must be set.',
+                    ['context' => 'shared', 'fee_details' => json_encode($feeDetailsJson)],
+                );
             }
+        } else {
+            Log::warning(
+                'Invalid fee details json.',
+                ['context' => 'shared', 'fee_details' => json_encode($feeDetailsJson)],
+            );
         }
+        Log::debug(
+            'The parsed fee details is null.',
+            ['context' => 'shared', 'fee_details' => json_encode($feeDetailsJson)],
+        );
+
         return null;
     }
     
-    public static function logHorizonRequestException(HorizonRequestException $e, array $context) : void {
+    public static function logHorizonRequestException(HorizonRequestException $e, array $context) : void
+    {
         Log::error(message: ' HorizonRequestException - requested url: ' . $e->getRequestedUrl(). PHP_EOL, context: $context);
         Log::error(message: ' HorizonRequestException - status code: ' . $e->getStatusCode(). PHP_EOL, context: $context);
         Log::error(message: ' HorizonRequestException - message: ' . $e->getMessage(). PHP_EOL, context: $context);
@@ -147,7 +210,7 @@ class SepHelper
             Log::error(message: ' HorizonRequestException - error response title: ' . $horizonErrorResponse->title. PHP_EOL, context: $context);
             Log::error(message: ' HorizonRequestException - error response status: ' . $horizonErrorResponse->status. PHP_EOL, context: $context);
             Log::error(message: ' HorizonRequestException - error response detail: ' . $horizonErrorResponse->detail. PHP_EOL, context: $context);
-            if($horizonErrorResponse->instance !== null) {
+            if ($horizonErrorResponse->instance !== null) {
                 Log::error(message: ' HorizonRequestException - error response instance: ' . $horizonErrorResponse->instance. PHP_EOL, context: $context);
             }
             $extras = $horizonErrorResponse->extras;

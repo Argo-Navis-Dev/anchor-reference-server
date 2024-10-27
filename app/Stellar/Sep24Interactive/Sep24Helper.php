@@ -35,13 +35,16 @@ use DateTimeInterface;
 use Illuminate\Support\Facades\Log;
 use Soneso\StellarSDK\Memo;
 
+use function json_encode;
+
 class Sep24Helper
 {
 
     /**
      * @return array<Sep24AssetInfo> the assets having sep24 support enabled.
      */
-    public static function getSupportedAssets(): array {
+    public static function getSupportedAssets(): array
+    {
         /**
          * @var array<Sep24AssetInfo> $result
          */
@@ -49,33 +52,52 @@ class Sep24Helper
 
         $assets = AnchorAsset::whereSep24Enabled(true)->get();
         if ($assets === null || count($assets) === 0) {
+            Log::debug(
+                'Anchor asset list is empty.',
+                ['context' => 'sep24'],
+            );
+
             return $result;
         }
         foreach ($assets as $asset) {
             try {
                 $result[] = self::sep24AssetInfoFromAnchorAsset($asset);
             } catch (InvalidAsset $iA) {
-                Log::error('invalid anchor_asset (id: '. $asset->id . ') in db: ' . $iA->getMessage());
+                Log::error(
+                    'Invalid Anchor asset.',
+                    ['context' => 'sep24', 'error' => $iA->getMessage(), 'exception' => $iA,
+                        'id' => $asset->id, 'code' => $asset->code, 'issuer' => $asset->issuer],
+                );
             }
         }
 
         return $result;
     }
 
-    public static function getAssetInfo(string $assetCode, ?string $assetIssuer = null) : ?Sep24AssetInfo {
+    public static function getAssetInfo(string $assetCode, ?string $assetIssuer = null) : ?Sep24AssetInfo
+    {
         $query = ['sep24_enabled' => true, 'code' => $assetCode];
         if ($assetIssuer !== null) {
             $query['issuer'] = $assetIssuer;
         }
+        Log::debug(
+            'Retrieving asset info from DB.',
+            ['context' => 'sep24', 'operation' => 'get_asset_info', 'query' => json_encode($query)],
+        );
 
         $asset = AnchorAsset::where($query)->first();
         if ($asset != null) {
             try {
                 return self::sep24AssetInfoFromAnchorAsset($asset);
             } catch (InvalidAsset $iA) {
-                Log::error('invalid anchor_asset (id: '. $asset->id . ') in db: ' . $iA->getMessage());
+                Log::error(
+                    'Invalid SEP-24 Anchor asset.',
+                    ['context' => 'sep24', 'operation' => 'get_asset_info', 'error' => $iA->getMessage(),
+                        'exception' => $iA, 'id' => $asset->id, 'code' => $asset->code, 'issuer' => $asset->issuer],
+                );
             }
         }
+
         return null;
     }
 
@@ -84,7 +106,8 @@ class Sep24Helper
         ?string $memo = null,
         ?string $id = null,
         ?string $stellarTxId = null,
-        ?string $externalTxId = null) : ?Sep24TransactionResponse {
+        ?string $externalTxId = null
+    ) : ?Sep24TransactionResponse {
 
         $query = ['sep10_account' => $accountId];
         if ($id !== null) {
@@ -98,17 +121,33 @@ class Sep24Helper
         if ($memo !== null) {
             $query['sep10_account_memo'] = $memo;
         }
+        Log::debug(
+            'Retrieving transaction from DB.',
+            ['context' => 'sep24', 'operation' => 'get_transaction', 'query' => json_encode($query)],
+        );
+
         $tx = Sep24Transaction::where($query)->first();
         if ($tx !== null) {
             $result = self::sep24TransactionResponseFromTx($tx);
             $customer = Sep12Helper::getSep12CustomerByAccountId($accountId, $memo);
-            if($customer !== null && $customer->status === CustomerStatus::ACCEPTED) {
+            if ($customer !== null && $customer->status === CustomerStatus::ACCEPTED) {
                 $result->kycVerified = true;
             } else {
                 $result->kycVerified = false;
             }
+            Log::debug(
+                'Transaction found.',
+                ['context' => 'sep24', 'operation' => 'get_transaction', 'transaction' => json_encode($tx)],
+            );
+
             return $result;
+        }else {
+            Log::debug(
+                'Transaction not found.',
+                ['context' => 'sep24', 'operation' => 'get_transaction', 'query' => json_encode($query)],
+            );
         }
+
         return null;
     }
 
@@ -136,16 +175,25 @@ class Sep24Helper
         $txsQueryBuilder = Sep24Transaction::where($baseQuery);
         if ($request->noOlderThan != null) {
             $dateStr  = $request->noOlderThan->format(DateTimeInterface::ATOM);
+            Log::debug(
+                'The transaction history query date limit.',
+                ['context' => 'sep24', 'operation' => 'get_transaction_history', 'date' => $dateStr],
+            );
+
             $txsQueryBuilder = Sep24Transaction::where(function ($query) use ($dateStr) {
                 $query->where('tx_started_at', '>=', $dateStr);
             })->where($baseQuery);
         }
-
-        $txsQueryBuilder = $txsQueryBuilder->orderBy('tx_started_at');
+        $txsQueryBuilder->orderBy('tx_started_at');
 
         if ($request->limit != null) {
             $txsQueryBuilder = $txsQueryBuilder->limit($request->limit);
         }
+        Log::debug(
+            'Retrieving the transaction history from db.',
+            ['context' => 'sep24', 'operation' => 'get_transaction_history',
+                'query' => json_encode($txsQueryBuilder->toSql())],
+        );
 
         $txs = $txsQueryBuilder->get();
         if ($txs !== null && count($txs) > 0) {
@@ -160,15 +208,29 @@ class Sep24Helper
                 $result->kycVerified = $kycVerified;
                 $results[] = $result;
             }
+            Log::debug(
+                'The list  of transactions.',
+                ['context' => 'sep24', 'transactions' => json_encode($results)],
+            );
 
             return $results;
+        }else {
+            Log::debug(
+                'No transaction history found.',
+                ['context' => 'sep24', 'operation' => 'get_transaction_history'],
+            );
         }
 
         return null;
     }
 
-    public static function newTransaction(InteractiveWithdrawRequest | InteractiveDepositRequest $request) :Sep24Transaction {
-
+    public static function newTransaction(InteractiveWithdrawRequest | InteractiveDepositRequest $request) :Sep24Transaction
+    {
+        $isDepositRequest = $request instanceof InteractiveDepositRequest;
+        Log::debug(
+            'Saving new transaction.',
+            ['context' => 'sep24', 'request' => json_encode($request), 'is_deposit' => $isDepositRequest],
+        );
         $sep24Transaction = new Sep24Transaction;
         $sep24Transaction->status = Sep24TransactionStatus::INCOMPLETE;
         $sep24Transaction->request_asset_code = $request->asset->getCode();
@@ -190,7 +252,7 @@ class Sep24Helper
         }
         $sep24Transaction->amount_expected = $request->amount;
 
-        if ($request instanceof InteractiveDepositRequest) {
+        if ($isDepositRequest) {
             $sep24Transaction->kind = 'deposit';
             $sep24Transaction->source_asset = $request->sourceAsset?->getStringRepresentation();
             $sep24Transaction->to_account = $request->account;
@@ -205,6 +267,11 @@ class Sep24Helper
 
         $sep24Transaction->save();
         $sep24Transaction->refresh();
+        Log::debug(
+            'The new transaction has been saved successfully.',
+            ['context' => 'sep24', 'transaction' => json_encode($sep24Transaction)],
+        );
+
         return $sep24Transaction;
     }
 
@@ -213,12 +280,13 @@ class Sep24Helper
      * @param Memo $memo the memo to extract the values from
      * @return array<string,?string> keys: memo_type and memo_value
      */
-    private static function memoFieldsFromMemo(Memo $memo) : array {
+    private static function memoFieldsFromMemo(Memo $memo) : array
+    {
         $memoType = MemoHelper::memoTypeAsString($memo->getType());
         $memoValue = null;
         if ($memoType === 'hash' || $memoType === 'return') {
             $memoValue = base64_encode($memo->getValue());
-        } else if ($memo->getValue() !== null) {
+        } elseif ($memo->getValue() !== null) {
             $memoValue = strval($memo->getValue());
         }
 
@@ -230,15 +298,14 @@ class Sep24Helper
     /**
      * @throws InvalidAsset
      */
-    private static function sep24AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep24AssetInfo {
-        $formattedAsset = new IdentificationFormatAsset
-        (
+    private static function sep24AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep24AssetInfo
+    {
+        $formattedAsset = new IdentificationFormatAsset(
             $anchorAsset->schema,
             $anchorAsset->code,
             $anchorAsset->issuer,
         );
-        $depositOp = new DepositOperation
-        (
+        $depositOp = new DepositOperation(
             (bool)$anchorAsset->deposit_enabled,
             $anchorAsset->deposit_min_amount,
             $anchorAsset->deposit_max_amount,
@@ -246,8 +313,7 @@ class Sep24Helper
             $anchorAsset->deposit_fee_percent,
             $anchorAsset->deposit_fee_minimum,
         );
-        $withdrawOp = new WithdrawOperation
-        (
+        $withdrawOp = new WithdrawOperation(
             (bool)$anchorAsset->withdrawal_enabled,
             $anchorAsset->withdrawal_min_amount,
             $anchorAsset->withdrawal_max_amount,
@@ -255,20 +321,34 @@ class Sep24Helper
             $anchorAsset->withdrawal_fee_percent,
             $anchorAsset->withdrawal_fee_minimum,
         );
+        $sep24AssetInfo = new Sep24AssetInfo($formattedAsset, $depositOp, $withdrawOp);
+        Log::debug(
+            'Building SEP-24 asset info.',
+            ['context' => 'sep24', 'asset_info' => json_encode($sep24AssetInfo)],
+        );
 
-        return new Sep24AssetInfo($formattedAsset, $depositOp, $withdrawOp);
+        return $sep24AssetInfo;
     }
 
     /**
      * @throws AnchorFailure
      */
-    private static function sep24TransactionResponseFromTx(Sep24Transaction $tx) : Sep24TransactionResponse {
+    private static function sep24TransactionResponseFromTx(Sep24Transaction $tx) : Sep24TransactionResponse
+    {
 
         try {
-            $amountInAsset = $tx->amount_in_asset !== null ? IdentificationFormatAsset::fromString($tx->amount_in_asset) : null;
-            $amountOutAsset = $tx->amount_out_asset !== null ? IdentificationFormatAsset::fromString($tx->amount_out_asset) : null;
-            $amountFeeAsset = $tx->amount_fee_asset !== null ? IdentificationFormatAsset::fromString($tx->amount_fee_asset) : null;
-        } catch (InvalidAsset) {
+            $amountInAsset = $tx->amount_in_asset !== null ?
+                IdentificationFormatAsset::fromString($tx->amount_in_asset) : null;
+            $amountOutAsset = $tx->amount_out_asset !== null ?
+                IdentificationFormatAsset::fromString($tx->amount_out_asset) : null;
+            $amountFeeAsset = $tx->amount_fee_asset !== null ?
+                IdentificationFormatAsset::fromString($tx->amount_fee_asset) : null;
+        } catch (InvalidAsset $ex) {
+            Log::debug(
+                'Invalid asset info.',
+                ['context' => 'sep24', 'error' => $ex->getMessage(), 'exception' => $ex],
+            );
+
             throw new AnchorFailure('Invalid asset in DB', 500);
         }
 
@@ -278,8 +358,7 @@ class Sep24Helper
         }
 
         if ($tx->kind === 'deposit') {
-
-            return new Sep24DepositTransactionResponse(
+            $depositResponse = new Sep24DepositTransactionResponse(
                 id:$tx->id,
                 status: $tx->status,
                 startedAt: DateTime::createFromFormat(DATE_ATOM, $tx->tx_started_at),
@@ -298,15 +377,23 @@ class Sep24Helper
                 amountOutAsset: $amountOutAsset,
                 amountFeeAsset: $amountFeeAsset,
                 quoteId: $tx->quote_id,
-                completedAt: $tx->tx_completed_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_completed_at),
-                updatedAt: $tx->tx_updated_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_updated_at),
+                completedAt: $tx->tx_completed_at === null ? null :
+                    DateTime::createFromFormat(DATE_ATOM, $tx->tx_completed_at),
+                updatedAt: $tx->tx_updated_at === null ? null :
+                    DateTime::createFromFormat(DATE_ATOM, $tx->tx_updated_at),
                 externalTransactionId: $tx->external_transaction_id,
                 message: $tx->status_message,
                 refunded: boolval($tx->refunded),
                 refunds: $refunds,
             );
+            Log::debug(
+                'The built deposit transaction response.',
+                ['context' => 'sep24', 'transaction' => json_encode($depositResponse)],
+            );
+
+            return $depositResponse;
         } else {
-            return new Sep24WithdrawTransactionResponse(
+            $withdrawResponse = new Sep24WithdrawTransactionResponse(
                 id: $tx->id,
                 withdrawAnchorAccount: $tx->withdraw_anchor_account ?? '',
                 status: $tx->status,
@@ -325,22 +412,41 @@ class Sep24Helper
                 amountOutAsset: $amountOutAsset,
                 amountFeeAsset: $amountFeeAsset,
                 quoteId: $tx->quote_id,
-                completedAt: $tx->tx_completed_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_completed_at),
-                updatedAt: $tx->tx_updated_at === null ? null : DateTime::createFromFormat(DATE_ATOM, $tx->tx_updated_at),
+                completedAt: $tx->tx_completed_at === null ? null :
+                    DateTime::createFromFormat(DATE_ATOM, $tx->tx_completed_at),
+                updatedAt: $tx->tx_updated_at === null ? null :
+                    DateTime::createFromFormat(DATE_ATOM, $tx->tx_updated_at),
                 externalTransactionId: $tx->external_transaction_id,
                 message: $tx->status_message,
                 refunded: boolval($tx->refunded),
                 refunds: $refunds,
             );
+            Log::debug(
+                'The built withdraw transaction response.',
+                ['context' => 'sep24', 'transaction' => json_encode($withdrawResponse)],
+            );
+
+            return $withdrawResponse;
         }
     }
 
     /**
      * @throws AnchorFailure
      */
-    public static function createOrUpdateCustomer(InteractiveDepositRequest | InteractiveWithdrawRequest $request) : void {
+    public static function createOrUpdateCustomer(InteractiveDepositRequest | InteractiveWithdrawRequest $request) : void
+    {
+
+        Log::debug(
+            'Creating or updating customer.',
+            ['context' => 'sep24', 'operation' => 'create_or_update_customer', 'request' => json_encode($request)],
+        );
 
         if (!$request->hasKycData()) {
+            Log::warning(
+                'Request does not have KYC data.',
+                ['context' => 'sep24', 'operation' => 'create_or_update_customer'],
+            );
+
             // noting to do
             return;
         }
@@ -355,6 +461,13 @@ class Sep24Helper
 
         // if accountId is null the jwt token is not okay.
         if ($accountId === null) {
+            Log::debug(
+                'Failed to retrieve account from JWT token.',
+                ['context' => 'sep24', 'operation' => 'create_or_update_customer',
+                    'token' => json_encode($jwtToken),
+                ],
+            );
+
             throw new AnchorFailure('could not extract account from jwt token');
         }
 
@@ -363,18 +476,30 @@ class Sep24Helper
             account: $accountId,
             memo: $accountMemo,
             kycFields: $request->kycFields,
-            kycUploadedFiles: $request->kycUploadedFiles);
+            kycUploadedFiles: $request->kycUploadedFiles
+        );
         $customerIntegration = new CustomerIntegration();
-        $customerIntegration->putCustomer($putCustomerRequest);
+        Log::debug(
+            'Saving customer.',
+            ['context' => 'sep24', 'operation' => 'create_or_update_customer'],
+        );
 
+        $customerIntegration->putCustomer($putCustomerRequest);
     }
 
-    public static function createInteractivePopupUrl(string $txId): string {
+    public static function createInteractivePopupUrl(string $txId): string
+    {
         // This is just a placeholder implementation
         // As soon as we have a dem it needs to be changed
         // The token needs to be replaced with a new short-lived jwt token.
         $newJwtToken = 'placeholderToken';
-        return 'https://localhost:5173/interactive-popup?tx=' . $txId . '&token=' . $newJwtToken;
+        $url = 'https://localhost:5173/interactive-popup?tx=' . $txId . '&token=' . $newJwtToken;
+        Log::debug(
+            'The interactive pop url.',
+            ['context' => 'sep24', 'operation' => 'popup_url', 'url' => $url],
+        );
+
+        return $url;
     }
 
     /**
@@ -396,7 +521,13 @@ class Sep24Helper
      * @param string $refundsJson
      * @return TransactionRefunds|null
      */
-    private static function parseRefunds(string $refundsJson) : ?TransactionRefunds {
+    private static function parseRefunds(string $refundsJson) : ?TransactionRefunds
+    {
+        Log::debug(
+            'Parsing refunds.',
+            ['context' => 'sep24', 'operation' => 'parse_refunds', 'refunds' => $refundsJson],
+        );
+
         $refunds = json_decode($refundsJson, true);
 
         if ($refunds != null) {
@@ -408,12 +539,11 @@ class Sep24Helper
                  * @var array<TransactionRefundPayment> $payments
                  */
                 $payments = [];
-                foreach($refunds['payments'] as $payment) {
-                    if(isset($payment['id']) && is_string($payment['id'])
+                foreach ($refunds['payments'] as $payment) {
+                    if (isset($payment['id']) && is_string($payment['id'])
                         && isset($payment['id_type']) && is_string($payment['id_type'])
                         && isset($payment['amount']) && is_string($payment['amount'])
-                        && isset($payment['fee']) && is_string($payment['fee']) ) {
-
+                        && isset($payment['fee']) && is_string($payment['fee'])) {
                         $payment = new TransactionRefundPayment(
                             id: $payment['id'],
                             idType: $payment['id_type'],
@@ -424,11 +554,17 @@ class Sep24Helper
                         $payments[] = $payment;
                     }
                 }
-                return new TransactionRefunds(
+                $refunds = new TransactionRefunds(
                     amountRefunded: $refunds['amount_refunded'],
                     amountFee: $refunds['amount_fee'],
                     payments: $payments[],
                 );
+                Log::debug(
+                    'The parsed refunds.',
+                    ['context' => 'sep24', 'operation' => 'parse_refunds', 'refunds' => json_encode($refunds)],
+                );
+
+                return $refunds;
             }
         }
         return null;

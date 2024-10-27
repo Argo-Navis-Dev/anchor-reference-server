@@ -19,6 +19,9 @@ use ArgoNavis\PhpAnchorSdk\callback\PutCustomerResponse;
 use ArgoNavis\PhpAnchorSdk\callback\PutCustomerVerificationRequest;
 use ArgoNavis\PhpAnchorSdk\exception\CustomerNotFoundForId;
 use ArgoNavis\PhpAnchorSdk\exception\SepNotAuthorized;
+use Illuminate\Support\Facades\Log;
+
+use function json_encode;
 
 class CustomerIntegration implements ICustomerIntegration
 {
@@ -30,8 +33,14 @@ class CustomerIntegration implements ICustomerIntegration
         $account = $request->account;
         $memo = $request->memo;
         $customer = null;
-
-        if ($request->id != null) {
+        $id = $request->id;
+        Log::debug(
+            'Retrieving customer.',
+            ['context' => 'sep12', 'operation' => 'get_customer',
+                'account' => $account, 'memo' => $memo, 'id' => $id,
+            ],
+        );
+        if ($id != null) {
             $customer = Sep12Customer::where('id', $request->id)->first();
             if ($customer === null) {
                 throw new CustomerNotFoundForId($request->id);
@@ -40,10 +49,13 @@ class CustomerIntegration implements ICustomerIntegration
             if ($account !== $customer->account_id || $memo !== $customer->memo) {
                 throw new SepNotAuthorized('Unauthorized');
             }
-
         } else if ($request->account != null) {
             $customer = Sep12Helper::getSep12CustomerByAccountId($account, $memo, $request->type);
         }
+        Log::debug(
+            'Customer found.',
+            ['context' => 'sep12', 'operation' => 'get_customer', 'customer_db_record' => json_encode($customer)],
+        );
 
         return Sep12Helper::buildCustomerResponse($customer);
     }
@@ -58,8 +70,15 @@ class CustomerIntegration implements ICustomerIntegration
 
         $customer = null;
 
-        if ($request->id != null) {
-            $customer = Sep12Customer::where('id', $request->id)->first();
+        Log::debug(
+            'Updating customer information.',
+            ['context' => 'sep12', 'operation' => 'put_customer',
+                'account' => $account, 'memo' => $memo, 'id' => $request->id, 'request' => json_encode($request),
+            ],
+        );
+        $id = $request->id;
+        if ($id != null) {
+            $customer = Sep12Customer::where('id', $id)->first();
             if ($customer === null) {
                 throw new CustomerNotFoundForId($request->id);
             }
@@ -73,12 +92,26 @@ class CustomerIntegration implements ICustomerIntegration
         }
 
         if ($customer === null) {
+            Log::debug(
+                'Creating new customer record.',
+                ['context' => 'sep12', 'operation' => 'put_customer'],
+            );
+
             // new customer
             $customer = Sep12Helper::newSep12Customer($request);
         } else {
+            Log::debug(
+                'Customer found, updating it\'s data.',
+                ['context' => 'sep12', 'operation' => 'put_customer'],
+            );
+
             // update customer
             $customer = Sep12Helper::updateSep12Customer($customer, $request);
         }
+        Log::debug(
+            'Customer info has been saved successfully.',
+            ['context' => 'sep12', 'operation' => 'put_customer', 'customer_db_record' => json_encode($customer)],
+        );
 
         return new PutCustomerResponse(id: $customer->id);
     }
@@ -90,10 +123,18 @@ class CustomerIntegration implements ICustomerIntegration
     {
         $account = $request->account;
         $memo = $request->memo;
+        $id = $request->id;
 
-        $customer = Sep12Customer::where('id', $request->id)->first();
+        Log::debug(
+            'Executing customer verification.',
+            ['context' => 'sep12', 'operation' => 'put_customer_verification',
+                'account' => $account, 'memo' => $memo, 'id' => $id,
+            ],
+        );
+
+        $customer = Sep12Customer::where('id', $id)->first();
         if ($customer === null) {
-            throw new CustomerNotFoundForId($request->id);
+            throw new CustomerNotFoundForId($id);
         }
 
         if ($account !== $customer->account_id || $memo !== $customer->memo) {
@@ -101,6 +142,12 @@ class CustomerIntegration implements ICustomerIntegration
         }
 
         Sep12Helper::handleVerification($customer, $request->verificationFields);
+        Log::debug(
+            'Customer verification has been executed successfully.',
+            ['context' => 'sep12', 'operation' => 'put_customer_verification',
+                'customer_db_record' => json_encode($customer),
+            ],
+        );
 
         return $this->getCustomer(new GetCustomerRequest($account, $memo, $request->id));
     }
@@ -110,8 +157,17 @@ class CustomerIntegration implements ICustomerIntegration
      */
     public function deleteCustomer(string $id): void
     {
+        Log::debug(
+            'Deleting customer.',
+            ['context' => 'sep12', 'operation' => 'delete_customer', 'id' => $id],
+        );
+
         Sep12ProvidedField::where('sep12_customer_id', $id)->delete();
         Sep12Customer::destroy($id);
+        Log::debug(
+            'Customer has been deleted successfully.',
+            ['context' => 'sep12', 'operation' => 'delete_customer'],
+        );
     }
 
     /**
@@ -121,6 +177,13 @@ class CustomerIntegration implements ICustomerIntegration
     {
         $account = $request->account;
         $memo = $request->memo;
+        $id = $request->id;
+        Log::debug(
+            'Saving customer callback.',
+            ['context' => 'sep12', 'operation' => 'put_customer_callback',
+                'account' => $account, 'memo' => $memo, 'id' => $id, 'callback_url' => $request->url
+            ],
+        );
 
         $customer = null;
 
@@ -141,11 +204,18 @@ class CustomerIntegration implements ICustomerIntegration
                 if ($memo !== null) {
                     $id .= ':'.$memo;
                 }
+
                 throw new CustomerNotFoundForId($id);
             }
         }
 
         $customer->callback_url = $request->url;
         $customer->save();
+
+        Log::debug(
+            'Customer callback has been saved successfully.',
+            ['context' => 'sep12', 'operation' => 'put_customer_callback',
+                'customer_db_record' => json_encode($customer)],
+        );
     }
 }

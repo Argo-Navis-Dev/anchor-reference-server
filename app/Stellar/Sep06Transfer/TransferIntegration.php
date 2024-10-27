@@ -89,8 +89,7 @@ class TransferIntegration implements ITransferIntegration
         string $accountId,
         ?string $accountMemo = null,
         ?string $lang = null,
-    ): ?Sep06TransactionResponse
-    {
+    ): ?Sep06TransactionResponse {
         return Sep06Helper::getTransaction(
             accountId: $accountId,
             memo: $accountMemo,
@@ -106,8 +105,7 @@ class TransferIntegration implements ITransferIntegration
         string $accountId,
         ?string $accountMemo = null,
         ?string $lang = null,
-    ): ?Sep06TransactionResponse
-    {
+    ): ?Sep06TransactionResponse {
         return Sep06Helper::getTransaction(
             accountId: $accountId,
             memo: $accountMemo,
@@ -123,8 +121,7 @@ class TransferIntegration implements ITransferIntegration
         string $accountId,
         ?string $accountMemo = null,
         ?string $lang = null,
-    ): ?Sep06TransactionResponse
-    {
+    ): ?Sep06TransactionResponse {
         return Sep06Helper::getTransaction(
             accountId: $accountId,
             memo: $accountMemo,
@@ -139,8 +136,7 @@ class TransferIntegration implements ITransferIntegration
         TransactionHistoryRequest $request,
         string $accountId,
         ?string $accountMemo = null,
-    ): ?array
-    {
+    ): ?array {
         return Sep06Helper::getTransactionHistory($request, $accountId, $accountMemo);
     }
 }

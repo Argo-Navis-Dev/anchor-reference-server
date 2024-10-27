@@ -23,6 +23,7 @@ use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
 use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerField;
 use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
 use DateTime;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
 use Psr\Http\Message\UploadedFileInterface;
@@ -33,6 +34,8 @@ use Soneso\StellarSDK\Crypto\KeyPair;
 use ArgoNavis\PhpAnchorSdk\callback\GetCustomerRequest;
 use GuzzleHttp\Client;
 
+use function json_encode;
+
 class Sep12Helper
 {
 
@@ -42,7 +45,12 @@ class Sep12Helper
      * @param Sep12Customer|null $customer customer data.
      * @return GetCustomerResponse response.
      */
-    public static function buildCustomerResponse(?Sep12Customer $customer = null) : GetCustomerResponse {
+    public static function buildCustomerResponse(?Sep12Customer $customer = null) : GetCustomerResponse
+    {
+        Log::debug(
+            'Converting db customer record to customer response model',
+            ['context' => 'sep12', 'customer_db_record' => json_encode($customer)],
+        );
 
         $response = new GetCustomerResponse(CustomerStatus::NEEDS_INFO);
         $type = Sep12CustomerType::DEFAULT;
@@ -57,7 +65,7 @@ class Sep12Helper
          * @var array<Sep12Field> $requiredSep12Fields
          */
         $requiredSep12Fields = array();
-        if(isset($sep12FieldsForType['required'])) {
+        if (isset($sep12FieldsForType['required'])) {
             $requiredSep12Fields = $sep12FieldsForType['required'];
         }
 
@@ -65,9 +73,14 @@ class Sep12Helper
          * @var array<Sep12Field> $optionalSep12Fields
          */
         $optionalSep12Fields = array();
-        if(isset($sep12FieldsForType['optional'])) {
+        if (isset($sep12FieldsForType['optional'])) {
             $optionalSep12Fields = $sep12FieldsForType['optional'];
         }
+        Log::debug(
+            'The list of fields.',
+            ['context' => 'sep12', 'required_fields' => json_encode($requiredSep12Fields),
+                'optional_fields' => json_encode($optionalSep12Fields)],
+        );
 
         if ($customer !== null) {
             /**
@@ -77,21 +90,31 @@ class Sep12Helper
             $response->status = $customer->status;
             $response->id = $customer->id;
             $sep12ProvidedFields = Sep12ProvidedField::where('sep12_customer_id', $customer->id)->get();
-            foreach($sep12ProvidedFields as $sep12providedField) {
-
-                foreach($requiredSep12Fields as $sep12Field) {
+            Log::debug(
+                'The list of provided fields.',
+                ['context' => 'sep12', 'provided_fields' => json_encode($sep12ProvidedFields)],
+            );
+            foreach ($sep12ProvidedFields as $sep12providedField) {
+                foreach ($requiredSep12Fields as $sep12Field) {
                     if ($sep12Field->id == $sep12providedField->sep12_field_id) {
-                        $providedCustomerFields[$sep12Field->key] = self::buildProvidedCustomerFieldFromSep12Field($sep12Field,
-                            $sep12providedField->status, $sep12providedField->error);
+                        $providedCustomerFields[$sep12Field->key] = self::buildProvidedCustomerFieldFromSep12Field(
+                            $sep12Field,
+                            $sep12providedField->status,
+                            $sep12providedField->error
+                        );
                         $requiredSep12Fields = array_diff($requiredSep12Fields, [$sep12Field]);
                         break;
                     }
                 }
 
-                foreach($optionalSep12Fields as $sep12Field) {
+                foreach ($optionalSep12Fields as $sep12Field) {
                     if ($sep12Field->id == $sep12providedField->sep12_field_id) {
-                        $providedCustomerFields[$sep12Field->key] = self::buildProvidedCustomerFieldFromSep12Field($sep12Field,
-                            $sep12providedField->status, $sep12providedField->error, optional: true);
+                        $providedCustomerFields[$sep12Field->key] = self::buildProvidedCustomerFieldFromSep12Field(
+                            $sep12Field,
+                            $sep12providedField->status,
+                            $sep12providedField->error,
+                            optional: true
+                        );
                         $optionalSep12Fields = array_diff($optionalSep12Fields, [$sep12Field]);
                         break;
                     }
@@ -113,6 +136,10 @@ class Sep12Helper
         if (count($customerFields) > 0) {
             $response->fields = $customerFields;
         }
+        Log::debug(
+            'The converted customer response model',
+            ['context' => 'sep12', 'model' => json_encode($response)],
+        );
 
         return $response;
     }
@@ -123,7 +150,12 @@ class Sep12Helper
      * The account id of the customer in the request must not be null
      * @throws AnchorFailure
      */
-    public static function newSep12Customer(PutCustomerRequest $request) : Sep12Customer {
+    public static function newSep12Customer(PutCustomerRequest $request) : Sep12Customer
+    {
+        Log::debug(
+            'Saving new customer record out of the passed request.',
+            ['context' => 'sep12', 'operation' => 'put_customer', 'request' => json_encode($request)],
+        );
 
         if ($request->id !== null) {
             throw new AnchorFailure('can not create new customer if id is not null');
@@ -161,6 +193,14 @@ class Sep12Helper
 
         // check if the customer provided any fields
         if ($request->kycFields !== null || $request->kycUploadedFiles !== null) {
+            $noUploadedFiles = $request->kycUploadedFiles != null ?
+                count($request->kycUploadedFiles) : 0;
+            Log::debug(
+                'Updating customer provided fields.',
+                ['context' => 'sep12', 'operation' => 'put_customer',
+                    'fields' => json_encode($request->kycFields), 'no_uploaded_files' => $noUploadedFiles],
+            );
+
             $kycData = array();
             if ($request->kycFields !== null) {
                 $kycData = array_merge($kycData, $request->kycFields);
@@ -186,7 +226,11 @@ class Sep12Helper
             $customer->refresh();
         } else {
             $autoAccept = config('stellar.sep12.auto_accept');
-            Log::debug(message: 'auto accept customer: ' . $autoAccept . PHP_EOL);
+            Log::debug(
+                'Is auto accept customer turned on.',
+                ['context' => 'sep12', 'operation' => 'put_customer', 'auto_accept' => $autoAccept],
+            );
+
             if ($autoAccept === 'true') {
                 $customer->status = CustomerStatus::ACCEPTED;
                 $customer->save();
@@ -199,6 +243,7 @@ class Sep12Helper
 
         //Call the status change callback.
         self::onCustomerStatusChanged($customer);
+
         return $customer;
     }
 
@@ -211,8 +256,19 @@ class Sep12Helper
      */
     public static function updateSep12Customer(Sep12Customer $customer, PutCustomerRequest $request) : Sep12Customer
     {
+        Log::debug(
+            'Updating existing customer.',
+            ['context' => 'sep12', 'operation' => 'put_customer',
+                'request' => json_encode($request), 'customer_db_model' => json_encode($customer)],
+        );
+
         // check if the customer provided any fields. if not, nothing to update.
         if ($request->kycFields === null && $request->kycUploadedFiles === null) {
+            Log::warning(
+                'Neither provided fields nor uploaded files are not specified.',
+                ['context' => 'sep12', 'operation' => 'put_customer'],
+            );
+
             return $customer;
         }
 
@@ -252,9 +308,13 @@ class Sep12Helper
         $toInsertFields = array();
 
         // update the fields that we already have
-        foreach($newProvidedFields as $newProvidedField) {
-
+        foreach ($newProvidedFields as $newProvidedField) {
             if (isset($sep12ProvidedFieldsBySep12FieldId[$newProvidedField->sep12_field_id])) {
+                Log::debug(
+                    'Updating existing field.',
+                    ['context' => 'sep12', 'operation' => 'put_customer',
+                        'field_id' => $newProvidedField->sep12_field_id],
+                );
 
                 // update
                 $existing = $sep12ProvidedFieldsBySep12FieldId[$newProvidedField->sep12_field_id];
@@ -273,13 +333,19 @@ class Sep12Helper
                     $fieldsThatRequireVerification[] = $existing;
                 }
             } else {
+                Log::debug(
+                    'Adding new field.',
+                    ['context' => 'sep12', 'operation' => 'put_customer',
+                        'field_id' => $newProvidedField->sep12_field_id],
+                );
+
                 $toInsertFields[] = $newProvidedField;
             }
         }
 
         if (count($toInsertFields) > 0) {
             // add the new ones
-            foreach($toInsertFields as $newProvidedField) {
+            foreach ($toInsertFields as $newProvidedField) {
                 $newProvidedField->save();
 
                 // check if the field requires verification
@@ -296,9 +362,13 @@ class Sep12Helper
         // check if the customer still needs to send info
         if (self::customerNeedsInfo($customer, $allSep12Fields)) {
             $customer->status = CustomerStatus::NEEDS_INFO;
-
         } else {
             $autoAccept = config('stellar.sep12.auto_accept');
+            Log::debug(
+                'Is auto accept customer turned on.',
+                ['context' => 'sep12', 'operation' => 'put_customer', 'auto_accept' => $autoAccept],
+            );
+
             if ($autoAccept === 'true') {
                 $customer->status = CustomerStatus::ACCEPTED;
             } else {
@@ -309,7 +379,7 @@ class Sep12Helper
 
         $customer->save();
         $customer->refresh();
-        if($customerStatus !== $customer->status) {
+        if ($customerStatus !== $customer->status) {
             self::onCustomerStatusChanged($customer);
         }
         return $customer;
@@ -320,10 +390,21 @@ class Sep12Helper
      * Currently only supports email verification.
      * @throws AnchorFailure if the provided code dose not natch.
      */
-    public static function handleVerification(Sep12Customer $customer, array $verificationFields) : void {
+    public static function handleVerification(Sep12Customer $customer, array $verificationFields) : void
+    {
+        Log::debug(
+            'Handling customer verification.',
+            ['context' => 'sep12', 'operation' => 'put_customer_verification',
+                'customer' => json_encode($customer), 'verification_fields' => json_encode($verificationFields)],
+        );
 
         // for now, we only have to handle email verification.
         if (!isset($verificationFields['email_address_verification'])) {
+            Log::warning(
+                'Nothing to verificate, only email verification is implemented.',
+                ['context' => 'sep12', 'operation' => 'put_customer_verification'],
+            );
+
             return;
         }
         $verificationCode = $verificationFields['email_address_verification'];
@@ -334,23 +415,44 @@ class Sep12Helper
 
         // check if the user provided an email address and if so update the verification
         if ($sep12ProvidedFields === null || count($sep12ProvidedFields) === 0) {
+            Log::warning(
+                'The customer does not have any provided fields.',
+                ['context' => 'sep12', 'operation' => 'put_customer_verification'],
+            );
+
             return;
         }
 
         $sep12EmailField = Sep12Field::where('key', 'email_address')->first();
-        if($sep12EmailField === null) {
+        if ($sep12EmailField === null) {
             // there is no email field
+            Log::warning(
+                'The customer email is not yet submitted.',
+                ['context' => 'sep12', 'operation' => 'put_customer_verification'],
+            );
+
             return;
         }
 
         foreach ($sep12ProvidedFields as $field) {
             if ($field->sep12_field_id == $sep12EmailField->id) {
-
                 // check if it is already verified
                 if ($field->verified
                     && $field->status !== ProvidedCustomerFieldStatus::VERIFICATION_REQUIRED) {
+                    Log::warning(
+                        'The customer email is already verified.',
+                        ['context' => 'sep12', 'operation' => 'put_customer_verification', 'status' => $field->status],
+                    );
+
                     return;
                 }
+                Log::debug(
+                    'Comparing the passed and the DB verification codes.',
+                    ['context' => 'sep12', 'operation' => 'put_customer_verification',
+                        'verification_code' => $verificationCode,
+                        'db_verification_code' => $field->db_verification_code,
+                    ],
+                );
 
                 // check if the verification code matches
                 if ($field->verification_code === $verificationCode) {
@@ -364,7 +466,6 @@ class Sep12Helper
                 break;
             }
         }
-
     }
     /**
      * Loads a customer from the db for the given data.
@@ -373,9 +474,11 @@ class Sep12Helper
      * @param string|null $type type of the customer if any.
      * @return Sep12Customer|null The customer if found.
      */
-    public static function getSep12CustomerByAccountId(string  $accountId,
-                                                       ?int $memo = null,
-                                                       ?string $type = null) : ?Sep12Customer {
+    public static function getSep12CustomerByAccountId(
+        string  $accountId,
+        ?int $memo = null,
+        ?string $type = null
+    ) : ?Sep12Customer {
         $query = ['account_id' => $accountId];
 
         if (!str_starts_with($accountId, 'M')) { // if not a muxed account, memo is relevant.
@@ -387,34 +490,45 @@ class Sep12Helper
         } else {
             $query['type'] = Sep12CustomerType::DEFAULT;
         }
+        Log::debug(
+            'Loading customer by account id.',
+            ['context' => 'sep12', 'query' => json_encode($query)],
+        );
 
         return Sep12Customer::where($query)->first();
     }
 
     /** Checks if customer needs info.
      * @param Sep12Customer $customer the one
-     * @param ?Collection | null $allSep12Fields optional collection of fields to be considered. If not provided, loads all fields from the db.
+     * @param ?Collection | null $allSep12Fields optional collection of fields to be considered.
+     * If not provided, loads all fields from the db.
      * @return bool true if customer needs info.
      */
-    private static function customerNeedsInfo(Sep12Customer $customer, ?Collection $allSep12Fields = null) : bool {
+    private static function customerNeedsInfo(Sep12Customer $customer, ?Collection $allSep12Fields = null) : bool
+    {
         // load all fields that the customer provided earlier
         $sep12ProvidedFields = Sep12ProvidedField::where('sep12_customer_id', $customer->id)->get();
+        Log::debug(
+            'Verify if customer needs to provide info.',
+            ['context' => 'sep12', 'customer' => json_encode($customer),
+                'fields' => json_encode($allSep12Fields), 'provided_fields' => json_encode($sep12ProvidedFields)],
+        );
 
         /**
          * @var array<int> $providedFieldsIds
          */
         $providedSep12FieldsIds = array();
-        foreach($sep12ProvidedFields as $providedField) {
+        foreach ($sep12ProvidedFields as $providedField) {
             $providedSep12FieldsIds[] = $providedField->sep12_field_id;
         }
 
         // check if the all required fields have been provided
         $fieldsForType = self::getSep12FieldsForCustomerType($customer->type, allSep12Fields: $allSep12Fields);
-        if($fieldsForType !== null && isset($fieldsForType['required'])) {
+        if ($fieldsForType !== null && isset($fieldsForType['required'])) {
             $requiredFields = $fieldsForType['required'];
             $providedRequiredFields = array();
-            foreach($providedSep12FieldsIds as $providedSep12FieldId) {
-                foreach($requiredFields as $requiredField) {
+            foreach ($providedSep12FieldsIds as $providedSep12FieldId) {
+                foreach ($requiredFields as $requiredField) {
                     if ($requiredField->id === $providedSep12FieldId) {
                         $providedRequiredFields[] = $requiredField;
                         break;
@@ -422,7 +536,13 @@ class Sep12Helper
                 }
             }
             $diff = array_diff($requiredFields, $providedRequiredFields);
-            if (count($diff) > 0) {
+            $noDiff = count($diff);
+            Log::debug(
+                'The list of missing fields.',
+                ['context' => 'sep12', 'missing_fields' => json_encode($diff), 'no_missing_fields' => $noDiff],
+            );
+
+            if ($noDiff > 0) {
                 // if not all required fields provided, then set the customer status to needs info.
                 return true;
             }
@@ -435,26 +555,40 @@ class Sep12Helper
      * @param array<Sep12ProvidedField> $fieldsThatRequireVerification
      * @return void
      */
-    private static function sendVerificationCode(Collection $allSep12Fields, array $fieldsThatRequireVerification) : void {
+    private static function sendVerificationCode(Collection $allSep12Fields, array $fieldsThatRequireVerification) : void
+    {
+        $noFieldsThatRequireVerification = count($fieldsThatRequireVerification);
+        Log::debug(
+            'Sending verification code by fields.',
+            ['context' => 'sep12', 'no_fields_that_require_verification' => $noFieldsThatRequireVerification,
+                'fields_that_require_verification' => json_encode($fieldsThatRequireVerification)],
+        );
+
         // check if any automatic validation request can be sent.
-        if (count($fieldsThatRequireVerification) > 0) {
+        if ($noFieldsThatRequireVerification > 0) {
             // currently only for emails
             $sep12EmailFieldId = null;
-            foreach($allSep12Fields as $sep12Field) {
+            foreach ($allSep12Fields as $sep12Field) {
                 if ($sep12Field->key === 'email_address') {
                     $sep12EmailFieldId = $sep12Field->id;
                     break;
                 }
             }
             if ($sep12EmailFieldId !== null) {
-                foreach($fieldsThatRequireVerification as $field) {
-                    if($field->sep12_field_id === $sep12EmailFieldId) {
+                foreach ($fieldsThatRequireVerification as $field) {
+                    if ($field->sep12_field_id === $sep12EmailFieldId) {
                         $emailAddress = $field->string_value;
                         $verificationCode = rand(100000, 999999); // set: 123456 - for test
                         $field->refresh();
                         $field->verification_code = strval($verificationCode);
                         $field->save();
                         Mail::to($emailAddress)->send(new Sep12EmailVerification($field->verification_code));
+                        Log::debug(
+                            'Sending verification code.',
+                            ['context' => 'sep12', 'email_address' => $emailAddress,
+                                'verification_code' => $verificationCode, 'field' => $field->id],
+                        );
+
                         break;
                     }
                 }
@@ -470,16 +604,30 @@ class Sep12Helper
      * @return ?array<string, array<Sep12Field> containing the found Sep12Fields.
      * keys: 'required', 'optional' and 'requires_verification'. null if nothing found.
      */
-    public static function getSep12FieldsForCustomerType(string $type, ?Collection $allSep12Fields = null) : ?array {
-
+    public static function getSep12FieldsForCustomerType(string $type, ?Collection $allSep12Fields = null) : ?array
+    {
+        Log::debug(
+            'Retrieving SEP-12 fields by type.',
+            ['context' => 'sep12', 'type' => $type],
+        );
         $typeFields = Sep12TypeToFields::where('type', $type)->first();
 
         if ($typeFields === null) {
+            Log::warning(
+                'There are no SEP-12 field association defined by the passed type.',
+                ['context' => 'sep12', 'type' => $type],
+            );
+
             return null;
         }
 
         if ($typeFields->required_fields === null
             && $typeFields->optional_fields === null) {
+            Log::warning(
+                'There are no SEP-12 field association defined by the passed type.',
+                ['context' => 'sep12', 'type' => $type],
+            );
+
             return null;
         }
         /**
@@ -498,7 +646,7 @@ class Sep12Helper
             $requiredFieldsKeys = array_map('trim', explode(',', $typeFields->required_fields));
 
             foreach ($mFields as $mField) {
-                if(in_array($mField->key, $requiredFieldsKeys)) {
+                if (in_array($mField->key, $requiredFieldsKeys)) {
                     $requiredFields[] = $mField;
                 }
             }
@@ -514,7 +662,7 @@ class Sep12Helper
             $optionalFields = array();
             $optionalFieldsKeys = array_map('trim', explode(',', $typeFields->optional_fields));
             foreach ($mFields as $mField) {
-                if(in_array($mField->key, $optionalFieldsKeys)) {
+                if (in_array($mField->key, $optionalFieldsKeys)) {
                     $optionalFields[] = $mField;
                 }
             }
@@ -522,6 +670,10 @@ class Sep12Helper
                 $result['optional'] = $optionalFields;
             }
         }
+        Log::debug(
+            'The retrieved SEP-12 fields by type.',
+            ['context' => 'sep12', 'fields' => json_encode($result), 'type' => $type],
+        );
 
         if (count($result) == 0) {
             return null;
@@ -539,16 +691,25 @@ class Sep12Helper
      * @return array<Sep12ProvidedField> containing the created Sep12ProvidedField models.
      * @throws AnchorFailure if the corresponding Sep12Field in the database has an unknown type (not: string, number, date or binary) or if the kyc field from the request is not valid (e.g. has a wrong type).
      */
-    private static function createSep12ProvidedFieldsFromKycFields(string $customerId, array $kycFields, ?Collection  $allSep12Fields = null) : array {
+    private static function createSep12ProvidedFieldsFromKycFields(string $customerId, array $kycFields, ?Collection  $allSep12Fields = null) : array
+    {
         $mFields = $allSep12Fields;
+        Log::debug(
+            'Creating SEP-12 provided fields model out of passed KYC fields data.',
+            ['context' => 'sep12', 'customer_id' => $customerId, 'kyc_fields' => json_encode($kycFields),
+                'fields' => json_encode($allSep12Fields)],
+        );
+
         if ($mFields === null) {
             $mFields = Sep12Field::all();
         }
         $result = array();
         if (count($kycFields) > 0) {
             foreach ($kycFields as $kycFieldKey => $kycFieldValue) {
-                foreach($mFields as $mField) {
+                $found = false;
+                foreach ($mFields as $mField) {
                     if ($mField->key === $kycFieldKey) { // only allow known fields
+                        $found = true;
                         $providedField = new Sep12ProvidedField;
                         $providedField->status = ProvidedCustomerFieldStatus::PROCESSING;
                         if ($mField->requires_verification) {
@@ -570,6 +731,11 @@ class Sep12Helper
                             if ($kycFieldValue->getError() === UPLOAD_ERR_INI_SIZE) {
                                 throw new AnchorFailure($kycFieldKey . ' too large');
                             } elseif ($kycFieldValue->getError() !== UPLOAD_ERR_OK) {
+                                Log::debug(
+                                    'Incorrect binary field.',
+                                    ['context' => 'sep12', 'error' => $kycFieldValue->getError()],
+                                );
+
                                 throw new AnchorFailure($kycFieldKey . 'could not be uploaded.');
                             }
                             $fileContents =  $kycFieldValue->getStream()->getContents();
@@ -593,7 +759,7 @@ class Sep12Helper
                             $providedField->number_value = intval($kycFieldValue);
                         } elseif ($mField->type === 'date') {
                             $dateTime = DateTime::createFromFormat(DATE_ATOM, $kycFieldValue);
-                            if($dateTime === false) {
+                            if ($dateTime === false) {
                                 throw new AnchorFailure($kycFieldKey . ' is not a valid ISO 8601 date');
                             }
                             $providedField->date_value = $dateTime;
@@ -605,8 +771,19 @@ class Sep12Helper
                         $result[] = $providedField;
                     }
                 }
+                if (!$found) {
+                    Log::warning(
+                        'Unknown KYC field.',
+                        ['context' => 'sep12', 'field' => $kycFieldKey],
+                    );
+                }
             }
         }
+        Log::debug(
+            'The list of provided fields model.',
+            ['context' => 'sep12', 'result' => json_encode($result)],
+        );
+
         return $result;
     }
 
@@ -667,32 +844,64 @@ class Sep12Helper
     {
         $callbackUrl = $customer->callback_url;
         $newStatus = $customer->status;
-        LOG::debug('Handling the customer status change callback: ' . $newStatus . ' callback URL: ' . $callbackUrl);
-        if ($callbackUrl && !empty($callbackUrl)) {
+        if (!empty($callbackUrl)) {
             $getCustomerRequest = new GetCustomerRequest($customer->account_id, $customer->memo);
             $customerIntegration = new CustomerIntegration();
             $sep12CustomerData = $customerIntegration->getCustomer($getCustomerRequest);
-            $signature = self::getCallbackSignaturedHeader($sep12CustomerData, $callbackUrl);
-            $httpClient = new Client();
-            $response = $httpClient->post($customer->callback_url, [
-                'headers' => [
-                    'Signature' => $signature,
-                    'X-Stellar-Signature' => $signature, //Deprecated
+            Log::debug(
+                'Handling customer status change.',
+                ['context' => 'sep12', 'new_status' => $newStatus, 'customer_id' => $customer->id,
+                    'callback_url' =>  $callbackUrl, 'data' => json_encode($sep12CustomerData),
                 ],
-                'json' => $sep12CustomerData
-            ]);
-            // Check the response status code
-            if ($response->getStatusCode() == 200) {
-                LOG::debug('The customer status change callback has been called successfully!');
-            } else {
-                LOG::error('Failed to call the customer status change callback!');
+            );
+
+            $signature = self::getCallbackSignatureHeader($sep12CustomerData, $callbackUrl);
+            $httpClient = new Client();
+            try {
+                $response = $httpClient->post($customer->callback_url, [
+                    'headers' => [
+                        'Signature' => $signature,
+                        'X-Stellar-Signature' => $signature, //Deprecated
+                    ],
+                    'json' => $sep12CustomerData
+                ]);
+                // Check the response status code
+                if ($response->getStatusCode() == 200) {
+                    Log::debug(
+                        'The customer status change callback has been called successfully!',
+                        ['context' => 'sep12', 'customer_id' => $customer->id, 'callback_url' => $callbackUrl],
+                    );
+                } else {
+                    Log::error(
+                        'Failed to call the customer status change callback.',
+                        ['context' => 'sep12', 'http_status_code' => $response->getStatusCode(),
+                            'callback_url' => $callbackUrl,
+                        ],
+                    );
+                }
+            } catch (RequestException $e) {
+                $responseBody = '';
+                if ($e->hasResponse()) {
+                    $responseBody = $e->getResponse()->getBody();
+                }
+                Log::error(
+                    'Failed to call the customer status change callback.',
+                    ['context' => 'sep12', 'error' => $e->getMessage(),
+                        'exception' => $e, 'body' => json_encode($responseBody), 'callback_url' => $callbackUrl],
+                );
             }
-            if($newStatus === CustomerStatus::ACCEPTED ||
+
+            if ($newStatus === CustomerStatus::ACCEPTED ||
                $newStatus === CustomerStatus::REJECTED) {
                 $customer->callback_url = null;
                 $customer->save();
                 $customer->refresh();
             }
+        } else {
+            Log::debug(
+                'Customer status change callback URL is null, no callback execution action is needed.',
+                ['context' => 'sep12'],
+            );
         }
     }
 
@@ -702,17 +911,27 @@ class Sep12Helper
      * @param GetCustomerResponse $sep12CustomerData the customer data to be sent in request body.
      * @param string $callbackUrl the callback URL.
      */
-    private static function getCallbackSignaturedHeader(GetCustomerResponse $sep12CustomerData, string $callbackUrl)
+    private static function getCallbackSignatureHeader(
+        GetCustomerResponse $sep12CustomerData,
+        string $callbackUrl
+    ): string
     {
         $signingSeed = config('stellar.server.server_account_signing_key');
         $anchorKeys = KeyPair::fromSeed($signingSeed);
         $currentTime = round(microtime(true));
         $signature = $currentTime . '.' . $callbackUrl . '.' . json_encode($sep12CustomerData);
-        LOG::debug('The Sep12 customer callback header signature to be signed is: <' . $signature . '>');
+        Log::debug(
+            'The SEP-12 status change callback header signature to be signed.',
+            ['context' => 'sep12', 'signature' => $signature],
+        );
         $signature = $anchorKeys->sign($signature);
         $based64Signature = base64_encode($signature);
         $signatureHeader = 't=' . $currentTime . ', s=' . $based64Signature;
-        LOG::debug('The Sep12 customer callback signature header value is: ' . $signatureHeader . '>');
+        Log::debug(
+            'The SEP-12 status change callback header signed signature.',
+            ['context' => 'sep12', 'signed_signature' => $signatureHeader],
+        );
+
         return $signatureHeader;
     }
 }

@@ -20,6 +20,8 @@ use Soneso\StellarSDK\SEP\Toml\GeneralInformation;
 use Soneso\StellarSDK\SEP\Toml\PointOfContact;
 use Soneso\StellarSDK\SEP\Toml\Principals;
 
+use function json_encode;
+
 class StellarTomlController extends Controller
 {
     //
@@ -30,6 +32,11 @@ class StellarTomlController extends Controller
 
     private function tomlData():TomlData {
         $tomlData = new TomlData();
+
+        Log::debug(
+            'Building the toml data out of config and .env file.',
+            ['context' => 'sep01'],
+        );
 
         $generalInfo = new GeneralInformation();
         $generalInfo->version = "2.0.0";
@@ -114,6 +121,10 @@ class StellarTomlController extends Controller
         $secondPoc->email = 'christian@argo-navis.dev';
         $principals->add($secondPoc);
         $tomlData->principals = $principals;
+        Log::debug(
+            'The toml data has been built successfully.',
+            ['context' => 'sep01', 'content' => json_encode($tomlData)],
+        );
 
         return $tomlData;
     }

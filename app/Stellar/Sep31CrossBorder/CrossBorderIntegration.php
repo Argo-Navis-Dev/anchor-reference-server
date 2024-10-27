@@ -14,7 +14,9 @@ use ArgoNavis\PhpAnchorSdk\callback\Sep31PostTransactionResponse;
 use ArgoNavis\PhpAnchorSdk\callback\Sep31PutTransactionCallbackRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep31TransactionResponse;
 use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
+use Illuminate\Support\Facades\Log;
 use Throwable;
+
 class CrossBorderIntegration implements ICrossBorderIntegration
 {
     /**
@@ -39,6 +41,12 @@ class CrossBorderIntegration implements ICrossBorderIntegration
                 stellarMemo: $sep31Transaction->stellar_memo,
             );
         } catch (Throwable $t) {
+            Log::error(
+                'Error creating quote.',
+                ['context' => 'sep31', 'operation' => 'post_transaction',
+                    'error' => $t->getMessage(), 'exception' => $t],
+            );
+
             throw new AnchorFailure('error creating quote');
         }
     }
@@ -46,7 +54,11 @@ class CrossBorderIntegration implements ICrossBorderIntegration
     /**
      * @inheritDoc
      */
-    public function getTransactionById(string $id, string $accountId, ?string $accountMemo = null,): Sep31TransactionResponse
+    public function getTransactionById(
+        string $id,
+        string $accountId,
+        ?string $accountMemo = null
+    ): Sep31TransactionResponse
     {
         return Sep31Helper::getTransaction(id: $id, accountId: $accountId, accountMemo: $accountMemo);
     }

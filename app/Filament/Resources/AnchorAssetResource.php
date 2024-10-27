@@ -65,7 +65,13 @@ class AnchorAssetResource extends Resource
                                 try {
                                     new IdentificationFormatAsset($schema, $code, $issuer);
                                 } catch (InvalidAsset $ex) {
-                                    LOG::error($ex->getMessage());
+                                    Log::error(
+                                        'Failed to parse the asset.',
+                                        ['context' => 'anchor_asset_ui', 'error' => $ex->getMessage(),
+                                            'exception' => $ex, 'schema' => $schema, 'code' => $code,
+                                            'issuer' => $issuer,
+                                        ],
+                                    );
                                     $fail(__(
                                         'asset_lang.error.incorrect_asset_format',
                                         ['exception' => $ex->getMessage()]

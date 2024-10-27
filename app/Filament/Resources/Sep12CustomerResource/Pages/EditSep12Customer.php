@@ -19,6 +19,8 @@ use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Log;
 
+use function json_encode;
+
 /**
  *  This class is responsible for editing SEP-12 customer record in the database.
  */
@@ -42,7 +44,15 @@ class EditSep12Customer extends EditRecord
          * @var Sep12Customer $customerModel
          */
         $customerModel = $this->getRecord();
+        Log::debug(
+            'Preparing data for edit action.',
+            ['context' => 'sep12_ui', 'data' => json_encode($data), 'customer' => json_encode($customerModel)],
+        );
         Sep12CustomerResourceHelper::populateCustomerFieldsBeforeFormLoad($data, $customerModel);
+        Log::debug(
+            'The processed data for edit action.',
+            ['context' => 'sep12_ui', 'data' => json_encode($data)],
+        );
 
         return $data;
     }
@@ -60,6 +70,10 @@ class EditSep12Customer extends EditRecord
          * @var Sep12Customer $customer
          */
         $customer = $this->getRecord();
+        Log::debug(
+            'Preparing data for save action.',
+            ['context' => 'sep12_ui', 'data' => json_encode($data), 'customer' => json_encode($customer)],
+        );
 
         $prefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
         $statusSuffix = Sep12CustomerResource::CUSTOM_STATUS_FIELD_SUFFIX;
@@ -96,11 +110,20 @@ class EditSep12Customer extends EditRecord
                     ->where('sep12_field_id', $field->id)
                     ->first();
                 $statusSubmitKey = "{$prefix}{$field->id}{$statusSuffix}";
+                Log::debug(
+                    'Binary field status field name.',
+                    ['context' => 'sep12_ui', 'status_field_name' => $statusSubmitKey],
+                );
+
                 if (isset($data[$statusSubmitKey]) && $providedField != null) {
                     $providedField->status = $data[$statusSubmitKey];
                     $providedField->save();
                 }
             });
+        Log::debug(
+            'The processed data for save action.',
+            ['context' => 'sep12_ui', 'data' => json_encode($data)],
+        );
 
         return $data;
     }

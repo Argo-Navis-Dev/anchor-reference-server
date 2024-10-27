@@ -25,6 +25,8 @@ use Filament\Forms\Set;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 
+use function json_encode;
+
 /**
  *  Helper for SEP-12 customer CRUD operations.
  */
@@ -47,8 +49,12 @@ class Sep12CustomerResourceHelper
         $fieldIDToBean = $fields->keyBy('id')->all();
         $prefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
         $statusSuffix = Sep12CustomerResource::CUSTOM_STATUS_FIELD_SUFFIX;
-
         $providedFields = Sep12ProvidedField::where('sep12_customer_id', $customerModel->id)->get();
+        Log::debug(
+            'Preparing data for customer edit action.',
+            ['context' => 'sep12_ui', 'provided_fields' => json_encode($providedFields)],
+        );
+
         $providedFields->each(function ($providedField) use (
             &$data,
             $fieldIDToBean,
@@ -76,6 +82,11 @@ class Sep12CustomerResourceHelper
         callable $set,
         Sep12Customer $customer
     ): void {
+        Log::debug(
+            'Handling customer status change.',
+            ['context' => 'sep12_ui', 'new_status' => $newState, 'customer' => json_encode($customer)],
+        );
+
         if ($newState == CustomerStatus::ACCEPTED) {
             self::updateAllFieldStatus(
                 ProvidedCustomerFieldStatus::ACCEPTED,
@@ -100,6 +111,13 @@ class Sep12CustomerResourceHelper
         Sep12Customer $customer
     ): void {
         $fieldNames = self::getAllFieldStatusNames($customer);
+        Log::debug(
+            'Updating customer fields status.',
+            ['context' => 'sep12_ui', 'new_status' => $newFieldStatus,
+                'customer' => json_encode($customer), 'fields' => json_encode($fieldNames),
+            ],
+        );
+
         foreach ($fieldNames as $statusFieldName) {
             $set($statusFieldName, $newFieldStatus);
         }
@@ -137,6 +155,10 @@ class Sep12CustomerResourceHelper
                 $fieldNames[] = "{$customFieldPrefix}{$field->id}{$statusSuffix}";
             }
         }
+        Log::debug(
+            'Retrieving the status components names by fields.',
+            ['context' => 'sep12_ui', 'status_fields_name' => json_encode($fieldNames)],
+        );
 
         return $fieldNames;
     }
@@ -146,18 +168,21 @@ class Sep12CustomerResourceHelper
      *
      * @param array<Sep12Field> $fields The form components.
      * @param Sep12Customer $customer
-     * @param array<string> $requierdFieldKeys
+     * @param array<string> $requiredFieldKeys
      *
      * @return array<mixed> The form components.
      */
-    public static function createCustomerCustomFormFields(array $fields, Sep12Customer $customer, array $requierdFieldKeys): array
-    {
+    public static function createCustomerCustomFormFields(
+        array $fields,
+        Sep12Customer $customer,
+        array $requiredFieldKeys,
+    ): array {
         $customFieldPrefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
         $statusSuffix = Sep12CustomerResource::CUSTOM_STATUS_FIELD_SUFFIX;
         $providedFields = [];
         foreach ($fields as $field) {
             $label = __("sep12_lang.label.{$field->key}");
-            $required = in_array($field->key, $requierdFieldKeys);
+            $required = in_array($field->key, $requiredFieldKeys);
 
             $descriptionKey = "sep12_lang.label.{$field->key}.description";
             $description = __($descriptionKey);
@@ -173,6 +198,13 @@ class Sep12CustomerResourceHelper
             $name = "{$customFieldPrefix}{$field->id}";
 
             $hasStatus = !isset(Sep12CustomerResource::KYC_FIELD_WITHOUT_STATUS[$field->key]);
+            Log::debug(
+                'Creating UI component for customer (custom) field.',
+                ['context' => 'sep12_ui', 'field_key' => $field->key, 'type' => $fieldType,
+                    'has_status' => $hasStatus, 'provided_field' => json_encode($providedField),
+                ],
+            );
+
             if ($fieldType == 'string' || $fieldType == 'number') {
                 if ($field->choices != null) {
                     $providedFields[] =
@@ -186,7 +218,7 @@ class Sep12CustomerResourceHelper
                         ->label($label);
                 }
             }
-            if($fieldType == 'date') {
+            if ($fieldType == 'date') {
                 $providedFields[] = DateTimePicker::make($name)
                     ->required($required)
                     ->helperText($description)
@@ -226,6 +258,11 @@ class Sep12CustomerResourceHelper
         $customFieldPrefix = Sep12CustomerResource::CUSTOM_FIELD_PREFIX;
         $name = "{$customFieldPrefix}{$field->id}";
         $choices = explode(",", $field->choices);
+        Log::debug(
+            'Creating select UI component for customer field.',
+            ['context' => 'sep12_ui', 'choices' => json_encode($choices)],
+        );
+
         $options = [];
         foreach ($choices as $choice) {
             $convertedChoice = trim($choice);
@@ -233,8 +270,9 @@ class Sep12CustomerResourceHelper
             $convertedChoice = preg_replace('/\s+/', '_', $convertedChoice);
 
             $localizationKey = "sep12_lang.label.{$field->key}.{$convertedChoice}";
-            $localizedLabel = __($localizationKey);;
-            if($localizationKey == $localizedLabel) {
+            $localizedLabel = __($localizationKey);
+
+            if ($localizationKey == $localizedLabel) {
                 $localizedLabel = $choice;
             }
             $options[$convertedChoice] = $localizedLabel;
@@ -246,6 +284,7 @@ class Sep12CustomerResourceHelper
             ->columnSpan(1)
             ->required($required)
             ->options($options);
+
         if (!$hasStatusField) {
             $component->columnSpan(2);
         }
@@ -274,6 +313,11 @@ class Sep12CustomerResourceHelper
             ->content(function ($record) use ($fieldID): HtmlString {
                 $id = $record != null ? $record->id : null;
                 $src = '/customer/' . $id . '/binary-field/' . $fieldID;
+                Log::debug(
+                    'Assembling binary field download URL.',
+                    ['context' => 'sep12_ui', 'url' => $src],
+                );
+
                 return new HtmlString("<img width = \"180\" src= '" . $src . "')>");
             });
     }
@@ -301,7 +345,7 @@ class Sep12CustomerResourceHelper
         return Select::make($name)
             ->label(__('shared_lang.label.status'))
             ->afterStateUpdated(function (Set $set, Get $get, $state, Sep12Customer $customer) {
-                Sep12CustomerResourceHelper::onCustomerFieldStatusChanged($state, $set, $get, $customer);
+                Sep12CustomerResourceHelper::onCustomerFieldStatusChanged($state, $set, $get, $customer, $name);
             })
             ->live()
             ->default(CustomerStatus::PROCESSING)
@@ -322,8 +366,16 @@ class Sep12CustomerResourceHelper
         string $newState,
         callable $set,
         callable $get,
-        Sep12Customer $customer
+        Sep12Customer $customer,
+        string $fileName,
     ): void {
+        Log::debug(
+            'Handling customer field status change.',
+            ['context' => 'sep12_ui', 'new_status' => $newState, 'customer' => json_encode($customer),
+                'field_name' => $fileName,
+            ],
+        );
+
         if ($newState != ProvidedCustomerFieldStatus::ACCEPTED) {
             $set('status', CustomerStatus::PROCESSING);
         } else {

@@ -19,7 +19,8 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class StellarQuotesController extends Controller
 {
-    public function quotes(ServerRequestInterface $request): ResponseInterface {
+    public function quotes(ServerRequestInterface $request): ResponseInterface
+    {
 
         $auth = $this->getStellarAuthData($request);
         try {
@@ -28,9 +29,17 @@ class StellarQuotesController extends Controller
             $sep38Service = new Sep38Service($sep38Integration, Log::getLogger());
             return $sep38Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
+            Log::error(
+                'Invalid JWT token.',
+                ['context' => 'sep38', 'error' => $e->getMessage(), 'exception' => $e, 'http_status_code' => 401],
+            );
+
             return new JsonResponse(
-                ['error' => __('shared_lang.error.unauthorized.invalid_token',
-                    ['exception' => $e->getMessage()])], 401
+                ['error' => __(
+                    'shared_lang.error.unauthorized.invalid_token',
+                    ['exception' => $e->getMessage()]
+                )],
+                401
             );
         }
     }
@@ -41,7 +50,8 @@ class StellarQuotesController extends Controller
      * @param ServerRequestInterface $request
      * @return array<array-key | mixed> |null the extracted data if found, otherwise null
      */
-    private function getStellarAuthData(ServerRequestInterface $request) : ?array {
+    private function getStellarAuthData(ServerRequestInterface $request) : ?array
+    {
         $authDataKey = 'stellar_auth';
         $params = $request->getQueryParams();
         if (isset($params[$authDataKey])) {

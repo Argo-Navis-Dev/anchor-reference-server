@@ -42,6 +42,8 @@ use Illuminate\Support\Facades\Log;
 use Soneso\StellarSDK\Memo;
 use Throwable;
 
+use function json_encode;
+
 class Sep06Helper
 {
 
@@ -53,7 +55,8 @@ class Sep06Helper
     /**
      * @return array<Sep06AssetInfo> the assets having sep06 support enabled.
      */
-    public static function getSupportedAssets(): array {
+    public static function getSupportedAssets(): array
+    {
         /**
          * @var array<Sep06AssetInfo> $result
          */
@@ -61,15 +64,24 @@ class Sep06Helper
 
         $assets = AnchorAsset::whereSep06Enabled(true)->get();
         if ($assets === null || count($assets) === 0) {
+            Log::warning('There is no asset which supports SEP-06.', ['context' => 'sep06']);
+
             return $result;
         }
         foreach ($assets as $asset) {
             try {
                 $result[] = self::sep06AssetInfoFromAnchorAsset($asset);
             } catch (InvalidAsset $iA) {
-                Log::error('invalid anchor_asset (id: '. $asset->id . ') in db: ' . $iA->getMessage());
+                Log::error(
+                    'Invalid anchor asset.',
+                    ['context' => 'sep06', 'error' => $iA->getMessage(), 'exception' => $iA, 'id' => $asset->id],
+                );
             }
         }
+        Log::debug(
+            'The list of asset which supports SEP-06.',
+            ['context' => 'sep06', 'assets' => json_encode($result)],
+        );
 
         return $result;
     }
@@ -77,9 +89,9 @@ class Sep06Helper
     /**
      * @throws InvalidAsset
      */
-    private static function sep06AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep06AssetInfo {
-        $formattedAsset = new IdentificationFormatAsset
-        (
+    private static function sep06AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep06AssetInfo
+    {
+        $formattedAsset = new IdentificationFormatAsset(
             $anchorAsset->schema,
             $anchorAsset->code,
             $anchorAsset->issuer,
@@ -90,8 +102,7 @@ class Sep06Helper
         if ($methods !== null) {
             $methodsArr = explode(',', $methods);
         }
-        $depositOp = new DepositOperation
-        (
+        $depositOp = new DepositOperation(
             (bool)$anchorAsset->deposit_enabled,
             $anchorAsset->deposit_min_amount,
             $anchorAsset->deposit_max_amount,
@@ -106,8 +117,7 @@ class Sep06Helper
         if ($methods !== null) {
             $methodsArr = explode(',', $methods);
         }
-        $withdrawOp = new WithdrawOperation
-        (
+        $withdrawOp = new WithdrawOperation(
             (bool)$anchorAsset->withdrawal_enabled,
             $anchorAsset->withdrawal_min_amount,
             $anchorAsset->withdrawal_max_amount,
@@ -132,8 +142,12 @@ class Sep06Helper
      * @return Sep06Transaction then new created deposit transaction.
      * @throws AnchorFailure
      */
-    public static function newDepositTransaction(StartDepositRequest $request) : Sep06Transaction {
-
+    public static function newDepositTransaction(StartDepositRequest $request) : Sep06Transaction
+    {
+        Log::debug(
+            'New deposit transaction.',
+            ['context' => 'sep06', 'operation' => 'new_deposit', 'deposit_request' => json_encode($request)],
+        );
         $destinationAssetCode = $request->depositAsset->asset->getCode();
         $destinationAssetIssuer = $request->depositAsset->asset->getIssuer();
         $claimableBalanceSupported = $request->claimableBalanceSupported === null ? false : $request->claimableBalanceSupported;
@@ -142,7 +156,6 @@ class Sep06Helper
         $sep06Transaction->status = self::getNewTransactionStatus($request->sep10Account, $request->sep10AccountMemo);
         if ($sep06Transaction->status === Sep06TransactionStatus::PENDING_USER_TRANSFER_START) {
             if (!$claimableBalanceSupported && $destinationAssetIssuer !== null) {
-
                 $needsTrustline = self::needsDepositTrustline(
                     receivingAccountId: $request->account,
                     assetCode: $destinationAssetCode,
@@ -176,17 +189,23 @@ class Sep06Helper
             (new InstructionsField(
                 name: 'bank_number',
                 value: '121122676',
-                description: 'Fake bank number'))->toJson(),
+                description: 'Fake bank number'
+            ))->toJson(),
             (new InstructionsField(
                 name: 'bank_account_number',
                 value: '13719713158835300',
-                description: 'Fake bank account number'))->toJson(),
+                description: 'Fake bank account number'
+            ))->toJson(),
         ];
         $sep06Transaction->instructions = json_encode($instructions);
 
         // save
         $sep06Transaction->save();
         $sep06Transaction->refresh();
+        Log::debug(
+            'The transaction has been saved successfully.',
+            ['context' => 'sep06', 'operation' => 'new_deposit', 'transaction' => json_encode($sep06Transaction)],
+        );
         return $sep06Transaction;
     }
 
@@ -196,7 +215,12 @@ class Sep06Helper
      * @return Sep06Transaction the new created deposit exchange transaction.
      * @throws AnchorFailure
      */
-    public static function newDepositExchangeTransaction(StartDepositExchangeRequest $request) : Sep06Transaction {
+    public static function newDepositExchangeTransaction(StartDepositExchangeRequest $request) : Sep06Transaction
+    {
+        Log::debug(
+            'New deposit exchange transaction.',
+            ['context' => 'sep06', 'operation' => 'new_deposit_exchange', 'deposit_request' => json_encode($request)],
+        );
 
         $destinationAssetCode = $request->destinationAsset->asset->getCode();
         $destinationAssetIssuer = $request->destinationAsset->asset->getIssuer();
@@ -207,9 +231,9 @@ class Sep06Helper
         if ($sep06Transaction->status === Sep06TransactionStatus::PENDING_USER_TRANSFER_START) {
             if (!$claimableBalanceSupported && $destinationAssetIssuer !== null) {
                 $needsTrustline = self::needsDepositTrustline(
-                  receivingAccountId: $request->account,
-                  assetCode: $destinationAssetCode,
-                  assetIssuer: $destinationAssetIssuer,
+                    receivingAccountId: $request->account,
+                    assetCode: $destinationAssetCode,
+                    assetIssuer: $destinationAssetIssuer,
                 );
                 if ($needsTrustline) {
                     $sep06Transaction->status = Sep06TransactionStatus::PENDING_TRUST;
@@ -236,6 +260,13 @@ class Sep06Helper
                 $sep06Transaction->fee_details = json_encode($quote->fee->toJson());
                 $sep06Transaction->amount_out = $quote->buyAmount;
             } catch (Throwable $e) {
+                Log::error(
+                    'Quote not found.',
+                    ['context' => 'sep06', 'operation' => 'new_deposit_exchange',
+                        'quote_id' => $request->quoteId, 'error' => $e->getMessage(), 'exception' => $e,
+                    ],
+                );
+
                 throw new AnchorFailure(message: $e->getMessage(), code: $e->getCode());
             }
         } else {
@@ -244,18 +275,22 @@ class Sep06Helper
                 asset: $request->destinationAsset->asset,
                 details: [new TransactionFeeInfoDetail(
                     name: 'Service fee',
-                    amount: '0.1')]);
+                    amount: '0.1'
+                )]
+            );
             $sep06Transaction->fee_details = json_encode($feeInfo->toJson());
         }
         $instructions = [
             (new InstructionsField(
                 name: 'bank_number',
                 value: '121122676',
-                description: 'Fake bank number'))->toJson(),
+                description: 'Fake bank number'
+            ))->toJson(),
             (new InstructionsField(
                 name: 'bank_account_number',
                 value: '13719713158835300',
-                description: 'Fake bank account number'))->toJson(),
+                description: 'Fake bank account number'
+            ))->toJson(),
         ];
         $sep06Transaction->instructions = json_encode($instructions);
 
@@ -275,6 +310,13 @@ class Sep06Helper
         $sep06Transaction->claimable_balance_supported = $claimableBalanceSupported;
         $sep06Transaction->save();
         $sep06Transaction->refresh();
+        Log::debug(
+            'The transaction has been saved successfully.',
+            ['context' => 'sep06', 'operation' => 'new_deposit_exchange',
+                'transaction' => json_encode($sep06Transaction),
+            ],
+        );
+
         return $sep06Transaction;
     }
 
@@ -284,8 +326,12 @@ class Sep06Helper
      * @return Sep06Transaction the new created withdrawal transaction.
      * @throws AnchorFailure
      */
-    public static function newWithdrawTransaction(StartWithdrawRequest $request) : Sep06Transaction {
-
+    public static function newWithdrawTransaction(StartWithdrawRequest $request) : Sep06Transaction
+    {
+        Log::debug(
+            'New withdraw transaction.',
+            ['context' => 'sep06', 'operation' => 'new_withdraw', 'withdraw_request' => json_encode($request)],
+        );
         $sep06Transaction = new Sep06Transaction;
         $sep06Transaction->status = self::getNewTransactionStatus($request->sep10Account, $request->sep10AccountMemo);
         $sep06Transaction->kind = self::KIND_WITHDRAW;
@@ -312,7 +358,7 @@ class Sep06Helper
         if ($sep06Transaction->request_asset_code === config('stellar.assets.usdc_asset_code')) {
             $sep06Transaction->withdraw_anchor_account = config('stellar.assets.usdc_asset_distribution_account_id');
             $sep06Transaction->amount_out_asset = 'iso4217:USD';
-        } else if ($sep06Transaction->request_asset_code === config('stellar.assets.jpyc_asset_code')) {
+        } elseif ($sep06Transaction->request_asset_code === config('stellar.assets.jpyc_asset_code')) {
             $sep06Transaction->withdraw_anchor_account = config('stellar.assets.jpyc_asset_distribution_account_id');
             $sep06Transaction->amount_out_asset = 'iso4217:JPYC';
         }
@@ -321,13 +367,33 @@ class Sep06Helper
 
         $sep06Transaction->save();
         $sep06Transaction->refresh();
+        Log::debug(
+            'The transaction has been saved successfully.',
+            ['context' => 'sep06', 'operation' => 'new_withdraw', 'transaction' => json_encode($sep06Transaction)],
+        );
+
         return $sep06Transaction;
     }
 
-    private static function getKYCStatus(string $accountId, ?string $memo) : ?string {
+    private static function getKYCStatus(string $accountId, ?string $memo) : ?string
+    {
+        Log::debug('Loading KYC status.', ['context' => 'sep06', 'account_id' => $accountId, 'memo' => $memo]);
+
         $sep12Customer = Sep12Helper::getSep12CustomerByAccountId(
             accountId: $accountId,
-            memo: $memo);
+            memo: $memo
+        );
+        Log::debug(
+            'SEP-12 customer loaded.',
+            ['context' => 'sep06', 'customer' => json_encode($sep12Customer)],
+        );
+        if ($sep12Customer == null) {
+            Log::error(
+                'SEP-12 customer not found.',
+                ['context' => 'sep06', 'account_id' => $accountId, 'memo' => $memo],
+            );
+        }
+
         return $sep12Customer?->status;
     }
 
@@ -355,9 +421,12 @@ class Sep06Helper
         string $assetCode,
         string $assetIssuer,
     ) : bool {
+        $trustlineNeeded = true;
         try {
-            $horizonUrl = config('stellar.app.horizon_url', );
-            return !TrustlinesHelper::checkIfAccountTrustsAsset(
+            TrustlinesHelper::setLogger(Log::getLogger());
+            $horizonUrl = config('stellar.app.horizon_url');
+
+            $trustlineNeeded = !TrustlinesHelper::checkIfAccountTrustsAsset(
                 horizonUrl: $horizonUrl,
                 accountId: $receivingAccountId,
                 assetCode: $assetCode,
@@ -365,10 +434,20 @@ class Sep06Helper
             );
         } catch (Exception $e) {
             if ($e instanceof AccountNotFound) {
-                return false;
+                Log::error(
+                    'Failed to check if account trust asset, account not found.',
+                    ['context' => 'sep06', 'error' => $e->getMessage(), 'exception' => $e],
+                );
+                $trustlineNeeded = false;
             }
-            return true;
         }
+        Log::debug(
+            'Verifying if trustline needed for deposit.',
+            ['context' => 'sep06', 'horizon_url' => $horizonUrl, 'receiving_account_id' => $receivingAccountId,
+                'asset_code' => $assetCode, 'asset_issuer' => $assetIssuer, 'trustline_needed' => $trustlineNeeded],
+        );
+
+        return $trustlineNeeded;
     }
 
     /**
@@ -377,8 +456,13 @@ class Sep06Helper
      * @return Sep06Transaction the new created withdrawal exchange transaction.
      * @throws AnchorFailure
      */
-    public static function newWithdrawExchangeTransaction(StartWithdrawExchangeRequest $request) : Sep06Transaction {
-
+    public static function newWithdrawExchangeTransaction(StartWithdrawExchangeRequest $request) : Sep06Transaction
+    {
+        Log::debug(
+            'New withdraw exchange transaction.',
+            ['context' => 'sep06', 'operation' => 'new_withdraw_exchange',
+                'withdraw_exchange_request' => json_encode($request)],
+        );
         $sep06Transaction = new Sep06Transaction;
         $sep06Transaction->status = self::getNewTransactionStatus($request->sep10Account, $request->sep10AccountMemo);
         $sep06Transaction->kind = 'withdraw-exchange';
@@ -400,12 +484,25 @@ class Sep06Helper
                 $sep06Transaction->fee_details = json_encode($quote->fee->toJson());
                 $sep06Transaction->amount_out = $quote->buyAmount;
             } catch (Throwable $e) {
+                Log::debug(
+                    'Quote not found.',
+                    ['context' => 'sep06', 'operation' => 'new_withdraw_exchange',
+                        'quote_id' => $request->quoteId, 'error' => $e->getMessage(), 'exception' => $e,
+                    ],
+                );
+
                 throw new AnchorFailure(message: $e->getMessage(), code: $e->getCode());
             }
         } else {
             // based on exchange rate
             $exchangeRate = Sep38Rate::where('sell_asset', '=', $sep06Transaction->amount_in_asset)
                 ->where('buy_asset', '=', $sep06Transaction->amount_out_asset)->first();
+            Log::debug(
+                'Exchange rate found.',
+                ['context' => 'sep06', 'operation' => 'new_withdraw_exchange',
+                    'exchange_rate' => json_encode($exchangeRate),
+                ],
+            );
 
             if ($exchangeRate === null) {
                 throw new AnchorFailure(message: 'no exchange rate found for sell asset ' .
@@ -421,12 +518,14 @@ class Sep06Helper
                 asset: $request->sourceAsset->asset,
                 details: [new TransactionFeeInfoDetail(
                     name: 'Service fee',
-                    amount: strval($fee))]);
+                    amount: strval($fee)
+                )]
+            );
             $sep06Transaction->fee_details = json_encode($feeInfo->toJson());
         }
         if ($sep06Transaction->request_asset_code === config('stellar.assets.usdc_asset_code')) {
             $sep06Transaction->withdraw_anchor_account = config('stellar.assets.usdc_asset_distribution_account_id');
-        } else if ($sep06Transaction->request_asset_code === config('stellar.assets.jpyc_asset_code')) {
+        } elseif ($sep06Transaction->request_asset_code === config('stellar.assets.jpyc_asset_code')) {
             $sep06Transaction->withdraw_anchor_account = config('stellar.assets.jpyc_asset_distribution_account_id');
         }
         $sep06Transaction->memo = strval(rand(5000000, 150000000));
@@ -450,6 +549,14 @@ class Sep06Helper
 
         $sep06Transaction->save();
         $sep06Transaction->refresh();
+
+        Log::debug(
+            'The transaction has been saved successfully.',
+            ['context' => 'sep06', 'operation' => 'new_withdraw_exchange',
+                'transaction' => json_encode($sep06Transaction),
+            ],
+        );
+
         return $sep06Transaction;
     }
 
@@ -458,7 +565,14 @@ class Sep06Helper
         ?string $memo = null,
         ?string $id = null,
         ?string $stellarTxId = null,
-        ?string $externalTxId = null) : ?Sep06TransactionResponse {
+        ?string $externalTxId = null
+    ) : ?Sep06TransactionResponse {
+        Log::debug(
+            'Loading transaction.',
+            ['context' => 'sep06', 'account_id' => $accountId, 'memo' => $memo,
+                'id' => $id, 'stellar_tx_id' => $stellarTxId, 'external_tx_id' => $externalTxId,
+            ],
+        );
 
         $query = ['sep10_account' => $accountId];
         if ($id !== null) {
@@ -476,6 +590,12 @@ class Sep06Helper
         if ($tx !== null) {
             return self::sep06TransactionResponseFromTx($tx);
         }
+        Log::error(
+            'Transaction not found.',
+            ['context' => 'sep06', 'account_id' => $accountId, 'memo' => $memo,
+                'id' => $id, 'stellar_tx_id' => $stellarTxId, 'external_tx_id' => $externalTxId],
+        );
+
         return null;
     }
 
@@ -487,6 +607,10 @@ class Sep06Helper
         string $accountId,
         ?string $memo = null,
     ) : ?array {
+        Log::debug(
+            'Loading transaction history.',
+            ['context' => 'sep06', 'account_id' => $accountId, 'memo' => $memo, 'request' => json_encode($request)],
+        );
 
         $baseQuery = [
             'sep10_account' => $accountId,
@@ -526,6 +650,10 @@ class Sep06Helper
 
             return $sep06Transactions;
         }
+        Log::debug(
+            'Transaction history is empty.',
+            ['context' => 'sep06', 'account_id' => $accountId, 'memo' => $memo],
+        );
 
         return null;
     }
@@ -533,12 +661,20 @@ class Sep06Helper
     /**
      * @throws AnchorFailure
      */
-    private static function sep06TransactionResponseFromTx(Sep06Transaction $tx) : Sep06TransactionResponse {
+    private static function sep06TransactionResponseFromTx(Sep06Transaction $tx) : Sep06TransactionResponse
+    {
 
         try {
-            $amountInAsset = $tx->amount_in_asset !== null ? IdentificationFormatAsset::fromString($tx->amount_in_asset) : null;
-            $amountOutAsset = $tx->amount_out_asset !== null ? IdentificationFormatAsset::fromString($tx->amount_out_asset) : null;
-        } catch (InvalidAsset) {
+            $amountInAsset = $tx->amount_in_asset !== null ?
+                IdentificationFormatAsset::fromString($tx->amount_in_asset) : null;
+            $amountOutAsset = $tx->amount_out_asset !== null ?
+                IdentificationFormatAsset::fromString($tx->amount_out_asset) : null;
+        } catch (InvalidAsset $ia) {
+            Log::debug(
+                'Converting db. transaction to transaction response failed, invalid asset in DB.',
+                ['context' => 'sep06', 'error' => $ia->getMessage(), 'exception' => $ia, 'http_status_code' => 500],
+            );
+
             throw new AnchorFailure('Invalid asset in DB', 500);
         }
 
@@ -593,9 +729,14 @@ class Sep06Helper
         if ($tx->refunds != null) {
             $response->refunds = SepHelper::parseRefunds($tx->refunds);
         }
+        Log::debug(
+            'Converting db. transaction to transaction response.',
+            ['context' => 'sep06', 'db_transaction' => json_encode($tx),
+                'sep_06_transaction_response' => json_encode($response),
+            ],
+        );
 
         return $response;
-
     }
 
     /**
@@ -616,7 +757,12 @@ class Sep06Helper
      * @param string $instructionsJson the json string to parse from
      * @return array<InstructionsField>|null the result if it could be parsed.
      */
-    private static function parseInstructions(string $instructionsJson) : ?array {
+    private static function parseInstructions(string $instructionsJson) : ?array
+    {
+        Log::debug(
+            'Parsing instructions JSON string.',
+            ['context' => 'sep06', 'instructions_json' => $instructionsJson],
+        );
         $instructions = json_decode($instructionsJson, true);
         if (is_array($instructions)) {
             /**
@@ -630,9 +776,16 @@ class Sep06Helper
                         value:$value['value'],
                         description: $value['description'],
                     );
+                } else {
+                    Log::warning(
+                        'Incorrect instruction JSON object.',
+                        ['context' => 'sep06', 'instructions' => json_encode($value)]
+                    );
                 }
             }
             return $responseInstructions;
+        } else {
+            Log::warning('Incorrect instructions JSON.', ['context' => 'sep06']);
         }
         return null;
     }
@@ -656,7 +809,12 @@ class Sep06Helper
      * @param string $requiredInfoUpdatesJson the json string to parse from
      * @return Sep06InfoField[]|null the result if it could be parsed.
      */
-    public static function parseRequiredInfoUpdates(string $requiredInfoUpdatesJson) : ?array {
+    public static function parseRequiredInfoUpdates(string $requiredInfoUpdatesJson) : ?array
+    {
+        Log::debug(
+            'Parsing required info updates JSON string.',
+            ['context' => 'sep06', 'required_info_updates_json' => $requiredInfoUpdatesJson],
+        );
         $infoUpdates = json_decode($requiredInfoUpdatesJson, true);
         if ($infoUpdates !== null) {
             /**
@@ -674,8 +832,8 @@ class Sep06Helper
                          * @var array<string> $choices
                          */
                         $choices = [];
-                        foreach($value['choices'] as $choice) {
-                            if(is_string($choice)) {
+                        foreach ($value['choices'] as $choice) {
+                            if (is_string($choice)) {
                                 $choices[] = $choice;
                             }
                         }
@@ -685,10 +843,17 @@ class Sep06Helper
                         $infoField->optional = (bool)$value['optional'];
                     }
                     $responseInfoUpdates[] = $infoField;
+                } else {
+                    Log::warning(
+                        'Incorrect required info update JSON object.',
+                        ['context' => 'sep06', 'required_info_update_json' => json_encode($value)],
+                    );
                 }
             }
             return $responseInfoUpdates;
         }
+        Log::warning('Incorrect or empty required info update JSON.', ['context' => 'sep06']);
+
         return null;
     }
 
@@ -697,12 +862,13 @@ class Sep06Helper
      * @param Memo $memo the memo to extract the values from
      * @return array<string,?string> keys: memo_type and memo_value
      */
-    private static function memoFieldsFromMemo(Memo $memo) : array {
+    private static function memoFieldsFromMemo(Memo $memo) : array
+    {
         $memoType = MemoHelper::memoTypeAsString($memo->getType());
         $memoValue = null;
         if ($memoType === 'hash' || $memoType === 'return') {
             $memoValue = base64_encode($memo->getValue());
-        } else if ($memo->getValue() !== null) {
+        } elseif ($memo->getValue() !== null) {
             $memoValue = strval($memo->getValue());
         }
 
