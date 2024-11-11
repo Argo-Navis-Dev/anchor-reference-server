@@ -11,6 +11,7 @@ namespace App\Http\Controllers;
 use App\Stellar\Sep12Customer\CustomerIntegration;
 use App\Stellar\Sep31CrossBorder\CrossBorderIntegration;
 use App\Stellar\Sep38Quote\QuotesIntegration;
+use App\Stellar\StellarAppConfig;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidSep10JwtData;
 use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Jwt;
 use ArgoNavis\PhpAnchorSdk\Sep12\Sep12Service;
@@ -44,8 +45,9 @@ class StellarCrossBorderController extends Controller
             $quotesIntegration = new QuotesIntegration();
             $sep31Service = new Sep31Service(
                 sep31Integration: $crossBorderIntegration,
+                appConfig: new StellarAppConfig(),
                 quotesIntegration: $quotesIntegration,
-                logger: Log::getLogger()
+                logger: Log::getLogger(),
             );
 
             return $sep31Service->handleRequest($request, $sep10Jwt);

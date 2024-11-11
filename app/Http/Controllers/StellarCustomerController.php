@@ -10,6 +10,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Sep12ProvidedField;
 use App\Stellar\Sep12Customer\CustomerIntegration;
+use App\Stellar\StellarAppConfig;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidSep10JwtData;
 use ArgoNavis\PhpAnchorSdk\Sep10\Sep10Jwt;
 use ArgoNavis\PhpAnchorSdk\Sep12\Sep12Service;
@@ -40,7 +41,12 @@ class StellarCustomerController extends Controller
         try {
             $sep10Jwt = Sep10Jwt::fromArray($auth);
             $customerIntegration = new CustomerIntegration();
-            $sep12Service = new Sep12Service($customerIntegration, null, Log::getLogger());
+            $sep12Service = new Sep12Service(
+                $customerIntegration,
+                new StellarAppConfig(),
+                null,
+                Log::getLogger(),
+            );
             return $sep12Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {
             Log::error(

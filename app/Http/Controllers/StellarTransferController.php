@@ -45,7 +45,7 @@ class StellarTransferController extends Controller
 
             return new JsonResponse(
                 ['error' => __(
-                    'shared_lang.error.unauthorized.invalid_token',
+                    'shared_lang.error.unauthorized.invalid_token!',
                     ['exception' => $e->getMessage()]
                 )],
                 401

@@ -55,4 +55,20 @@ return [
     'label.status.refunded' => 'Refunded',
     'label.status.expired' => 'Expired',
     'label.status.error' => 'Error',
+    'error.request.amount_required' => ' Amount is required!',
+    'error.request.invalid_asset_code' => ' Invalid asset code (must be a string)!',
+    'error.request.invalid_amount' => ' Invalid amount: :amount for asset :asset!',
+    'error.request.destination_asset_must_be_a_string' => ' Invalid destination asset (must be a string)!',
+    'error.request.field_greater_than_zero' => ' :field must be greater than zero!',
+    'error.request.destination_asset_not_supported' => ' Destination asset not supported. Can not find price!',
+    'error.request.quote.sell_asset_source_asset_not_match' =>
+        ' Quote sell asset does not match source asset: :asset!',
+    'error.request.quote.buy_asset_destination_asset_not_match' =>
+        ' Quote buy asset does not match destination asset: :code!',
+    'error.request.quote.amount_request_amount_not_match' => ' Quote amount does not match request amount!',
+    'error.request.quote.not_supported' => ' Quote not supported by the Anchor but quote_id field passed!',
+    'error.request.sender_id_required' => ' The field sender_id is required!',
+    'error.request.receiver_id_required' => ' The field receiver_id is required!',
+    'error.asset.sep_31_info_missing' => ' SEP-31 info missing for asset: :asset!',
+    'error.transaction_not_created' => ' Error while creating the transaction.',
 ];

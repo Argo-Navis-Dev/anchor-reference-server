@@ -25,12 +25,14 @@ use function json_encode;
 class StellarTomlController extends Controller
 {
     //
-    public function toml():ResponseInterface {
+    public function toml():ResponseInterface
+    {
         $provider = new TomlProvider(Log::getLogger());
         return $provider->handleFromData(self::tomlData());
     }
 
-    private function tomlData():TomlData {
+    private function tomlData():TomlData
+    {
         $tomlData = new TomlData();
 
         Log::debug(
@@ -77,7 +79,8 @@ class StellarTomlController extends Controller
         $currencyUSDC->redemptionInstructions = 'You can purchase the USDC token with USD, JPYC or native stellar lumens. You can sell it for USD or JPYC';
 
         $currencyJPYC = new Currency();
-        $currencyJPYC->code = config('stellar.assets.jpyc_asset_code');;
+        $currencyJPYC->code = config('stellar.assets.jpyc_asset_code');
+        ;
         $currencyJPYC->issuer = config('stellar.assets.jpyc_asset_issuer_id');
         $currencyJPYC->status = 'test';
         $currencyJPYC->displayDecimals = 2;

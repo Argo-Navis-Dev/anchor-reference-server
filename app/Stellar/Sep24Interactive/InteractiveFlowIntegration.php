@@ -43,7 +43,10 @@ class InteractiveFlowIntegration implements IInteractiveFlowIntegration
      */
     public function getFee(string $operation, string $assetCode, float $amount, ?string $type = null): float
     {
-        throw new AnchorFailure('fee endpoint is not supported');
+        throw new AnchorFailure(
+            message: 'fee endpoint is not supported',
+            messageKey: 'sep24_lang.error.fee_not_supported',
+        );
     }
 
     /**

@@ -36,8 +36,7 @@ return [
     'label.account_info' => 'Account info',
     'label.rate' => 'Rate',
     'label.fee_percent' => 'Fee percent',
-
-    'navigation.group' => 'SEP-38 settings'
+    'navigation.group' => 'SEP-38 settings',
+    'error.quote_not_found' => 'Quote not found: :id',
+    'error.quote_not_parsable' => 'Quote not parsable: :id',
 ];
-
-

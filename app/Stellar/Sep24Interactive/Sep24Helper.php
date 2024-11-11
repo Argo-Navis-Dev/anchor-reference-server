@@ -349,7 +349,11 @@ class Sep24Helper
                 ['context' => 'sep24', 'error' => $ex->getMessage(), 'exception' => $ex],
             );
 
-            throw new AnchorFailure('Invalid asset in DB', 500);
+            throw new AnchorFailure(
+                message: 'Invalid asset in DB',
+                code: 500,
+                messageKey: 'asset_lang.error.invalid_asset_in_db',
+            );
         }
 
         $refunds = null;
@@ -468,7 +472,10 @@ class Sep24Helper
                 ],
             );
 
-            throw new AnchorFailure('could not extract account from jwt token');
+            throw new AnchorFailure(
+                message: 'could not extract account from jwt token',
+                messageKey: 'shared_lang.error.invalid_jwt_token',
+            );
         }
 
         // create or update with the given data.

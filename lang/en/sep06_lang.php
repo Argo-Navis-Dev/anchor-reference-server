@@ -74,11 +74,29 @@ return [
     'label.client_domain' => 'Client domain',
     'label.client_name' => 'Client name',
     'label.instructions' => 'Instructions',
-    'label.instructions.description' => 'SEP-9 financial account fields that describe how to complete the off-chain deposit',
+    'label.instructions.description' =>
+        'SEP-9 financial account fields that describe how to complete the off-chain deposit',
     'label.claimable_balance_id' => 'Claimable balance ID',
     'label.claimable_balance_supported' => 'Claimable balance supported',
     'label.stellar_transactions' => 'Stellar transactions',
     'label.missing_info_errors' => 'Missing information errors',
+
+    'error.request.missing_asset_code' => 'Missing asset code.',
+    'error.request.missing_destination_asset' => 'Missing destination asset',
+    'error.request.missing_source_asset' => 'Missing source asset.',
+    'error.request.invalid_destination_asset' => 'Invalid destination asset',
+    'error.request.invalid_source_asset' => 'Invalid source asset.',
+    'error.request.missing_account' => 'Missing account.',
+    'error.request.invalid_account' => 'Invalid account.',
+    'error.request.amount_must_be_float' => 'Amount must be a float.',
+    'error.request.invalid_kind' => 'Kind must be either deposit or withdrawal.',
+    'error.request.invalid_operation_type' =>
+        'Invalid type :requestType :asset :assetCode. Supported types are: :types.',
+
+    'error.request.invalid_amount_for_asset' => 'Invalid amount :amount for asset :asset.',
+
+    'error.new_transaction.kyc_status_rejected' => 'Customer KYC has status rejected.',
+    'error.withdraw_exchange_no_rate' => 'No exchange rate found for sell asset :sellAsset and buy asset :buyAsset.',
 
 
 ];

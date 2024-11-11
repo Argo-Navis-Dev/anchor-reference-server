@@ -56,13 +56,40 @@ return [
     'label.sep31_configuration' => 'SEP-31 configuration',
     'label.sep31_configuration.quotes_supported' => 'Quotes supported',
     'label.sep31_configuration.quotes_required' => 'Quotes required',
-
     'label.sep31_configuration.sep12_sender_types' => 'SEP-12 sender types',
     'label.sep31_configuration.sep12_receiver_types' => 'SEP-12 receiver types',
-
     'label.sep38_configuration' =>'SEP-38 configuration',
     'label.sep38_configuration.sell_delivery_methods' => 'Sell delivery methods',
     'label.sep38_configuration.buy_delivery_methods' => 'Buy delivery methods',
     'label.sep38_configuration.country_codes' => 'Country codes',
     'error.incorrect_asset_format' => 'Failed to identify the asset: :exception',
+    'usdc.sep12.sender.types.sep31_sender.description' =>
+        'U.S. citizens limited to sending payments of less than $10,000 in value',
+    'usdc.sep12.sender.types.sep31_large_sender.description' =>
+        'U.S. citizens that do not have sending limits',
+    'usdc.sep12.sender.types.sep31_foreign_sender.description' =>
+        'non-U.S. citizens sending payments of less than $10,000 in value',
+    'usdc.sep12.receiver.types.sep31_receiver.description' =>
+        'U.S. citizens receiving USD',
+    'usdc.sep12.receiver.types.sep31_foreign_receiver.description' =>
+        'non-U.S. citizens receiving USD',
+    'jpyc.sep12.sender.types.sep31_sender.description' =>
+        'U.S. citizens limited to sending payments of less than $10,000 in value',
+    'jpyc.sep12.sender.types.sep31_large_sender.description' =>
+        'U.S. citizens that do not have sending limits',
+    'jpyc.sep12.sender.types.sep31_foreign_sender.description' =>
+        'non-U.S. citizens sending payments of less than $10,000 in value',
+    'jpyc.sep12.receiver.types.sep31_receiver.description' =>
+        'U.S. citizens receiving USD',
+    'jpyc.sep12.receiver.types.sep31_foreign_receiver.description' =>
+        'non-U.S. citizens receiving USD',
+    'error.invalid_asset_format' => 'The asset :asset has an invalid asset format!',
+    'error.invalid_asset' => 'Invalid asset!',
+    'error.request.invalid_operation_for_asset' => 'Invalid operation for asset: :asset!',
+    'error.invalid_asset_in_db' => 'Invalid asset in DB!',
+    'error.request.asset_code_is_required' => 'Asset code is required!',
+    'error.request.invalid_asset_issuer' => 'Invalid asset issuer (must be a string and valid account id)!',
+    'error.request.invalid_asset_issuer_native' => 'Invalid asset issuer :issuer for asset code \'native\'',
+    'error.request.asset_not_supported' => 'Asset is not supported!',
+    'error.request.invalid_destination_asset' => 'Invalid destination asset: :previous_exception',
 ];

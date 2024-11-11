@@ -20,8 +20,9 @@ return [
     'entity.field.name' => 'SEP-12 Field',
     'entity.field.names' => 'SEP-12 Fields',
     'label.first_name' => 'First Name',
-    'label.first_name.description' => 'First Name edited description 1234',
+    'label.first_name.description' => 'First Name',
     'label.last_name' => 'Last Name',
+    'label.last_name.description' => 'Last Name',
     'label.customer.status.accepted' => 'Accepted',
     'label.customer.status.needs_info' => 'Needs info',
     'label.customer.status.processing' => 'Processing',
@@ -120,4 +121,15 @@ return [
     'label.field.choices' => 'Choices',
     'label.field.requires_verification' => 'Requires verification',
     'label.field.lang' => 'Language',
+
+    'error.request.invalid_url' => 'Invalid URL provided.',
+    'error.request.customer_id_missing' => 'Customer ID missing.',
+    'error.request.invalid_verification_key' => 'Invalid verification key: :key',
+    'error.customer_not_found' => 'Customer not found: :id',
+
+    'error.new_customer_failed_with_id_specified' => 'Can not create new customer if id is not null.',
+    'error.customer_exists' => 'Customer already exists.',
+    'error.invalid_email_verification_code' => 'Invalid email verification code.',
+    'error.invalid_kyc_field' => ':field must be of type :type.',
+    'error.binary file_could_not_be_uploaded' => 'File could not be uploaded for field :field.',
 ];

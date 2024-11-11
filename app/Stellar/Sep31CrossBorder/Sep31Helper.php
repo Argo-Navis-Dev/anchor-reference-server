@@ -16,6 +16,7 @@ use ArgoNavis\PhpAnchorSdk\callback\Sep31PostTransactionRequest;
 use ArgoNavis\PhpAnchorSdk\callback\Sep31TransactionResponse;
 use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
+use ArgoNavis\PhpAnchorSdk\exception\QuoteNotFoundForId;
 use ArgoNavis\PhpAnchorSdk\exception\Sep31TransactionNotFoundForId;
 use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
 use ArgoNavis\PhpAnchorSdk\callback\Sep31PutTransactionCallbackRequest;
@@ -41,7 +42,7 @@ class Sep31Helper
      *
      * @return array<Sep31AssetInfo> the assets having sep31 support enabled.
      */
-    public static function getSupportedAssets(): array
+    public static function getSupportedAssets(?string $lang): array
     {
         /**
          * @var array<Sep31AssetInfo> $result
@@ -54,7 +55,7 @@ class Sep31Helper
         }
         foreach ($assets as $asset) {
             try {
-                $result[] = self::sep31AssetInfoFromAnchorAsset($asset);
+                $result[] = self::sep31AssetInfoFromAnchorAsset($asset, $lang);
             } catch (InvalidAsset $iA) {
                 Log::error(
                     'Invalid asset in DB',
@@ -124,15 +125,32 @@ class Sep31Helper
                 $quote = Sep38Helper::getQuoteById($request->quoteId, $request->accountId, $request->accountMemo);
                 $sep31Transaction->fee_details = json_encode($quote->fee->toJson());
                 $sep31Transaction->amount_out = $quote->buyAmount;
-            } catch (Throwable $e) {
+            } catch (QuoteNotFoundForId | AnchorFailure $e) {
                 Log::debug(
                     'Failed to get the quote.',
                     ['context' => 'sep31', 'operation' => 'new_transaction',
                         'error' => $e->getMessage(), 'exception' => $e,
                     ],
                 );
+                throw new AnchorFailure(
+                    message: $e->getMessage(),
+                    code: $e->getCode(),
+                    messageKey: $e->getMessageKey(),
+                    messageParams: $e->getMessageParams(),
+                );
 
-                throw new AnchorFailure(message: $e->getMessage(), code: $e->getCode());
+            } catch (Throwable $th) {
+                Log::debug(
+                    'Failed to get the quote.',
+                    ['context' => 'sep31', 'operation' => 'new_transaction',
+                        'error' => $th->getMessage(), 'exception' => $th,
+                    ],
+                );
+
+                throw new AnchorFailure(
+                    message: $th->getMessage(),
+                    messageKey: 'shared_lang.error.anchor_failure',
+                );
             }
         } else {
             Log::debug(
@@ -329,7 +347,7 @@ class Sep31Helper
      * @return Sep31AssetInfo the converted asset.
      * @throws InvalidAsset
      */
-    public static function sep31AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset): Sep31AssetInfo
+    public static function sep31AssetInfoFromAnchorAsset(AnchorAsset $anchorAsset, ?string $lang = 'en'): Sep31AssetInfo
     {
         try {
             $formattedAsset = new IdentificationFormatAsset(
@@ -344,7 +362,11 @@ class Sep31Helper
                     ['context' => 'sep31', 'asset' => json_encode($anchorAsset)],
                 );
 
-                throw new InvalidAsset('missing sep31_info');
+                throw new InvalidAsset(
+                    message: 'missing sep31_info',
+                    messageKey: 'sep31_lang.error.asset.sep_31_info_missing',
+                    messageParams: ['asset' => $anchorAsset->code],
+                );
             }
 
             $infoJson = '{"receive" : { "' . $anchorAsset->code . '":' . $anchorAsset->sep31_info . '}}';
@@ -356,7 +378,14 @@ class Sep31Helper
              */
             $senderTypes = [];
             foreach ($sep12Info->senderTypes as $key => $value) {
-                $senderTypes[] = new Sep12Type(name:$key, description: $value);
+                $localizedDescription = SepHelper::localizeAssetSep12SenderReceiverDescription(
+                    typeKey: $key,
+                    assetCode: $anchorAsset->code,
+                    defaultDescription: $value,
+                    isSender: true,
+                    lang: $lang,
+                );
+                $senderTypes[] = new Sep12Type(name:$key, description: $localizedDescription);
             }
 
             /**
@@ -364,7 +393,14 @@ class Sep31Helper
              */
             $receiverTypes = [];
             foreach ($sep12Info->receiverTypes as $key => $value) {
-                $receiverTypes[] = new Sep12Type(name:$key, description: $value);
+                $localizedDescription = SepHelper::localizeAssetSep12SenderReceiverDescription(
+                    typeKey: $key,
+                    assetCode: $anchorAsset->code,
+                    defaultDescription: $value,
+                    isSender: false,
+                    lang: $lang,
+                );
+                $receiverTypes[] = new Sep12Type(name:$key, description: $localizedDescription);
             }
 
             $sep31AssetInfo = new Sep31AssetInfo(
@@ -390,7 +426,10 @@ class Sep31Helper
                 ['context' => 'sep31', 'error' => $t->getMessage(), 'exception' => $t],
             );
 
-            throw new InvalidAsset($t->getMessage());
+            throw new InvalidAsset(
+                message: $t->getMessage(),
+                messageKey: 'asset_lang.error.invalid_asset',
+            );
         }
     }
 

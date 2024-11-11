@@ -49,7 +49,8 @@ class StellarAuthMiddleware
                 ],
             );
 
-            return new Response(__('shared_lang.error.unauthorized', ['error' => $e->getMessage()]), 403);
+            return new Response(__('shared_lang.error.unauthorized_with_msg_error',
+                ['error' => $e->getMessage()]), 403);
         }
     }
 }

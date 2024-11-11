@@ -24,7 +24,7 @@ class CrossBorderIntegration implements ICrossBorderIntegration
      */
     public function supportedAssets(string $accountId, ?string $accountMemo = null, ?string $lang = null): array
     {
-        return Sep31Helper::getSupportedAssets();
+        return Sep31Helper::getSupportedAssets($lang);
     }
 
     /**
@@ -47,7 +47,10 @@ class CrossBorderIntegration implements ICrossBorderIntegration
                     'error' => $t->getMessage(), 'exception' => $t],
             );
 
-            throw new AnchorFailure('error creating quote');
+            throw new AnchorFailure(
+                message: 'error creating quote',
+                messageKey: 'sep31_lang.error.transaction_not_created',
+            );
         }
     }
 

@@ -311,7 +311,11 @@ class Sep38Helper
             ->where('account_memo', $accountMemo)
             ->first();
         if ($exchangeQuote === null) {
-            throw new QuoteNotFoundForId($id);
+            throw new QuoteNotFoundForId(
+                id: $id,
+                messageKey: 'sep38_lang.error.quote_not_found',
+                messageParams: ['id' => $id],
+            );
         }
         try {
             return self::sep38QuoteFromExchangeQuote($exchangeQuote);
@@ -322,7 +326,11 @@ class Sep38Helper
                     'exception' => $t, 'quote' => json_encode($exchangeQuote)],
             );
 
-            throw new AnchorFailure('error reading quote');
+            throw new AnchorFailure(
+                message: 'error reading quote',
+                messageKey: 'sep38_lang.error.quote_not_parsable',
+                messageParams: ['id' => $id],
+            );
         }
     }
 

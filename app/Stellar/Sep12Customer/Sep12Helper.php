@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace App\Stellar\Sep12Customer;
 
-use App\Jobs\Sep6PendingInfoWatcher;
 use App\Mail\Sep12EmailVerification;
 use App\Models\Sep12Customer;
 use App\Models\Sep12Field;
@@ -45,8 +44,10 @@ class Sep12Helper
      * @param Sep12Customer|null $customer customer data.
      * @return GetCustomerResponse response.
      */
-    public static function buildCustomerResponse(?Sep12Customer $customer = null) : GetCustomerResponse
-    {
+    public static function buildCustomerResponse(
+        ?Sep12Customer $customer = null,
+        ?string $lang = 'en',
+    ) : GetCustomerResponse {
         Log::debug(
             'Converting db customer record to customer response model',
             ['context' => 'sep12', 'customer_db_record' => json_encode($customer)],
@@ -100,7 +101,9 @@ class Sep12Helper
                         $providedCustomerFields[$sep12Field->key] = self::buildProvidedCustomerFieldFromSep12Field(
                             $sep12Field,
                             $sep12providedField->status,
-                            $sep12providedField->error
+                            $sep12providedField->error,
+                            null,
+                            $lang,
                         );
                         $requiredSep12Fields = array_diff($requiredSep12Fields, [$sep12Field]);
                         break;
@@ -113,7 +116,8 @@ class Sep12Helper
                             $sep12Field,
                             $sep12providedField->status,
                             $sep12providedField->error,
-                            optional: true
+                            optional: true,
+                            lang: $lang,
                         );
                         $optionalSep12Fields = array_diff($optionalSep12Fields, [$sep12Field]);
                         break;
@@ -128,10 +132,18 @@ class Sep12Helper
          */
         $customerFields = array();
         foreach ($requiredSep12Fields as $sep12Field) {
-            $customerFields[$sep12Field->key] = self::buildCustomerFieldFromSep12Field($sep12Field);
+            $customerFields[$sep12Field->key] = self::buildCustomerFieldFromSep12Field(
+                $sep12Field,
+                null,
+                $lang,
+            );
         }
         foreach ($optionalSep12Fields as $sep12Field) {
-            $customerFields[$sep12Field->key] = self::buildCustomerFieldFromSep12Field($sep12Field, optional:true);
+            $customerFields[$sep12Field->key] = self::buildCustomerFieldFromSep12Field(
+                field: $sep12Field,
+                optional: true,
+                lang: $lang,
+            );
         }
         if (count($customerFields) > 0) {
             $response->fields = $customerFields;
@@ -158,14 +170,20 @@ class Sep12Helper
         );
 
         if ($request->id !== null) {
-            throw new AnchorFailure('can not create new customer if id is not null');
+            throw new AnchorFailure(
+                message: 'can not create new customer if id is not null',
+                messageKey: 'sep12_lang.error.new_customer_failed_with_id_specified',
+            );
         }
 
         $accountId = $request->account;
 
         $customer = self::getSep12CustomerByAccountId($request->account, $request->memo, $request->type);
         if ($customer != null) {
-            throw new AnchorFailure('customer already exists');
+            throw new AnchorFailure(
+                message: 'customer already exists',
+                messageKey: 'sep12_lang.error.customer_exists',
+            );
         }
 
         // create a new customer
@@ -461,7 +479,10 @@ class Sep12Helper
                     $field->status = ProvidedCustomerFieldStatus::ACCEPTED;
                     $field->save();
                 } else {
-                    throw new AnchorFailure('invalid email verification code');
+                    throw new AnchorFailure(
+                        message: 'invalid email verification code',
+                        messageKey: 'sep12_lang.error.invalid_email_verification_code',
+                    );
                 }
                 break;
             }
@@ -726,7 +747,11 @@ class Sep12Helper
                         // check if the field contains an uploaded file.
                         if ($kycFieldValue instanceof UploadedFileInterface) {
                             if ($mField->type !== 'binary') {
-                                throw new AnchorFailure($kycFieldKey . ' must be ' . $mField->type);
+                                throw new AnchorFailure(
+                                    message: $kycFieldKey . ' must be ' . $mField->type,
+                                    messageKey: 'sep12_lang.error.invalid_kyc_field',
+                                    messageParams: ['field' => $kycFieldKey, 'type' => $mField->type],
+                                );
                             }
                             if ($kycFieldValue->getError() === UPLOAD_ERR_INI_SIZE) {
                                 throw new AnchorFailure($kycFieldKey . ' too large');
@@ -735,8 +760,10 @@ class Sep12Helper
                                     'Incorrect binary field.',
                                     ['context' => 'sep12', 'error' => $kycFieldValue->getError()],
                                 );
-
-                                throw new AnchorFailure($kycFieldKey . 'could not be uploaded.');
+                                throw new AnchorFailure(
+                                    message: $kycFieldKey . 'could not be uploaded.',
+                                    messageKey: 'sep12_lang.error.file_could_not_be_uploaded',
+                                );
                             }
                             $fileContents =  $kycFieldValue->getStream()->getContents();
                             $providedField->binary_value = $fileContents;
@@ -796,15 +823,53 @@ class Sep12Helper
     private static function buildCustomerFieldFromSep12Field(
         Sep12Field $field,
         ?bool $optional = null,
+        ?string $lang = 'en',
     ) : CustomerField {
         $fieldName = $field->key;
         $type = $field->type;
-        $desc = $field->desc;
+        $descriptionKey = 'sep12_lang.label.' . $field->key . '.description';
+        $desc = __($descriptionKey, [], $lang);
+        if ($desc === $descriptionKey) {
+            $desc = $field->desc;
+        }
+        
         $choices = null;
         if ($field->choices != null) {
             $choices = array_map('trim', explode(',', $field->choices));
+            $choices = self::getLocalizedFieldChoices($field, $choices, $lang);
         }
         return new CustomerField($fieldName, $type, $desc, $choices, $optional);
+    }
+
+    /**
+     * Returns the localized choices for the given field.
+     *
+     * @param Sep12Field $field the field
+     * @param array<string> $choices the choices
+     * @return array<string> the localized choices
+     */
+    private static function getLocalizedFieldChoices(
+        Sep12Field $field,
+        array $choices,
+        ?string $lang = 'en',
+    ) : array {
+        $localizedChoices = [];
+        for ($i = 0; $i < count($choices); $i++) {
+            $choice = $choices[$i];
+            $convertedChoice = trim($choice);
+            $convertedChoice = strtolower($convertedChoice);
+            $convertedChoice = preg_replace('/\s+/', '_', $convertedChoice);
+
+            $localizationKey = "sep12_lang.label.{$field->key}.{$convertedChoice}";
+            $localizedLabel = __($localizationKey, [], $lang);
+
+            if ($localizationKey == $localizedLabel) {
+                $localizedLabel = $choice;
+            }
+            $localizedChoices[$i] = $localizedLabel;
+        }
+
+        return $localizedChoices;
     }
 
     /**
@@ -820,13 +885,19 @@ class Sep12Helper
         ?string    $status = null,
         ?string    $error = null,
         ?bool      $optional = null,
+        ?string    $lang = 'en',
     ) : ProvidedCustomerField {
         $fieldName = $field->key;
         $type = $field->type;
-        $desc = $field->desc;
         $choices = null;
+        $descriptionKey = 'sep12_lang.label.' . $field->key . '.description';
+        $desc = __($descriptionKey, [], $lang);
+        if ($desc === $descriptionKey) {
+            $desc = $field->desc;
+        }
         if ($field->choices != null) {
             $choices = array_map('trim', explode(',', $field->choices));
+            $choices = self::getLocalizedFieldChoices($field, $choices, $lang);
         }
         return new ProvidedCustomerField($fieldName, $type, $desc, $choices, $optional, $status, $error);
     }
@@ -914,8 +985,7 @@ class Sep12Helper
     private static function getCallbackSignatureHeader(
         GetCustomerResponse $sep12CustomerData,
         string $callbackUrl
-    ): string
-    {
+    ): string {
         $signingSeed = config('stellar.server.server_account_signing_key');
         $anchorKeys = KeyPair::fromSeed($signingSeed);
         $currentTime = round(microtime(true));

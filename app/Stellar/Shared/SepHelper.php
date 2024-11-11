@@ -225,4 +225,40 @@ class SepHelper
             }
         }
     }
+
+    /**
+     * Localizes the passed anchor asset's SEP-12 sender or receiver description.
+     *
+     * @param string $typeKey The sender or receiver type key.
+     * @param string $assetCode The asset code.
+     * @param string $defaultDescription The default description from the DB.
+     * @param bool $isSender True if the description is for the sender, false if for the receiver.
+     * @param string|null $lang The language to localize the description to.
+     * @return string The localized description or the default description if not found.
+     */
+    public static function localizeAssetSep12SenderReceiverDescription(
+        string $typeKey,
+        string $assetCode,
+        string $defaultDescription,
+        bool $isSender,
+        ?string $lang = 'en',
+    ) : string {
+        $assetCode = strtolower($assetCode);
+        $convertedTypeKey = str_replace("-", "_", $typeKey);
+        $senderOrReceiver = $isSender ? 'sender' : 'receiver';
+        $langKey = "asset_lang.${assetCode}.sep12.{$senderOrReceiver}.types.${convertedTypeKey}.description";
+        $description = __($langKey, [], $lang);
+        if ($description === $langKey) {
+            $description = $defaultDescription;
+        }
+        Log::debug('Localizing asset SEP-12 sender/receiver description.', [
+            'context' => 'shared',
+            'asset_code' => $assetCode,
+            'type_key' => $typeKey,
+            'sender_or_receiver' => $senderOrReceiver,
+            'description' => $description,
+        ]);
+
+        return $description;
+    }
 }

@@ -43,13 +43,13 @@ class CustomerIntegration implements ICustomerIntegration
         if ($id != null) {
             $customer = Sep12Customer::where('id', $request->id)->first();
             if ($customer === null) {
-                throw new CustomerNotFoundForId($request->id);
+                throw new CustomerNotFoundForId(id: $id);
             }
 
             if ($account !== $customer->account_id || $memo !== $customer->memo) {
                 throw new SepNotAuthorized('Unauthorized');
             }
-        } else if ($request->account != null) {
+        } elseif ($request->account != null) {
             $customer = Sep12Helper::getSep12CustomerByAccountId($account, $memo, $request->type);
         }
         Log::debug(
@@ -57,7 +57,7 @@ class CustomerIntegration implements ICustomerIntegration
             ['context' => 'sep12', 'operation' => 'get_customer', 'customer_db_record' => json_encode($customer)],
         );
 
-        return Sep12Helper::buildCustomerResponse($customer);
+        return Sep12Helper::buildCustomerResponse($customer, $request->lang);
     }
 
     /**
@@ -80,14 +80,13 @@ class CustomerIntegration implements ICustomerIntegration
         if ($id != null) {
             $customer = Sep12Customer::where('id', $id)->first();
             if ($customer === null) {
-                throw new CustomerNotFoundForId($request->id);
+                throw new CustomerNotFoundForId(id: $id);
             }
 
             if ($account !== $customer->account_id || $memo !== $customer->memo) {
                 throw new SepNotAuthorized('Unauthorized');
             }
-
-        } else if ($request->account != null) {
+        } elseif ($request->account != null) {
             $customer = Sep12Helper::getSep12CustomerByAccountId($account, $memo, $request->type);
         }
 
@@ -134,7 +133,7 @@ class CustomerIntegration implements ICustomerIntegration
 
         $customer = Sep12Customer::where('id', $id)->first();
         if ($customer === null) {
-            throw new CustomerNotFoundForId($id);
+            throw new CustomerNotFoundForId(id: $id);
         }
 
         if ($account !== $customer->account_id || $memo !== $customer->memo) {
@@ -190,14 +189,13 @@ class CustomerIntegration implements ICustomerIntegration
         if ($request->id != null) {
             $customer = Sep12Customer::where('id', $request->id)->first();
             if ($customer === null) {
-                throw new CustomerNotFoundForId($request->id);
+                throw new CustomerNotFoundForId(id: $request->id);
             }
 
             if ($account !== $customer->account_id || $memo !== $customer->memo) {
                 throw new SepNotAuthorized('Unauthorized');
             }
         } else {
-
             $customer = Sep12Helper::getSep12CustomerByAccountId($account, $memo);
             if ($customer === null) {
                 $id = $account;
@@ -205,7 +203,7 @@ class CustomerIntegration implements ICustomerIntegration
                     $id .= ':'.$memo;
                 }
 
-                throw new CustomerNotFoundForId($id);
+                throw new CustomerNotFoundForId(id: $id);
             }
         }
 

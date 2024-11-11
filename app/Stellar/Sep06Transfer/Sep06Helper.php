@@ -23,6 +23,7 @@ use ArgoNavis\PhpAnchorSdk\callback\TransactionHistoryRequest;
 use ArgoNavis\PhpAnchorSdk\exception\AccountNotFound;
 use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
 use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
+use ArgoNavis\PhpAnchorSdk\exception\QuoteNotFoundForId;
 use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
 use ArgoNavis\PhpAnchorSdk\shared\DepositOperation;
 use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
@@ -259,6 +260,20 @@ class Sep06Helper
                 $quote = Sep38Helper::getQuoteById($request->quoteId, $request->sep10Account, $request->sep10AccountMemo);
                 $sep06Transaction->fee_details = json_encode($quote->fee->toJson());
                 $sep06Transaction->amount_out = $quote->buyAmount;
+            } catch (QuoteNotFoundForId $qe) {
+                Log::error(
+                    'Quote not found.',
+                    ['context' => 'sep06', 'operation' => 'new_deposit_exchange',
+                        'quote_id' => $request->quoteId, 'error' => $qe->getMessage(), 'exception' => $qe,
+                    ],
+                );
+
+                throw new AnchorFailure(
+                    message: $qe->getMessage(),
+                    code: $qe->getCode(),
+                    messageKey: $qe->getMessageKey(),
+                    messageParams: $qe->getMessageParams(),
+                );
             } catch (Throwable $e) {
                 Log::error(
                     'Quote not found.',
@@ -267,7 +282,11 @@ class Sep06Helper
                     ],
                 );
 
-                throw new AnchorFailure(message: $e->getMessage(), code: $e->getCode());
+                throw new AnchorFailure(
+                    message: $e->getMessage(),
+                    code: $e->getCode(),
+                    messageKey: 'shared_lang.error.anchor_failure',
+                );
             }
         } else {
             $feeInfo = new TransactionFeeInfo(
@@ -409,7 +428,10 @@ class Sep06Helper
         if ($kycStatus === CustomerStatus::ACCEPTED) {
             return Sep06TransactionStatus::PENDING_USER_TRANSFER_START;
         } elseif ($kycStatus === CustomerStatus::REJECTED) {
-            throw new AnchorFailure("Customer KYC has status rejected");
+            throw new AnchorFailure(
+                message: 'Customer KYC has status rejected',
+                messageKey: 'sep31_lang.error.new_transaction.kyc_status_rejected',
+            );
         } elseif ($kycStatus === null || $kycStatus === CustomerStatus::NEEDS_INFO) {
             return Sep06TransactionStatus::PENDING_CUSTOMER_INFO_UPDATE;
         }
@@ -483,6 +505,20 @@ class Sep06Helper
                 $quote = Sep38Helper::getQuoteById($request->quoteId, $request->sep10Account, $request->sep10AccountMemo);
                 $sep06Transaction->fee_details = json_encode($quote->fee->toJson());
                 $sep06Transaction->amount_out = $quote->buyAmount;
+            } catch (QuoteNotFoundForId $qe) {
+                Log::error(
+                    'Quote not found.',
+                    ['context' => 'sep06', 'operation' => 'new_deposit_exchange',
+                        'quote_id' => $request->quoteId, 'error' => $qe->getMessage(), 'exception' => $qe,
+                    ],
+                );
+
+                throw new AnchorFailure(
+                    message: $qe->getMessage(),
+                    code: $qe->getCode(),
+                    messageKey: $qe->getMessageKey(),
+                    messageParams: $qe->getMessageParams(),
+                );
             } catch (Throwable $e) {
                 Log::debug(
                     'Quote not found.',
@@ -491,7 +527,11 @@ class Sep06Helper
                     ],
                 );
 
-                throw new AnchorFailure(message: $e->getMessage(), code: $e->getCode());
+                throw new AnchorFailure(
+                    message: $e->getMessage(),
+                    code: $e->getCode(),
+                    messageKey: 'shared_lang.error.anchor_failure',
+                );
             }
         } else {
             // based on exchange rate
@@ -505,8 +545,15 @@ class Sep06Helper
             );
 
             if ($exchangeRate === null) {
-                throw new AnchorFailure(message: 'no exchange rate found for sell asset ' .
-                    $sep06Transaction->amount_in_asset . ' and buy asset '. $sep06Transaction->amount_in_asset);
+                throw new AnchorFailure(
+                    message: 'no exchange rate found for sell asset ' .
+                        $sep06Transaction->amount_in_asset . ' and buy asset '. $sep06Transaction->amount_in_asset,
+                    messageKey: 'sep31_lang.error.withdraw_exchange_no_rate',
+                    messageParams: [
+                        'sell_asset' => $sep06Transaction->amount_in_asset,
+                        'buy_asset' => $sep06Transaction->amount_out_asset,
+                    ],
+                );
             }
             $feePercent = $exchangeRate->fee_percent;
             $fee = $sep06Transaction->amount_in * ($feePercent / 100);
@@ -675,7 +722,11 @@ class Sep06Helper
                 ['context' => 'sep06', 'error' => $ia->getMessage(), 'exception' => $ia, 'http_status_code' => 500],
             );
 
-            throw new AnchorFailure('Invalid asset in DB', 500);
+            throw new AnchorFailure(
+                message: 'Invalid asset in DB',
+                code: 500,
+                messageKey: 'shared_lang.error.invalid_asset_in_db',
+            );
         }
 
         $response =  new Sep06TransactionResponse(
