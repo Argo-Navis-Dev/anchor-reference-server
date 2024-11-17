@@ -25,10 +25,9 @@ The implementation of the Service Layer Library can be found [here](https://gith
 - Implementation of [SEP-06](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md) Deposit and Withdrawal Service -> Done
 - Implementation of [SEP-31](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md) Cross-Border Payments Service -> Done
 - Implementation of [SEP-08](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0008.md) Regulated Assets -> Done
-- Postman collection covering the SEP flows
-- Integrate transaction watcher and callback handlers -> in progress
-- Localization, Logging, Extend administration interface -> in progress
-- Interactive Popup for SEP-24
+- Postman collection covering the SEP flows -> Done
+- Integrate transaction watcher and callback handlers -> Done
+- Localization, Logging, Extend administration interface -> Done
 
 
 ## Run the server locally:
