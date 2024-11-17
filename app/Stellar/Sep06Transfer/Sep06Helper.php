@@ -207,6 +207,10 @@ class Sep06Helper
             'The transaction has been saved successfully.',
             ['context' => 'sep06', 'operation' => 'new_deposit', 'transaction' => json_encode($sep06Transaction)],
         );
+        //Optional call to send callback request
+        //$sep06TransactionBody = self::sep06TransactionResponseFromTx($sep06Transaction);
+        //SepHelper::sendCallbackRequest($request->onChangeCallbackUrl, $sep06TransactionBody);
+
         return $sep06Transaction;
     }
 
@@ -335,6 +339,9 @@ class Sep06Helper
                 'transaction' => json_encode($sep06Transaction),
             ],
         );
+        //Optional call to send callback request
+        //$sep06TransactionBody = self::sep06TransactionResponseFromTx($sep06Transaction);
+        //SepHelper::sendCallbackRequest($request->onChangeCallbackUrl, $sep06TransactionBody);
 
         return $sep06Transaction;
     }
@@ -386,6 +393,9 @@ class Sep06Helper
 
         $sep06Transaction->save();
         $sep06Transaction->refresh();
+        //Optional call to send callback request
+        //$sep06TransactionBody = self::sep06TransactionResponseFromTx($sep06Transaction);
+        //SepHelper::sendCallbackRequest($request->onChangeCallbackUrl, $sep06TransactionBody);
         Log::debug(
             'The transaction has been saved successfully.',
             ['context' => 'sep06', 'operation' => 'new_withdraw', 'transaction' => json_encode($sep06Transaction)],
@@ -596,13 +606,15 @@ class Sep06Helper
 
         $sep06Transaction->save();
         $sep06Transaction->refresh();
-
         Log::debug(
             'The transaction has been saved successfully.',
             ['context' => 'sep06', 'operation' => 'new_withdraw_exchange',
                 'transaction' => json_encode($sep06Transaction),
             ],
         );
+        //Optional call to send callback request
+        //$sep06TransactionBody = self::sep06TransactionResponseFromTx($sep06Transaction);
+        //SepHelper::sendCallbackRequest($request->onChangeCallbackUrl, $sep06TransactionBody);
 
         return $sep06Transaction;
     }

@@ -9,19 +9,17 @@ declare(strict_types=1);
 namespace App\Stellar\Shared;
 
 use ArgoNavis\PhpAnchorSdk\exception\InvalidAsset;
-use ArgoNavis\PhpAnchorSdk\shared\TransactionRefundPayment;
-use ArgoNavis\PhpAnchorSdk\shared\TransactionRefunds;
+use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfo;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfoDetail;
-use ArgoNavis\PhpAnchorSdk\shared\IdentificationFormatAsset;
-use Exception;
+use ArgoNavis\PhpAnchorSdk\shared\TransactionRefundPayment;
+use ArgoNavis\PhpAnchorSdk\shared\TransactionRefunds;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
-use Soneso\StellarSDK\CreateAccountOperationBuilder;
 use Soneso\StellarSDK\Crypto\KeyPair;
 use Soneso\StellarSDK\Exceptions\HorizonRequestException;
-use Soneso\StellarSDK\Network;
-use Soneso\StellarSDK\StellarSDK;
-use Soneso\StellarSDK\TransactionBuilder;
 
 use function json_encode;
 
@@ -260,5 +258,110 @@ class SepHelper
         ]);
 
         return $description;
+    }
+
+    /**
+     * Sends a callback request to the given URL with the given request body data.
+     * Example: for customer callback and callback POST request details please check the following link:
+     * <a href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#callback-post-request">
+     *     Customer callback & post callback details</a>
+     * @param string|null $callbackUrl The callback URL to send the request to.
+     * @param object $requestBodyData The request body data to send.
+     * @return void
+     */
+    public static function sendCallbackRequest(
+        ?string $callbackUrl,
+        object $requestBodyData,
+    ) : void {
+        if (!empty($callbackUrl)) {
+            Log::debug(
+                'Executing callback request.',
+                ['context' => 'shared', 'data' => json_encode($requestBodyData)],
+            );
+
+            $signature = self::getCallbackSignatureHeader($callbackUrl, $requestBodyData);
+            $httpClient = new Client();
+            try {
+                $response = $httpClient->post($callbackUrl, [
+                    'headers' => [
+                        'Signature' => $signature,
+                        'X-Stellar-Signature' => $signature, //Deprecated
+                    ],
+                    'json' =>  $requestBodyData,
+                ]);
+                // Check the response status code
+                if ($response->getStatusCode() == 200) {
+                    Log::debug(
+                        'The callback has been executed successfully!',
+                        ['context' => 'shared', 'callback_url' => $callbackUrl],
+                    );
+                } else {
+                    Log::error(
+                        'Failed to execute the callback.',
+                        ['context' => 'shared', 'http_status_code' => $response->getStatusCode(),
+                            'callback_url' => $callbackUrl],
+                    );
+                }
+            } catch (RequestException $e) {
+                $responseBody = '';
+                if ($e->hasResponse()) {
+                    $responseBody = $e->getResponse()->getBody();
+                }
+                Log::error(
+                    'Failed to execute the callback.',
+                    [
+                        'context' => 'shared',
+                        'error' => $e->getMessage(),
+                        'exception' => $e,
+                        'body' => json_encode($responseBody),
+                        'callback_url' => $callbackUrl
+                    ],
+                );
+            } catch (GuzzleException $e) {
+                Log::error(
+                    'Failed to execute the callback.',
+                    [
+                        'context' => 'shared',
+                        'error' => $e->getMessage(),
+                        'exception' => $e,
+                        'callback_url' => $callbackUrl
+                    ],
+                );
+            }
+        } else {
+            Log::debug(
+                'Callback URL is null, no callback execution action is needed.',
+                ['context' => 'shared'],
+            );
+        }
+    }
+
+    /**
+     * Computes the callback signature header value.
+     * @param string $callbackUrl The callback URL.
+     * @param object $requestBodyData The request body data.
+     * @return string The computed signature header.
+     */
+    private static function getCallbackSignatureHeader(
+        string $callbackUrl,
+        object $requestBodyData,
+    ): string {
+        $signingSeed = config('stellar.server.server_account_signing_key');
+        $anchorKeys = KeyPair::fromSeed($signingSeed);
+        $currentTime = round(microtime(true));
+        $signature = $currentTime . '.' . $callbackUrl . '.' . json_encode($requestBodyData);
+        Log::debug(
+            'The callback header signature (plain) to be signed.',
+            ['context' => 'shared', 'signature' => $signature],
+        );
+        $signature = $anchorKeys->sign($signature);
+        $based64Signature = base64_encode($signature);
+        $signatureHeader = 't=' . $currentTime . ', s=' . $based64Signature;
+        Log::debug(
+            'The callback header signed signature.',
+            ['context' => 'shared', 'signed_signature' => $signatureHeader],
+        );
+
+        return $signatureHeader;
     }
 }

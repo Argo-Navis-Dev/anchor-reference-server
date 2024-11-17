@@ -14,6 +14,7 @@ use App\Models\Sep12Customer;
 use App\Models\Sep12Field;
 use App\Models\Sep12ProvidedField;
 use App\Models\Sep12TypeToFields;
+use App\Stellar\Shared\SepHelper;
 use ArgoNavis\PhpAnchorSdk\callback\GetCustomerResponse;
 use ArgoNavis\PhpAnchorSdk\callback\PutCustomerRequest;
 use ArgoNavis\PhpAnchorSdk\exception\AnchorFailure;
@@ -258,9 +259,8 @@ class Sep12Helper
 
         // check if any automatic validation request can be sent.
         self::sendVerificationCode($allSep12Fields, $fieldsThatRequireVerification);
-
         //Call the status change callback.
-        self::onCustomerStatusChanged($customer);
+        SepHelper::sendCallbackRequest($customer->callback_url, self::buildCustomerResponse($customer));
 
         return $customer;
     }
@@ -398,7 +398,13 @@ class Sep12Helper
         $customer->save();
         $customer->refresh();
         if ($customerStatus !== $customer->status) {
-            self::onCustomerStatusChanged($customer);
+            SepHelper::sendCallbackRequest($customer->callback_url, self::buildCustomerResponse($customer));
+            if ($customer->status === CustomerStatus::ACCEPTED ||
+                $customer->status === CustomerStatus::REJECTED) {
+                $customer->callback_url = null;
+                $customer->save();
+                $customer->refresh();
+            }
         }
         return $customer;
     }
@@ -900,108 +906,5 @@ class Sep12Helper
             $choices = self::getLocalizedFieldChoices($field, $choices, $lang);
         }
         return new ProvidedCustomerField($fieldName, $type, $desc, $choices, $optional, $status, $error);
-    }
-
-    /**
-     * Calls the customer status change callback if the customer has a callback url.
-     * Will submit POST requests until the user's status changes to ACCEPTED or REJECTED.
-     * If so, remove the callback_url field from the DB.
-     * (This method might saves and refreshes the customer object, previously updated and not saved customer object field is lost).
-     * Should be called only after the customer status has been changed.
-     * @param Sep12Customer $customer the customer to handle.
-     * @return void
-     */
-    public static function onCustomerStatusChanged(Sep12Customer $customer)
-    {
-        $callbackUrl = $customer->callback_url;
-        $newStatus = $customer->status;
-        if (!empty($callbackUrl)) {
-            $getCustomerRequest = new GetCustomerRequest($customer->account_id, $customer->memo);
-            $customerIntegration = new CustomerIntegration();
-            $sep12CustomerData = $customerIntegration->getCustomer($getCustomerRequest);
-            Log::debug(
-                'Handling customer status change.',
-                ['context' => 'sep12', 'new_status' => $newStatus, 'customer_id' => $customer->id,
-                    'callback_url' =>  $callbackUrl, 'data' => json_encode($sep12CustomerData),
-                ],
-            );
-
-            $signature = self::getCallbackSignatureHeader($sep12CustomerData, $callbackUrl);
-            $httpClient = new Client();
-            try {
-                $response = $httpClient->post($customer->callback_url, [
-                    'headers' => [
-                        'Signature' => $signature,
-                        'X-Stellar-Signature' => $signature, //Deprecated
-                    ],
-                    'json' => $sep12CustomerData
-                ]);
-                // Check the response status code
-                if ($response->getStatusCode() == 200) {
-                    Log::debug(
-                        'The customer status change callback has been called successfully!',
-                        ['context' => 'sep12', 'customer_id' => $customer->id, 'callback_url' => $callbackUrl],
-                    );
-                } else {
-                    Log::error(
-                        'Failed to call the customer status change callback.',
-                        ['context' => 'sep12', 'http_status_code' => $response->getStatusCode(),
-                            'callback_url' => $callbackUrl,
-                        ],
-                    );
-                }
-            } catch (RequestException $e) {
-                $responseBody = '';
-                if ($e->hasResponse()) {
-                    $responseBody = $e->getResponse()->getBody();
-                }
-                Log::error(
-                    'Failed to call the customer status change callback.',
-                    ['context' => 'sep12', 'error' => $e->getMessage(),
-                        'exception' => $e, 'body' => json_encode($responseBody), 'callback_url' => $callbackUrl],
-                );
-            }
-
-            if ($newStatus === CustomerStatus::ACCEPTED ||
-               $newStatus === CustomerStatus::REJECTED) {
-                $customer->callback_url = null;
-                $customer->save();
-                $customer->refresh();
-            }
-        } else {
-            Log::debug(
-                'Customer status change callback URL is null, no callback execution action is needed.',
-                ['context' => 'sep12'],
-            );
-        }
-    }
-
-    /**
-     * Returns the signature header value for the customer callback.
-     *
-     * @param GetCustomerResponse $sep12CustomerData the customer data to be sent in request body.
-     * @param string $callbackUrl the callback URL.
-     */
-    private static function getCallbackSignatureHeader(
-        GetCustomerResponse $sep12CustomerData,
-        string $callbackUrl
-    ): string {
-        $signingSeed = config('stellar.server.server_account_signing_key');
-        $anchorKeys = KeyPair::fromSeed($signingSeed);
-        $currentTime = round(microtime(true));
-        $signature = $currentTime . '.' . $callbackUrl . '.' . json_encode($sep12CustomerData);
-        Log::debug(
-            'The SEP-12 status change callback header signature to be signed.',
-            ['context' => 'sep12', 'signature' => $signature],
-        );
-        $signature = $anchorKeys->sign($signature);
-        $based64Signature = base64_encode($signature);
-        $signatureHeader = 't=' . $currentTime . ', s=' . $based64Signature;
-        Log::debug(
-            'The SEP-12 status change callback header signed signature.',
-            ['context' => 'sep12', 'signed_signature' => $signatureHeader],
-        );
-
-        return $signatureHeader;
     }
 }

@@ -198,6 +198,9 @@ class Sep31Helper
             'The transaction has been saved successfully.',
             ['context' => 'sep31', 'operation' => 'new_transaction', 'transaction' => json_encode($sep31Transaction)],
         );
+        //Optional call to send callback request
+        //$sep31TransactionBody = self::sep31TransactionResponseFromTx($sep31Transaction);
+        //SepHelper::sendCallbackRequest($sep31Transaction->callback_url, $sep31TransactionBody);
 
         return $sep31Transaction;
     }

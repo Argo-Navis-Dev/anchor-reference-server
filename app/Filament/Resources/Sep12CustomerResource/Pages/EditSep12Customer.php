@@ -13,6 +13,10 @@ use App\Filament\Resources\Sep12CustomerResource\Helper\Sep12CustomerResourceHel
 use App\Models\Sep12Customer;
 use App\Models\Sep12Field;
 use App\Models\Sep12ProvidedField;
+use App\Stellar\Sep12Customer\CustomerIntegration;
+use App\Stellar\Sep12Customer\Sep12Helper;
+use App\Stellar\Shared\SepHelper;
+use ArgoNavis\PhpAnchorSdk\callback\GetCustomerRequest;
 use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
 use Filament\Actions;
 use Filament\Actions\Action;
@@ -124,6 +128,11 @@ class EditSep12Customer extends EditRecord
             'The processed data for save action.',
             ['context' => 'sep12_ui', 'data' => json_encode($data)],
         );
+        // Send the callback request to the customer's callback URL.
+        $getCustomerRequest = new GetCustomerRequest($customer->account_id, $customer->memo);
+        $customerIntegration = new CustomerIntegration();
+        $sep12CustomerData = $customerIntegration->getCustomer($getCustomerRequest);
+        SepHelper::sendCallbackRequest($customer->callback_url, $sep12CustomerData);
 
         return $data;
     }
