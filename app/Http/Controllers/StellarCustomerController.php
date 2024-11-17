@@ -42,10 +42,10 @@ class StellarCustomerController extends Controller
             $sep10Jwt = Sep10Jwt::fromArray($auth);
             $customerIntegration = new CustomerIntegration();
             $sep12Service = new Sep12Service(
-                $customerIntegration,
-                new StellarAppConfig(),
-                null,
-                Log::getLogger(),
+                customerIntegration: $customerIntegration,
+                appConfig: new StellarAppConfig(),
+                config: null,
+                logger: Log::getLogger(),
             );
             return $sep12Service->handleRequest($request, $sep10Jwt);
         } catch (InvalidSep10JwtData $e) {

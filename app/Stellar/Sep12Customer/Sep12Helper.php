@@ -22,6 +22,7 @@ use ArgoNavis\PhpAnchorSdk\shared\CustomerField;
 use ArgoNavis\PhpAnchorSdk\shared\CustomerStatus;
 use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerField;
 use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
+use ArgoNavis\PhpAnchorSdk\Stellar\CallbackHelper;
 use DateTime;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Database\Eloquent\Collection;
@@ -259,8 +260,14 @@ class Sep12Helper
 
         // check if any automatic validation request can be sent.
         self::sendVerificationCode($allSep12Fields, $fieldsThatRequireVerification);
-        //Call the status change callback.
-        SepHelper::sendCallbackRequest($customer->callback_url, self::buildCustomerResponse($customer));
+        //Send the callback request to the customer's callback URL.
+        $signingSeed = config('stellar.server.server_account_signing_key');
+        CallbackHelper::setLogger(Log::getLogger());
+        CallbackHelper::sendCallbackRequest(
+            self::buildCustomerResponse($customer),
+            $signingSeed,
+            $customer->callback_url,
+        );
 
         return $customer;
     }
@@ -398,9 +405,17 @@ class Sep12Helper
         $customer->save();
         $customer->refresh();
         if ($customerStatus !== $customer->status) {
-            SepHelper::sendCallbackRequest($customer->callback_url, self::buildCustomerResponse($customer));
             if ($customer->status === CustomerStatus::ACCEPTED ||
                 $customer->status === CustomerStatus::REJECTED) {
+                //Send the callback request to the customer's callback URL.
+                $signingSeed = config('stellar.server.server_account_signing_key');
+                CallbackHelper::setLogger(Log::getLogger());
+                CallbackHelper::sendCallbackRequest(
+                    self::buildCustomerResponse($customer),
+                    $signingSeed,
+                    $customer->callback_url,
+                );
+
                 $customer->callback_url = null;
                 $customer->save();
                 $customer->refresh();

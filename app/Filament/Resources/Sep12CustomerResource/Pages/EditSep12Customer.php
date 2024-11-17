@@ -18,10 +18,13 @@ use App\Stellar\Sep12Customer\Sep12Helper;
 use App\Stellar\Shared\SepHelper;
 use ArgoNavis\PhpAnchorSdk\callback\GetCustomerRequest;
 use ArgoNavis\PhpAnchorSdk\shared\ProvidedCustomerFieldStatus;
+use ArgoNavis\PhpAnchorSdk\Stellar\CallbackHelper;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Log;
+
+use Whoops\Handler\CallbackHandler;
 
 use function json_encode;
 
@@ -128,11 +131,13 @@ class EditSep12Customer extends EditRecord
             'The processed data for save action.',
             ['context' => 'sep12_ui', 'data' => json_encode($data)],
         );
-        // Send the callback request to the customer's callback URL.
-        $getCustomerRequest = new GetCustomerRequest($customer->account_id, $customer->memo);
-        $customerIntegration = new CustomerIntegration();
-        $sep12CustomerData = $customerIntegration->getCustomer($getCustomerRequest);
-        SepHelper::sendCallbackRequest($customer->callback_url, $sep12CustomerData);
+//        Send the callback request to the customer's callback URL.
+//        $getCustomerRequest = new GetCustomerRequest($customer->account_id, $customer->memo);
+//        $customerIntegration = new CustomerIntegration();
+//        $sep12CustomerData = $customerIntegration->getCustomer($getCustomerRequest);
+//        $signingSeed = config('stellar.server.server_account_signing_key');
+//        CallbackHelper::setLogger(Log::getLogger());
+//        CallbackHelper::sendCallbackRequest($sep12CustomerData, $signingSeed, $customer->callback_url);
 
         return $data;
     }

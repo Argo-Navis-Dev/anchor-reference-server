@@ -34,6 +34,7 @@ use ArgoNavis\PhpAnchorSdk\shared\Sep06TransactionStatus;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfo;
 use ArgoNavis\PhpAnchorSdk\shared\TransactionFeeInfoDetail;
 use ArgoNavis\PhpAnchorSdk\shared\WithdrawOperation;
+use ArgoNavis\PhpAnchorSdk\Stellar\CallbackHelper;
 use ArgoNavis\PhpAnchorSdk\Stellar\TrustlinesHelper;
 use ArgoNavis\PhpAnchorSdk\util\MemoHelper;
 use DateTime;
@@ -207,9 +208,15 @@ class Sep06Helper
             'The transaction has been saved successfully.',
             ['context' => 'sep06', 'operation' => 'new_deposit', 'transaction' => json_encode($sep06Transaction)],
         );
-        //Optional call to send callback request
-        //$sep06TransactionBody = self::sep06TransactionResponseFromTx($sep06Transaction);
-        //SepHelper::sendCallbackRequest($request->onChangeCallbackUrl, $sep06TransactionBody);
+//        Call the status change callback (optional).
+//        $signingSeed = config('stellar.server.server_account_signing_key');
+//        $sep06TransactionBody = self::sep06TransactionResponseFromTx($sep06Transaction);
+//        CallbackHelper::setLogger(Log::getLogger());
+//        CallbackHelper::sendCallbackRequest(
+//            $sep06TransactionBody,
+//            $signingSeed,
+//            $request->onChangeCallbackUrl,
+//        );
 
         return $sep06Transaction;
     }

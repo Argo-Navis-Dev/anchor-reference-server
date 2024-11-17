@@ -42,7 +42,7 @@ class StellarAppConfig implements IAppConfig
             $localizedText = $default ?? $key;
         }
         Log::info(
-            'Fetching the localized text by the SDK.',
+            'Retrieving the localized text by the SDK.',
             ['localized_text' => $localizedText, 'key' => $key, 'locale' => $locale, 'default' => $default,
                 'params' => json_encode($params),
             ],
